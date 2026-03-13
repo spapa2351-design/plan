@@ -10,78 +10,83 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 :root{--b:#4F46E5;--bl:#EEF2FF;--bd:#4338CA;--g:#10B981;--r:#EF4444;--bo:#E2E8F0;--bg:#F8FAFC;--tx:#0F172A;--mu:#64748B;--fa:#94A3B8;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(79,70,229,.15)}50%{box-shadow:0 0 0 6px rgba(79,70,229,.05)}}
+@keyframes slideDown{from{opacity:0;max-height:0;padding-top:0;padding-bottom:0}to{opacity:1;max-height:500px}}
+@keyframes countUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .au{animation:fadeUp .28s both}.ai{animation:fadeIn .2s both}
 .d1{animation-delay:.06s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}
- 
-/* scrollbars */
+
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
- 
-/* layout */
+
 #app{height:100vh;display:flex;flex-direction:column}
 .hdr{height:56px;background:#fff;border-bottom:1px solid var(--bo);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
 .body{flex:1;display:flex;overflow:hidden}
 .lp{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
 .li{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-bottom:80px}
 .rp{width:380px;background:#fff;border-left:1px solid var(--bo);display:flex;flex-direction:column;overflow:hidden}
- 
-/* cards */
+
 .card{background:#fff;border-radius:14px;border:1px solid var(--bo);padding:22px 24px;box-shadow:0 1px 4px rgba(15,23,42,.04)}
 .ct{font-size:15px;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px}
- 
-/* badge */
+
 .bdg{display:inline-flex;align-items:center;border-radius:99px;font-size:10px;font-weight:700;padding:2px 8px}
 .bi{background:#EEF2FF;color:#4F46E5}.bg{background:#ECFDF5;color:#059669}.br{background:#FEF2F2;color:#DC2626}.bs{background:#F1F5F9;color:#475569}
- 
-/* toggle */
+
 .tog{width:40px;height:22px;border-radius:99px;background:#E2E8F0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;border:none;outline:none}
 .tog.on{background:var(--b)}
 .tog::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .tog.on::after{transform:translateX(18px)}
- 
-/* radio */
-.rad{width:16px;height:16px;border-radius:50%;border:2px solid #CBD5E1;display:inline-block;flex-shrink:0;cursor:pointer;transition:border .15s}
+
+.rad{width:16px;height:16px;border-radius:50%;border:2px solid #CBD5E1;display:inline-block;flex-shrink:0;cursor:pointer;transition:all .2s ease}
 .rad.on{border-color:var(--b);border-width:5px}
- 
-/* inputs */
+
 .fld{width:100%;border:1.5px solid var(--bo);border-radius:10px;padding:9px 13px;font-size:13px;color:var(--tx);outline:none;background:#fff;font-family:inherit;transition:border-color .15s}
 .fld:focus{border-color:var(--b);box-shadow:0 0 0 3px rgba(79,70,229,.08)}
 .flbl{font-size:11px;font-weight:700;color:var(--fa);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block}
- 
-/* buttons */
+
 .btn{border:none;cursor:pointer;font-family:inherit;font-weight:700;border-radius:10px;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
 .bp{background:var(--b);color:#fff;padding:9px 18px;font-size:13px;box-shadow:0 2px 8px rgba(79,70,229,.3)}
 .bp:hover{background:var(--bd)}
 .bs2{background:#fff;color:var(--mu);padding:9px 18px;font-size:13px;border:1.5px solid var(--bo)!important}
 .bs2:hover{border-color:#94A3B8!important;color:var(--tx)}
- 
-/* option row */
+
 .or{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid #F8FAFC}
 .or:last-child{border-bottom:none}
- 
-/* rule card */
-.rc{border:1.5px solid var(--bo);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;position:relative}
+
+/* ── RULE CARDS — flicker-free transitions ── */
+.rc{border:1.5px solid var(--bo);border-radius:14px;padding:16px;cursor:pointer;position:relative;
+  transition:border-color .25s ease, background .25s ease, box-shadow .25s ease}
 .rc.on{border-color:var(--b);background:#F5F7FF;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
- 
-/* info box */
-.ib{background:#F0F4FF;border:1px solid #C7D2FE;border-radius:12px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;font-size:12px;color:#4F46E5;line-height:1.6;font-weight:500}
- 
-/* table */
+.rc .rc-icon{transition:background .25s ease, color .25s ease}
+.rc .rc-label{transition:color .25s ease}
+.rc .rad{transition:all .2s ease}
+
+/* sub-content panel — smooth expand/collapse */
+.rc-sub{
+  overflow:hidden;
+  max-height:0;opacity:0;margin-top:0;
+  transition:max-height .3s ease, opacity .25s ease, margin-top .25s ease;
+}
+.rc.on .rc-sub{
+  max-height:80px;opacity:1;margin-top:10px;
+}
+
+.ib{background:#F0F4FF;border:1px solid #C7D2FE;border-radius:12px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;font-size:12px;color:#4F46E5;line-height:1.6;font-weight:500;
+  transition:all .3s ease;}
+
 .stbl{width:100%;border-collapse:collapse}
 .stbl th{font-size:11px;font-weight:600;color:var(--fa);text-transform:uppercase;letter-spacing:.05em;padding:10px 8px;text-align:left;background:#F8FAFC;border-bottom:1px solid var(--bo)}
 .stbl td{padding:8px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
 .stbl tr:last-child td{border-bottom:none}
 .stbl tbody tr:hover td{background:#FAFBFF}
- 
-/* batch btn */
-.bbt{width:100%;padding:13px;background:#0F172A;color:#fff;font-weight:800;font-size:14px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
-.bbt:hover{background:#1E293B}
- 
-/* day btns */
+
+.bbt{width:100%;padding:13px;background:#0F172A;color:#fff;font-weight:800;font-size:14px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .2s}
+.bbt:hover{background:#1E293B;transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.2)}
+
 .dw{display:flex;gap:5px}
 .db{width:34px;height:34px;border-radius:50%;font-size:12px;font-weight:700;border:1.5px solid var(--bo);background:#fff;color:var(--mu);cursor:pointer;font-family:inherit;transition:all .15s}
 .db.on{background:var(--b);color:#fff;border-color:var(--b)}
- 
-/* roadmap */
+
 .rmh{padding:14px 18px;border-bottom:1px solid #F1F5F9;background:#FAFBFD;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .rmb{flex:1;overflow-y:auto;padding:18px}
 .rmf{padding:13px 16px;border-top:1px solid #F1F5F9;background:#FAFBFD;display:flex;gap:8px;flex-shrink:0}
@@ -104,15 +109,13 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .rqo{background:#F8FAFC;color:var(--fa);border-color:var(--bo)}
 .cb{background:#F8FAFC;border:1px solid var(--bo);border-radius:8px;padding:7px 11px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-top:8px}
 .cb:hover{border-color:var(--b)}
- 
-/* modal */
+
 .ovl{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:200}
 .mdl{background:#fff;border-radius:20px;box-shadow:0 24px 80px rgba(15,23,42,.25);overflow:hidden;animation:fadeUp .28s both}
 .mh{padding:17px 22px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center;background:#FAFBFD}
 .mf{padding:14px 22px;border-top:1px solid #F1F5F9;background:#FAFBFD;display:flex;justify-content:flex-end;gap:8px}
 .mb{padding:22px;overflow-y:auto;max-height:56vh}
- 
-/* lib modal */
+
 .lbm{width:min(820px,92vw);height:560px;display:flex;flex-direction:column}
 .lbs{display:flex;flex:1;overflow:hidden}
 .lbsd{width:150px;border-right:1px solid #F1F5F9;background:#FAFBFD;padding:12px;flex-shrink:0}
@@ -122,30 +125,24 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 .lbc.on{background:#EEF2FF;color:#4F46E5;font-weight:700}
 .lbi{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--bo);border-radius:12px;cursor:pointer;transition:all .15s}
 .lbi:hover{border-color:var(--b);background:#F5F7FF}
- 
-/* selection screen */
+
 .sel{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
 .tg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:900px;width:100%;margin-top:36px}
 .tc{background:#fff;border-radius:20px;border:1.5px solid var(--bo);padding:28px 24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
 .tc:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(15,23,42,.1)}
 .tci{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;font-size:22px}
 .tcb{position:absolute;bottom:12px;right:12px;font-size:56px;opacity:.07;line-height:1;pointer-events:none}
- 
-/* notice */
+
 .ofn{background:#FFF8F8;border:1px solid #FECDD3;border-radius:14px;padding:18px;text-align:center;margin-bottom:18px}
- 
-/* empty */
 .emp{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;border:1.5px dashed #CBD5E1;border-radius:14px;background:#FAFBFC;text-align:center;gap:8px}
- 
-/* grids */
+
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .rg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px}
- 
-/* utils */
+
 .fl{display:flex}.ac{align-items:center}.sb{justify-content:space-between}.f1{flex:1}.mw0{min-width:0}
 .col{flex-direction:column}
-.g4{gap:4px}.g6{gap:6px}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}.g14{gap:14px}.g16{gap:16px}.g18{gap:18px}
+.g4{gap:4px}.g5{gap:5px}.g6{gap:6px}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}.g14{gap:14px}.g16{gap:16px}.g18{gap:18px}
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mt14{margin-top:14px}.mt16{margin-top:16px}
 .mb6{margin-bottom:6px}.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb14{margin-bottom:14px}.mb16{margin-bottom:16px}.mb18{margin-bottom:18px}
 .pt12{padding-top:12px}.bt{border-top:1px solid #F1F5F9}.bb{border-bottom:1px solid #F8FAFC}
@@ -159,6 +156,34 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 input[type=date]::-webkit-calendar-picker-indicator,
 input[type=time]::-webkit-calendar-picker-indicator,
 input[type=datetime-local]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.5}
+
+/* ── NEW: Quick Stats Bar ── */
+.qstats{display:flex;gap:12px;margin-bottom:16px}
+.qstat{flex:1;background:#fff;border:1px solid var(--bo);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;transition:all .2s}
+.qstat:hover{border-color:var(--b);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.06)}
+.qstat-val{font-size:22px;font-weight:800;color:var(--tx);line-height:1;animation:countUp .3s both}
+.qstat-label{font-size:10px;font-weight:700;color:var(--fa);text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
+.qstat-icon{position:absolute;top:12px;right:12px;opacity:.15;font-size:20px}
+
+/* ── NEW: Roadmap Enhance ── */
+.rm-progress{height:3px;background:#E2E8F0;border-radius:3px;margin-top:12px;overflow:hidden}
+.rm-progress-bar{height:100%;background:linear-gradient(90deg,var(--b),var(--g));border-radius:3px;transition:width .6s ease}
+.rm-completion{display:flex;align-items:center;gap:6px;padding:10px 14px;background:linear-gradient(135deg,#F0FDF9,#ECFDF5);border:1px solid #A7F3D0;border-radius:10px;margin-top:10px;font-size:11px;font-weight:700;color:#065F46}
+
+/* ── NEW: Tooltip ── */
+.tip{position:relative}
+.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%) scale(.9);background:#0F172A;color:#fff;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:all .15s}
+.tip:hover::after{opacity:1;transform:translateX(-50%) scale(1)}
+
+/* ── NEW: Drag hint on roadmap items ── */
+.rmic .drag-handle{opacity:0;transition:opacity .15s;color:#CBD5E1;margin-right:4px}
+.rmic:hover .drag-handle{opacity:1}
+
+/* ── NEW: Tag input styling ── */
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag-item{display:inline-flex;align-items:center;gap:4px;background:#F1F5F9;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:#475569}
+.tag-item .tag-x{cursor:pointer;color:#94A3B8;font-size:13px;line-height:1}
+.tag-item .tag-x:hover{color:#EF4444}
 </style>
 </head>
 <body>
@@ -173,11 +198,151 @@ var S = {
     {id:2,date:'',st:'',et:'',place:'',cap:30}
   ],
   mods:[], tog:{en1:false,en2:false,mon:false,unl:false,seq:false,pre:false,qr:true,man:true},
-  libOpen:false, libCat:'all', setOpen:false, setTitle:''
+  libOpen:false, libCat:'all', setOpen:false, setTitle:'',
+  tags:['신입사원','2026년 3월','온보딩'],
+  batchPlace:''
 };
- 
-function upd(patch){Object.assign(S,patch);render();}
- 
+
+// ─── TARGETED UPDATE for rule changes (flicker fix) ──────────────────────────
+var _lastRule = null;
+var _fullRender = true;
+
+function upd(patch){
+  var ruleOnly = patch.rule && Object.keys(patch).length === 1;
+  var sessOnly = patch.sessions && Object.keys(patch).length === 1;
+  Object.assign(S, patch);
+  
+  if(ruleOnly && S.view === 'editor' && !_fullRender){
+    updateRuleCards();
+    updateInfoBox();
+    updateRoadmapRuleState();
+    return;
+  }
+  // Targeted session update — no full render, no flicker
+  if(sessOnly && S.view === 'editor' && !_fullRender){
+    updateSessionContent();
+    updateRoadmapSessions();
+    return;
+  }
+  // Targeted mods update — no full render, no flicker
+  var modsOnly = patch.mods && Object.keys(patch).length === 1;
+  if(modsOnly && S.view === 'editor' && !_fullRender){
+    updateModsContent();
+    return;
+  }
+  _fullRender = false;
+  render();
+}
+
+function updateSessionContent(){
+  var contentArea = document.getElementById('session-content');
+  if(!contentArea) return;
+  contentArea.innerHTML = S.rule === 'all' ? batchContent() : manualContent();
+  bindSessionInputs();
+}
+
+function updateRoadmapSessions(){
+  var rmBody = document.getElementById('rm-items-container');
+  if(rmBody) rmBody.innerHTML = buildRoadmapItems();
+  var countEl = document.getElementById('rm-session-count');
+  if(countEl) countEl.textContent = getDisplaySessions().length + ' Sessions';
+  var totalEl = document.getElementById('rm-total-count');
+  if(totalEl) totalEl.textContent = '총 ' + getDisplaySessions().length + '회차';
+  var qsSess = document.getElementById('qs-session-count');
+  if(qsSess) qsSess.textContent = getDisplaySessions().length;
+  // update progress
+  var ds = getDisplaySessions();
+  var progress = Math.min(100, Math.round((ds.filter(function(s){return s.date;}).length / Math.max(1,ds.length)) * 100));
+  var progBar = document.querySelector('.rm-progress-bar');
+  if(progBar) progBar.style.width = progress + '%';
+  var progLabel = document.getElementById('rm-progress-label');
+  if(progLabel) progLabel.textContent = progress + '% 입력';
+}
+
+function getDisplaySessions(){
+  return S.sessions;
+}
+
+function buildCustomChapters(){
+  var chN=S.ctype==='blended'?3:2;
+  return S.mods.map(function(m,idx){
+    var n=chN+idx;
+    return '<div class="rmc au" style="animation-delay:'+(idx*0.05)+'s">'+
+      '<div class="rmch"><div class="rmn">'+String(n).padStart(2,'0')+'</div>'+
+        '<input value="'+m.title+'" style="font-size:13px;font-weight:800;background:transparent;border:none;outline:none;flex:1;font-family:inherit">'+
+        '<button data-action="removemod" data-mid="'+m.id+'" style="background:none;border:none;cursor:pointer;color:#CBD5E1;display:flex;align-items:center;padding:4px">'+ic('trash',13)+'</button></div>'+
+      '<div class="rmcl"></div>'+
+      '<div class="rmis"><div class="emp" style="padding:20px">'+
+        '<span style="font-size:18px">➕</span>'+
+        '<span style="font-size:11px;color:#94A3B8;font-weight:600">학습 항목이 없습니다</span>'+
+        '<button data-action="openlib" style="font-size:11px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:5px 12px;cursor:pointer;color:#64748B;font-weight:700;display:flex;align-items:center;gap:4px;font-family:inherit">'+ic('plus',11)+' 항목 매핑</button>'+
+      '</div></div></div>';
+  }).join('');
+}
+
+function updateModsContent(){
+  var container = document.getElementById('custom-chapters');
+  if(!container) return;
+  container.innerHTML = buildCustomChapters();
+}
+
+function updateRuleCards(){
+  var rules = ['single','multiple','all'];
+  rules.forEach(function(rid){
+    var el = document.querySelector('.rc[data-val="'+rid+'"]');
+    if(!el) return;
+    var isOn = S.rule === rid;
+    if(isOn) el.classList.add('on'); else el.classList.remove('on');
+    var radEl = el.querySelector('.rad');
+    if(radEl){if(isOn) radEl.classList.add('on'); else radEl.classList.remove('on');}
+    var iconEl = el.querySelector('.rc-icon');
+    if(iconEl){
+      iconEl.style.background = isOn ? '#4F46E5' : '#F1F5F9';
+      iconEl.style.color = isOn ? '#fff' : '#64748B';
+    }
+    var labelEl = el.querySelector('.rc-label');
+    if(labelEl) labelEl.style.color = isOn ? '#4F46E5' : '#334155';
+  });
+  // update content area
+  var contentArea = document.getElementById('session-content');
+  if(contentArea){
+    contentArea.style.opacity = '0';
+    contentArea.style.transform = 'translateY(4px)';
+    setTimeout(function(){
+      contentArea.innerHTML = S.rule === 'all' ? batchContent() : manualContent();
+      contentArea.style.transition = 'opacity .25s ease, transform .25s ease';
+      contentArea.style.opacity = '1';
+      contentArea.style.transform = 'none';
+      bindSessionInputs();
+    }, 80);
+  }
+}
+
+function updateInfoBox(){
+  var ibEl = document.getElementById('rule-info-box');
+  if(!ibEl) return;
+  var msgs = {
+    single: '학습자가 선택할 수 있는 일정(선택지)을 하나씩 추가하세요. 학습자는 이 중 단 1개만 선택 가능합니다.',
+    multiple: '전체 회차 풀을 구성하세요. 학습자는 지정된 수량을 자유롭게 조합하여 선택합니다.',
+    all: '<strong>일괄 생성 모드</strong> — 정기적으로 반복되는 회차 일정을 요일 기반으로 자동 생성합니다'
+  };
+  var icons = {single:'info', multiple:'info', all:'zap'};
+  ibEl.style.opacity = '0';
+  setTimeout(function(){
+    ibEl.innerHTML = ic(icons[S.rule],15,'#4F46E5') + '<p>' + msgs[S.rule] + '</p>';
+    ibEl.style.transition = 'opacity .2s ease';
+    ibEl.style.opacity = '1';
+  }, 100);
+}
+
+function updateRoadmapRuleState(){
+  var ds = getDisplaySessions();
+  var countEl = document.getElementById('rm-session-count');
+  if(countEl) countEl.textContent = ds.length + ' Sessions';
+  var totalEl = document.getElementById('rm-total-count');
+  if(totalEl) totalEl.textContent = '총 ' + ds.length + '회차';
+}
+
 // ─── ICONS ───────────────────────────────────────────────────────────────────
 var IC={
   video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
@@ -198,14 +363,22 @@ var IC={
   wand:'<path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8 19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2 19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/>',
   up:'<polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>',
   srch:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-  rot:'<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.38"/>'
+  rot:'<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.38"/>',
+  grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  bar:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  award:'<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+  copy:'<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  bell:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'
 };
 function ic(n,sz,col){
-  var f=n==='zap'?'currentColor':'none';
+  var f=n==='zap'||n==='star'?'currentColor':'none';
   var s='display:inline-block;vertical-align:middle;flex-shrink:0;'+(col?'color:'+col+';':'');
   return '<svg width="'+(sz||16)+'" height="'+(sz||16)+'" viewBox="0 0 24 24" fill="'+f+'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="'+s+'">'+(IC[n]||'')+'</svg>';
 }
- 
+
 // ─── LIB DATA ─────────────────────────────────────────────────────────────────
 var LIB=[
   {t:'2025년 기업문화 핵심가치 내재화 특강',type:'video',time:'45:20',date:'2026.01.15'},
@@ -215,13 +388,13 @@ var LIB=[
   {t:'신입사원 OJT 최종 평가',type:'exam',time:'20문항',date:'2026.02.10'},
   {t:'보안 인식 중간 점검',type:'exam',time:'10문항',date:'2026.01.05'}
 ];
- 
+
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 function render(){
   document.getElementById('app').innerHTML = S.view==='selection' ? selHTML() : editorHTML();
   bind();
 }
- 
+
 // ── SELECTION ─────────────────────────────────────────────────────────────────
 function selHTML(){
   var types=[
@@ -250,7 +423,7 @@ function selHTML(){
     '<div class="tg">'+cards+'</div>'+
     '<p class="au d3" style="font-size:12px;color:#94A3B8;margin-top:28px">등록 후에도 코스 유형 일부 설정은 변경 가능합니다</p></div>';
 }
- 
+
 // ── EDITOR ────────────────────────────────────────────────────────────────────
 function editorHTML(){
   var lbl={online:'온라인',offline:'오프라인',blended:'블렌디드'}[S.ctype];
@@ -264,7 +437,7 @@ function editorHTML(){
     (S.libOpen?libModalHTML():'')+
     '</div>';
 }
- 
+
 function hdrHTML(lbl,emj,bc){
   return '<div class="hdr">'+
     '<button class="btn" data-action="goback" style="background:none;color:#94A3B8;padding:4px">'+ic('x',18)+'</button>'+
@@ -277,10 +450,11 @@ function hdrHTML(lbl,emj,bc){
     '<button class="btn bs2" style="padding:7px 14px;font-size:12px">임시저장</button>'+
     '<button class="btn bp" style="padding:7px 14px;font-size:12px">등록 완료</button></div>';
 }
- 
+
 // ── LEFT PANEL ────────────────────────────────────────────────────────────────
 function leftHTML(isOff){
   var h='<div class="lp"><div class="li">';
+  h+=quickStatsBar();
   h+=basicCard();
   h+=enrollCard();
   h+=periodCard();
@@ -289,16 +463,39 @@ function leftHTML(isOff){
   h+='</div></div>';
   return h;
 }
- 
+
 function tog_el(key){
   return '<button class="tog'+(S.tog[key]?' on':'')+'" data-action="tog" data-key="'+key+'"></button>';
 }
 function rad(on){return '<span class="rad'+(on?' on':'')+'"></span>';}
 function req_btn(isReq){
-  return '<button class="rqb '+(isReq?'rqr':'rqo')+'" data-action="reqtog">'+( isReq?'필수':'선택')+'</button>';
+  return '<button class="rqb '+(isReq?'rqr':'rqo')+'" data-action="reqtog">'+(isReq?'필수':'선택')+'</button>';
 }
- 
+
+// ── NEW: Quick Stats Bar ──
+function quickStatsBar(){
+  var ds = getDisplaySessions();
+  var sessCount = ds.length;
+  var filledDates = ds.filter(function(s){return s.date;}).length;
+  var typeLabel = {online:'온라인',offline:'오프라인',blended:'블렌디드'}[S.ctype] || '';
+  var completeness = 0;
+  if(S.ctype) completeness += 25;
+  if(sessCount > 0) completeness += 25;
+  if(filledDates > 0) completeness += 25;
+  if(S.tog.en1 || S.tog.en2) completeness += 25;
+
+  return '<div class="qstats au">'+
+    '<div class="qstat"><div class="qstat-val">'+typeLabel+'</div><div class="qstat-label">코스 유형</div><div class="qstat-icon">📋</div></div>'+
+    '<div class="qstat"><div id="qs-session-count" class="qstat-val">'+sessCount+'</div><div class="qstat-label">회차 수</div><div class="qstat-icon">📅</div></div>'+
+    '<div class="qstat"><div class="qstat-val">'+completeness+'%</div><div class="qstat-label">설정 완성도</div><div class="qstat-icon">✅</div></div>'+
+    '<div class="qstat"><div class="qstat-val">'+S.tags.length+'</div><div class="qstat-label">태그</div><div class="qstat-icon">🏷️</div></div>'+
+  '</div>';
+}
+
 function basicCard(){
+  var tagEls = S.tags.map(function(t){
+    return '<span class="tag-item">'+t+'<span class="tag-x" data-action="removetag" data-val="'+t+'">×</span></span>';
+  }).join('');
   return '<div class="card au d1">'+
     '<div class="ct">코스 기본 정보</div>'+
     '<div class="fl col g14">'+
@@ -308,13 +505,18 @@ function basicCard(){
         '<input class="fld" style="border-color:#4F46E5;box-shadow:0 0 0 3px rgba(79,70,229,.08)" value="2026년 3월 온보딩 코스"></div>'+
       '<div style="position:relative"><label style="position:absolute;top:-8px;left:12px;background:#fff;padding:0 4px;font-size:11px;font-weight:600;color:#94A3B8;z-index:1">코스 소개</label>'+
         '<input class="fld" placeholder="코스에 대한 간단한 소개를 입력하세요"></div>'+
+      '<div>'+
+        '<span class="flbl">코스 태그</span>'+
+        '<div class="tag-list">'+tagEls+
+          '<input class="fld" id="tag-input" style="width:120px;padding:4px 8px;font-size:11px;border-radius:6px" placeholder="+ 태그 추가">'+
+        '</div></div>'+
       '<div class="fl ac g16" style="padding-top:12px;border-top:1px solid #F8FAFC">'+
         '<span class="flbl" style="width:68px;margin:0;flex-shrink:0">상단 표시</span>'+
         '<label class="fl ac g8" style="cursor:pointer">'+rad(true)+'<span style="font-size:13px;font-weight:600;color:#334155">기본(표지)</span></label>'+
         '<label class="fl ac g8" style="cursor:pointer">'+rad(false)+'<span style="font-size:13px;color:#64748B">이미지(최대 5장)</span></label>'+
       '</div></div></div>';
 }
- 
+
 function enrollCard(){
   return '<div class="card au d1">'+
     '<div class="ct">수강 등록 방식</div>'+
@@ -327,7 +529,7 @@ function enrollCard(){
       '<div style="font-size:12px;color:#94A3B8;margin-top:2px">'+(S.tog.en2?'사용 중':'관리자가 대상자를 지정하여 등록합니다')+'</div></div>'+
       tog_el('en2')+'</div></div>';
 }
- 
+
 function periodCard(){
   return '<div class="card au d2">'+
     '<div class="ct">수강 기간 지정</div>'+
@@ -342,7 +544,7 @@ function periodCard(){
       '<label class="fl ac g10" style="cursor:pointer">'+rad(false)+'<span style="font-size:13px;color:#64748B">제한 없음</span></label>'+
     '</div></div>';
 }
- 
+
 function policyCard(){
   return '<div class="card au">'+
     '<div class="ct"><span class="bdg br">오프라인 특화</span>오프라인 운영 및 출결 정책</div>'+
@@ -361,36 +563,48 @@ function policyCard(){
         '<div style="font-size:11px;color:#94A3B8;margin-top:2px">앱 미설치 등 예외 상황 발생 시 관리자가 직접 출석 처리할 수 있습니다</div></div></div>'+
       tog_el('man')+'</div></div>';
 }
- 
+
 function sessionsCard(){
   var rules=[
     {id:'single',icon:'①',label:'단일 회차 선택',desc:'여러 일정 중 학습자가 1개만 선택하여 수강합니다'},
     {id:'multiple',icon:'⊞',label:'복수 회차 선택',desc:'지정된 수량만큼 조합하여 선택 수강합니다'},
     {id:'all',icon:'🗓',label:'전체 회차 필수',desc:'모든 회차에 일괄 자동 등록됩니다'}
   ];
+  /* KEY FIX: All three rule cards are always rendered. 
+     Sub-content is inside each card with CSS transition (rc-sub class).
+     No conditional innerHTML swap when switching rules. */
   var rcards=rules.map(function(r){
     var a=S.rule===r.id;
-    var extra='';
-    if(r.id==='multiple'&&a){
-      extra='<div class="fl ac g6" style="margin-top:10px;font-size:12px;font-weight:700;color:#4F46E5;background:#fff;border:1px solid #C7D2FE;border-radius:8px;padding:6px 10px">'+
-        '필수 수강: <input type="number" value="3" style="width:36px;border:1px solid #E2E8F0;border-radius:6px;padding:2px 4px;text-align:center;outline:none;font-weight:700;font-family:inherit"> 회차</div>';
+    var sub='';
+    if(r.id==='multiple'){
+      sub='<div class="rc-sub">'+
+        '<div class="fl ac g6" style="font-size:12px;font-weight:700;color:#4F46E5;background:#fff;border:1px solid #C7D2FE;border-radius:8px;padding:6px 10px">'+
+        '필수 수강: <input type="number" value="3" style="width:36px;border:1px solid #E2E8F0;border-radius:6px;padding:2px 4px;text-align:center;outline:none;font-weight:700;font-family:inherit" onclick="event.stopPropagation()"> 회차</div></div>';
     }
     return '<div class="rc'+(a?' on':'')+'" data-action="setrule" data-val="'+r.id+'">'+
       '<div style="position:absolute;top:13px;right:13px">'+rad(a)+'</div>'+
-      '<div style="width:30px;height:30px;border-radius:8px;background:'+(a?'#4F46E5':'#F1F5F9')+';color:'+(a?'#fff':'#64748B')+';display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:14px;font-weight:800">'+r.icon+'</div>'+
-      '<div style="font-size:13px;font-weight:700;color:'+(a?'#4F46E5':'#334155')+';margin-bottom:6px">'+r.label+'</div>'+
-      '<div style="font-size:11px;color:#94A3B8;line-height:1.55">'+r.desc+'</div>'+extra+'</div>';
+      '<div class="rc-icon" style="width:30px;height:30px;border-radius:8px;background:'+(a?'#4F46E5':'#F1F5F9')+';color:'+(a?'#fff':'#64748B')+';display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:14px;font-weight:800;transition:all .25s">'+r.icon+'</div>'+
+      '<div class="rc-label" style="font-size:13px;font-weight:700;color:'+(a?'#4F46E5':'#334155')+';margin-bottom:6px;transition:color .25s">'+r.label+'</div>'+
+      '<div style="font-size:11px;color:#94A3B8;line-height:1.55">'+r.desc+'</div>'+sub+'</div>';
   }).join('');
- 
+
+  var infoIcon = S.rule==='all' ? 'zap' : 'info';
+  var infoMsg = {
+    single:'학습자가 선택할 수 있는 일정(선택지)을 하나씩 추가하세요. 학습자는 이 중 단 1개만 선택 가능합니다.',
+    multiple:'전체 회차 풀을 구성하세요. 학습자는 지정된 수량을 자유롭게 조합하여 선택합니다.',
+    all:'<strong>일괄 생성 모드</strong> — 정기적으로 반복되는 회차 일정을 요일 기반으로 자동 생성합니다'
+  }[S.rule];
   var content=S.rule==='all'?batchContent():manualContent();
- 
+
   return '<div class="card au">'+
     '<div class="ct"><span class="bdg br">오프라인 핵심</span>수강 신청 방식 및 회차(세션) 구성</div>'+
     '<div class="flbl mb8">학습자 이수 규칙</div>'+
     '<div class="rg">'+rcards+'</div>'+
-    content+'</div>';
+    '<div id="rule-info-box" class="ib">'+ic(infoIcon,15,'#4F46E5')+'<p>'+infoMsg+'</p></div>'+
+    '<div id="session-content">'+content+'</div>'+
+  '</div>';
 }
- 
+
 function batchContent(){
   var bDone=S.sessions.length>0&&S.sessions[0].id>=200;
   var dBtns=['일','월','화','수','목','금','토'].map(function(d){
@@ -403,8 +617,8 @@ function batchContent(){
         '<td><span style="font-weight:800;color:#4F46E5;font-size:12px">'+(i+1)+'회차</span></td>'+
         '<td style="font-size:13px;font-weight:500">'+s.date+'</td>'+
         '<td style="font-size:12px;color:#64748B">'+s.st+' – '+s.et+'</td>'+
-        '<td style="font-size:12px;color:#94A3B8">기본 장소</td>'+
-        '<td style="text-align:center;font-weight:600">'+s.cap+'</td>'+
+        '<td><input class="fld s-pl" data-sid="'+s.id+'" style="padding:5px 8px;font-size:12px" placeholder="장소 입력" value="'+(s.place||'')+'"></td>'+
+        '<td style="text-align:center"><input type="number" class="fld s-cp" data-sid="'+s.id+'" style="padding:5px 4px;font-size:12px;text-align:center;width:52px" value="'+s.cap+'"></td>'+
         '<td style="text-align:center;color:#CBD5E1">—</td></tr>';
     }).join('');
   } else {
@@ -412,29 +626,34 @@ function batchContent(){
       '<span style="font-size:24px">📅</span>'+
       '<p style="font-size:12px;color:#94A3B8">조건을 설정하고 일괄 생성 버튼을 눌러주세요</p></div></td></tr>';
   }
-  return '<div class="ib">'+ic('zap',15,'#4F46E5')+'<p><strong>일괄 생성 모드</strong> — 정기적으로 반복되는 회차 일정을 요일 기반으로 자동 생성합니다</p></div>'+
-    '<div style="background:#F8FAFC;border-radius:14px;padding:18px;border:1px solid #E2E8F0;display:flex;flex-direction:column;gap:16px;margin-bottom:16px">'+
+  return '<div style="background:#F8FAFC;border-radius:14px;padding:18px;border:1px solid #E2E8F0;display:flex;flex-direction:column;gap:16px;margin-bottom:16px">'+
       '<div class="g2">'+
         '<div><label class="flbl">진행 기간</label><div class="fl ac g6"><input type="date" class="fld" style="font-size:12px" value="2026-03-01"><span style="color:#94A3B8">—</span><input type="date" class="fld" style="font-size:12px" value="2026-03-31"></div></div>'+
         '<div><label class="flbl">반복 요일</label><div class="dw">'+dBtns+'</div></div>'+
       '</div>'+
-      '<div class="g3">'+
-        '<div><label class="flbl">공통 시간</label><div class="fl ac g5"><input type="time" class="fld" style="font-size:12px" value="22:00"><span style="color:#94A3B8;font-size:12px">—</span><input type="time" class="fld" style="font-size:12px" value="23:00"></div></div>'+
-        '<div><label class="flbl">공통 정원 (명)</label><input type="number" class="fld" value="30"></div>'+
-        '<div><label class="flbl">그룹 제한</label><input class="fld" placeholder="제한 없음"></div>'+
+      '<div class="g2">'+
+        '<div class="g2">'+
+          '<div><label class="flbl">공통 시간</label><div class="fl ac g5"><input type="time" class="fld" style="font-size:12px" value="22:00"><span style="color:#94A3B8;font-size:12px">—</span><input type="time" class="fld" style="font-size:12px" value="23:00"></div></div>'+
+          '<div><label class="flbl">공통 정원 (명)</label><input type="number" class="fld" value="30"></div>'+
+        '</div>'+
+        '<div class="g2">'+
+          '<div><label class="flbl">기본 장소</label><input id="batch-place" class="fld" placeholder="예) 본사 2층 제1교육장" value="'+S.batchPlace+'"></div>'+
+          '<div><label class="flbl">그룹 제한</label><input class="fld" placeholder="제한 없음"></div>'+
+        '</div>'+
       '</div>'+
       '<button class="bbt" data-action="batch">'+ic('wand',15,'#fff')+' 설정한 규칙으로 전체 회차 일괄 생성</button>'+
     '</div>'+
     '<div style="font-size:12px;color:#94A3B8;margin-bottom:8px;font-weight:600">생성된 회차 목록 '+(bDone?'<span style="color:#10B981;margin-left:4px">✓ '+S.sessions.length+'개 생성됨</span>':'')+'</div>'+
+    (bDone?'<div style="background:#F0FDF9;border:1px solid #A7F3D0;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:#065F46;font-weight:600">'+ic('info',13,'#059669')+' 장소와 정원은 회차별로 개별 수정할 수 있습니다</div>':'')+
     '<div style="border:1px solid #E2E8F0;border-radius:12px;overflow:hidden">'+
       '<table class="stbl"><thead><tr>'+
         '<th style="width:55px">회차</th><th>교육 일자</th><th>교육 시간</th><th>장소</th>'+
         '<th style="text-align:center;width:60px">정원</th><th style="text-align:center;width:65px">그룹</th></tr></thead>'+
       '<tbody>'+trows+'</tbody></table></div>';
 }
- 
+
 function manualContent(){
-  var rows=S.sessions.filter(function(s){return s.id<200;}).map(function(s,i){
+  var rows=getDisplaySessions().map(function(s,i){
     return '<tr>'+
       '<td style="text-align:center;font-weight:800;color:#4F46E5;font-size:13px">'+(i+1)+'</td>'+
       '<td><input type="date" class="fld s-date" data-sid="'+s.id+'" style="padding:7px 9px;font-size:12px" value="'+s.date+'"></td>'+
@@ -449,11 +668,7 @@ function manualContent(){
       '<td><button class="btn" data-action="remsess" data-sid="'+s.id+'" style="background:none;color:#CBD5E1;padding:4px">'+ic('trash',14)+'</button></td>'+
     '</tr>';
   }).join('');
-  var msg=S.rule==='single'?
-    '학습자가 선택할 수 있는 일정(선택지)을 하나씩 추가하세요. 학습자는 이 중 단 1개만 선택 가능합니다.':
-    '전체 회차 풀을 구성하세요. 학습자는 지정된 수량을 자유롭게 조합하여 선택합니다.';
-  return '<div class="ib">'+ic('info',15,'#4F46E5')+'<p>'+msg+'</p></div>'+
-    '<div style="border:1px solid #E2E8F0;border-radius:12px;overflow:hidden">'+
+  return '<div style="border:1px solid #E2E8F0;border-radius:12px;overflow:hidden">'+
       '<table class="stbl"><thead><tr>'+
         '<th style="width:40px;text-align:center">#</th><th>교육 일자</th><th>교육 시간</th><th>장소</th>'+
         '<th style="text-align:center;width:66px">정원</th><th style="text-align:center;width:56px">그룹</th><th style="width:32px"></th></tr></thead>'+
@@ -461,7 +676,7 @@ function manualContent(){
       '<button data-action="addsess" style="width:100%;padding:11px;background:#fff;border:none;border-top:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:700;color:#64748B;cursor:pointer;font-family:inherit;border-radius:0 0 12px 12px">'+ic('plus',13)+' 선택 일정(회차) 추가하기</button>'+
     '</div>';
 }
- 
+
 function optionsCard(){
   var opts=[
     {k:'mon',label:'자리 비움 모니터링',desc:'장시간 자리 비움 시 학습 일시정지 및 알림을 발송합니다'},
@@ -477,37 +692,50 @@ function optionsCard(){
   }).join('');
   return '<div class="card au"><div class="ct">코스 상세 옵션</div>'+rows+'</div>';
 }
- 
+
 // ── RIGHT PANEL ───────────────────────────────────────────────────────────────
 function rightHTML(){
   return '<div class="rp">'+
     (S.ctype==='offline'?offRoadmapHTML():freeRoadmapHTML())+
     '</div>';
 }
- 
-function offRoadmapHTML(){
-  var items='';
-  if(S.sessions.length>0){
-    items=S.sessions.map(function(s,i){
-      var lbl=(S.rule==='single'?'선택 옵션 '+(i+1):(i+1)+'회차')+' — 오프라인 교육';
-      var sub=s.date?(s.date+' · '+s.st+'–'+s.et):'일정 미입력';
-      var isReq=S.rule==='all';
-      var cond=isReq?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid #F1F5F9;display:flex;gap:6px;font-size:10px;color:#64748B"><span style="font-weight:700;color:#4F46E5">이수 조건</span><span>출석 처리 완료 시 자동 이수</span></div>':'';
-      return '<div class="rmi ng">'+
-        '<div class="rmic">'+
-          '<div class="fl ac g10">'+
-            '<div style="width:30px;height:30px;background:#ECFDF5;color:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+ic('map',14)+'</div>'+
-            '<div class="f1 mw0"><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+lbl+'</div>'+
-              '<div style="font-size:10px;color:#94A3B8;margin-top:2px">'+sub+'</div></div>'+
-            '<button class="rqb '+(isReq?'rqr':'rqo')+'" data-action="reqtog">'+(isReq?'필수':'선택')+'</button>'+
-          '</div>'+cond+'</div></div>';
-    }).join('');
-  } else {
-    items='<div class="emp"><span style="font-size:24px">📅</span><p style="font-size:11px;color:#94A3B8">좌측에서 회차를 추가해주세요</p></div>';
+
+function buildRoadmapItems(){
+  var ds = getDisplaySessions();
+  if(ds.length === 0){
+    return '<div class="emp"><span style="font-size:24px">📅</span><p style="font-size:11px;color:#94A3B8">좌측에서 회차를 추가해주세요</p></div>';
   }
+  return ds.map(function(s,i){
+    var lbl=(i+1)+'회차 — 오프라인 교육';
+    var subParts = [];
+    if(s.date) subParts.push(s.date+' · '+s.st+'–'+s.et);
+    if(s.place) subParts.push(s.place);
+    var sub = subParts.length > 0 ? subParts.join(' · ') : '일정 미입력';
+    var isReq=S.rule==='all';
+    var cond=isReq?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid #F1F5F9;display:flex;gap:6px;font-size:10px;color:#64748B"><span style="font-weight:700;color:#4F46E5">이수 조건</span><span>출석 처리 완료 시 자동 이수</span></div>':'';
+    return '<div class="rmi ng">'+
+      '<div class="rmic">'+
+        '<div class="fl ac g10">'+
+          '<span class="drag-handle" style="cursor:grab">'+ic('grip',11,'#CBD5E1')+'</span>'+
+          '<div style="width:30px;height:30px;background:#ECFDF5;color:#059669;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+ic('map',14)+'</div>'+
+          '<div class="f1 mw0"><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+lbl+'</div>'+
+            '<div style="font-size:10px;color:#94A3B8;margin-top:2px">'+sub+'</div></div>'+
+          '<button class="rqb '+(isReq?'rqr':'rqo')+'" data-action="reqtog">'+(isReq?'필수':'선택')+'</button>'+
+        '</div>'+cond+'</div></div>';
+  }).join('');
+}
+
+function offRoadmapHTML(){
+  var ds = getDisplaySessions();
+  var items = buildRoadmapItems();
+  var progress = Math.min(100, Math.round((ds.filter(function(s){return s.date;}).length / Math.max(1,ds.length)) * 100));
+
   return '<div class="rmh">'+
       '<div><div style="font-size:13px;font-weight:800">커리큘럼 로드맵</div>'+
-        '<div style="font-size:10px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:1px">Roadmap Index</div></div></div>'+
+        '<div style="font-size:10px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:1px">Roadmap Index</div></div>'+
+      '<div class="tip" data-tip="회차 일정 입력 진행률">'+
+        '<div id="rm-progress-label" style="background:#EEF2FF;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;color:#4F46E5">'+progress+'% 입력</div>'+
+      '</div></div>'+
     '<div class="rmb">'+
       '<div class="ofn">'+
         '<div style="font-size:28px;margin-bottom:8px">📍</div>'+
@@ -515,20 +743,23 @@ function offRoadmapHTML(){
         '<div style="font-size:11px;color:#64748B;line-height:1.65;margin-bottom:14px">순수 오프라인 코스는 별도 목차 조립 없이<br>좌측 <strong>회차 설정이 로드맵에 자동 반영</strong>됩니다</div>'+
         '<div style="border-top:1px solid #FECDD3;padding-top:12px">'+
           '<p style="font-size:10px;color:#94A3B8;margin-bottom:8px">온라인 사전/사후 학습을 추가하시겠어요?</p>'+
-          '<button data-action="toblended" style="width:100%;background:#fff;border:1.5px solid #4F46E5;color:#4F46E5;border-radius:10px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">블렌디드 코스로 전환</button>'+
+          '<button data-action="toblended" style="width:100%;background:#fff;border:1.5px solid #4F46E5;color:#4F46E5;border-radius:10px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background=\'#4F46E5\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'#fff\';this.style.color=\'#4F46E5\'">✨ 블렌디드 코스로 전환</button>'+
         '</div></div>'+
       '<div class="rmc">'+
         '<div class="rmch"><div class="rmn">01</div>'+
           '<span style="font-size:13px;font-weight:800">현장 교육 참석 및 출석</span>'+
-          '<span class="bdg bg" style="margin-left:auto">'+S.sessions.length+' Sessions</span></div>'+
+          '<span id="rm-session-count" class="bdg bg" style="margin-left:auto">'+ds.length+' Sessions</span></div>'+
         '<div class="rmcl"></div>'+
-        '<div class="rmis">'+items+'</div></div>'+
-      '<div style="padding-top:12px;border-top:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center">'+
+        '<div id="rm-items-container" class="rmis">'+items+'</div></div>'+
+      '<div class="rm-progress"><div class="rm-progress-bar" style="width:'+progress+'%"></div></div>'+
+      '<div style="padding-top:12px;border-top:1px solid #F1F5F9;margin-top:12px;display:flex;justify-content:space-between;align-items:center">'+
         '<div class="fl ac g6" style="font-size:12px;color:#64748B;font-weight:600">'+ic('chk',14,'#10B981')+' 회차 자동 연동 중</div>'+
-        '<span style="font-size:12px;font-weight:800;color:#4F46E5">총 '+S.sessions.length+'회차</span></div>'+
+        '<span id="rm-total-count" style="font-size:12px;font-weight:800;color:#4F46E5">총 '+ds.length+'회차</span></div>'+
+      (ds.filter(function(s){return s.date;}).length === ds.length && ds.length > 0 ?
+        '<div class="rm-completion">'+ic('award',14,'#059669')+' 모든 회차 일정이 입력 완료되었습니다!</div>' : '')+
     '</div>';
 }
- 
+
 function rmItem(iconName,iconBg,iconColor,title,sub,isReq,hasCond,greenStyle){
   var nCls=greenStyle?'ng':'nb';
   var iCls=greenStyle?'rmic gi':'rmic';
@@ -546,6 +777,7 @@ function rmItem(iconName,iconBg,iconColor,title,sub,isReq,hasCond,greenStyle){
   return '<div class="rmi '+nCls+'">'+
     '<div class="'+iCls+'">'+
       '<div class="fl ac g10">'+
+        '<span class="drag-handle" style="cursor:grab">'+ic('grip',11,'#CBD5E1')+'</span>'+
         '<div style="width:30px;height:30px;background:'+iconBg+';color:'+iconColor+';border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+ic(iconName,14)+'</div>'+
         '<div class="f1 mw0">'+
           '<div style="font-size:12px;font-weight:700;color:'+tColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+title+'</div>'+
@@ -555,7 +787,7 @@ function rmItem(iconName,iconBg,iconColor,title,sub,isReq,hasCond,greenStyle){
       '</div>'+condEl+
     '</div></div>';
 }
- 
+
 function freeRoadmapHTML(){
   var chN=S.ctype==='blended'?3:2;
   var blendedCh='';
@@ -566,20 +798,8 @@ function freeRoadmapHTML(){
       '<div class="rmcl"></div>'+
       '<div class="rmis">'+rmItem('map','#D1FAE5','#059669','현장 출석 체크','OFFLINE SESSION LINKED',true,null,true)+'</div></div>';
   }
-  var customChs=S.mods.map(function(m,idx){
-    var n=chN+idx;
-    return '<div class="rmc">'+
-      '<div class="rmch"><div class="rmn">'+String(n).padStart(2,'0')+'</div>'+
-        '<input value="'+m.title+'" style="font-size:13px;font-weight:800;background:transparent;border:none;outline:none;flex:1;font-family:inherit">'+
-        '<button data-action="removemod" data-mid="'+m.id+'" style="background:none;border:none;cursor:pointer;color:#CBD5E1;display:flex;align-items:center;padding:4px">'+ic('trash',13)+'</button></div>'+
-      '<div class="rmcl"></div>'+
-      '<div class="rmis"><div class="emp" style="padding:20px">'+
-        '<span style="font-size:18px">➕</span>'+
-        '<span style="font-size:11px;color:#94A3B8;font-weight:600">학습 항목이 없습니다</span>'+
-        '<button data-action="openlib" style="font-size:11px;background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:5px 12px;cursor:pointer;color:#64748B;font-weight:700;display:flex;align-items:center;gap:4px;font-family:inherit">'+ic('plus',11)+' 항목 매핑</button>'+
-      '</div></div></div>';
-  }).join('');
- 
+  var customChs = buildCustomChapters();
+
   return '<div class="rmh">'+
       '<div><div style="font-size:13px;font-weight:800">커리큘럼 로드맵</div>'+
         '<div style="font-size:10px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:1px">Roadmap Index</div></div>'+
@@ -593,15 +813,16 @@ function freeRoadmapHTML(){
           rmItem('video','#DBEAFE','#2563EB','신입사원 환영사 및 비전 공유','Video · 15:00',true,'진도율 100% · 최소 15분 · 스킵 방지 ON',false)+
           rmItem('doc','#F1F5F9','#64748B','사내 핵심가치 가이드북','Document · PDF',false,null,false)+
         '</div></div>'+
-      blendedCh+customChs+
-      '<button data-action="addmod" style="width:100%;margin-top:14px;padding:13px;border:1.5px dashed #CBD5E1;border-radius:14px;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:#94A3B8;font-size:11px;font-weight:700;font-family:inherit">'+
+      blendedCh+
+      '<div id="custom-chapters">'+customChs+'</div>'+
+      '<button data-action="addmod" style="width:100%;margin-top:14px;padding:13px;border:1.5px dashed #CBD5E1;border-radius:14px;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:#94A3B8;font-size:11px;font-weight:700;font-family:inherit;transition:all .15s" onmouseover="this.style.borderColor=\'#4F46E5\';this.style.color=\'#4F46E5\'" onmouseout="this.style.borderColor=\'#CBD5E1\';this.style.color=\'#94A3B8\'">'+
         ic('plus',15)+' 새 챕터 / 모듈 추가</button>'+
     '</div>'+
     '<div class="rmf">'+
       '<button class="rmt" data-action="openlib">'+ic('plus',13)+' 학습 항목 추가</button>'+
       '<button class="rmt">'+ic('rot',13)+' 기존 코스 링크</button></div>';
 }
- 
+
 // ── MODALS ────────────────────────────────────────────────────────────────────
 function setModalHTML(){
   var title=S.setTitle;
@@ -633,7 +854,7 @@ function setModalHTML(){
         '<button data-action="closeset" class="btn bp" style="padding:8px 16px;font-size:12px">저장</button></div>'+
     '</div></div>';
 }
- 
+
 function libModalHTML(){
   var cats=[{id:'all',l:'전체 항목'},{id:'video',l:'동영상 (VOD)'},{id:'doc',l:'문서 (PDF)'},{id:'exam',l:'시험/퀴즈'},{id:'survey',l:'설문'}];
   var sideBtns=cats.map(function(c){
@@ -652,10 +873,10 @@ function libModalHTML(){
           '<div style="font-size:13px;font-weight:700">'+item.t+'</div>'+
           '<div class="fl g10" style="font-size:11px;color:#94A3B8;margin-top:3px">'+
             '<span style="text-transform:uppercase">'+item.type+'</span><span>'+item.time+'</span><span>'+item.date+'</span></div></div>'+
-        '<button style="padding:5px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:12px;font-weight:700;color:#64748B;background:#fff;cursor:pointer;flex-shrink:0;font-family:inherit">추가</button>'+
+        '<button style="padding:5px 12px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:12px;font-weight:700;color:#64748B;background:#fff;cursor:pointer;flex-shrink:0;font-family:inherit;transition:all .15s" onmouseover="this.style.borderColor=\'#4F46E5\';this.style.color=\'#4F46E5\'" onmouseout="this.style.borderColor=\'#E2E8F0\';this.style.color=\'#64748B\'">추가</button>'+
       '</div>';
     }).join('');
- 
+
   return '<div class="ovl" data-action="closelib">'+
     '<div class="mdl lbm" data-stop="1">'+
       '<div class="mh">'+
@@ -675,39 +896,54 @@ function libModalHTML(){
             '<button style="display:flex;align-items:center;gap:6px;padding:7px 13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;font-weight:700;color:#334155;cursor:pointer;font-family:inherit">'+ic('up',12)+' PC에서 파일 업로드</button></div>'+
         '</div></div></div></div>';
 }
- 
+
 // ─── EVENT DELEGATION ─────────────────────────────────────────────────────────
-function bind(){
-  document.getElementById('app').addEventListener('click',function(e){
-    var el=e.target;
-    // walk up to find data-action
-    while(el&&el.id!=='app'){
-      if(el.dataset&&el.dataset.stop){e.stopPropagation();return;}
-      if(el.dataset&&el.dataset.action){
-        var a=el.dataset.action;
-        if(a==='seltype'){upd({ctype:el.dataset.val,view:'editor'});return;}
-        if(a==='goback'){upd({view:'selection',ctype:null,rule:'single',sessions:[{id:1,date:'',st:'',et:'',place:'',cap:30},{id:2,date:'',st:'',et:'',place:'',cap:30}],mods:[]});return;}
-        if(a==='tog'){var t2=Object.assign({},S.tog);t2[el.dataset.key]=!t2[el.dataset.key];upd({tog:t2});return;}
-        if(a==='setrule'){upd({rule:el.dataset.val});return;}
-        if(a==='togday'){var d=el.dataset.val;var arr=S.days.slice();var i=arr.indexOf(d);if(i>=0)arr.splice(i,1);else arr.push(d);upd({days:arr});return;}
-        if(a==='batch'){upd({sessions:[{id:201,date:'2026-03-02',st:'22:00',et:'23:00',place:'',cap:30},{id:202,date:'2026-03-04',st:'22:00',et:'23:00',place:'',cap:30},{id:203,date:'2026-03-06',st:'22:00',et:'23:00',place:'',cap:30},{id:204,date:'2026-03-09',st:'22:00',et:'23:00',place:'',cap:30}]});return;}
-        if(a==='addsess'){var ss=S.sessions.slice();ss.push({id:Date.now(),date:'',st:'',et:'',place:'',cap:30});upd({sessions:ss});return;}
-        if(a==='remsess'){upd({sessions:S.sessions.filter(function(s){return s.id!==parseInt(el.dataset.sid);})});return;}
-        if(a==='addmod'){var ms=S.mods.slice();var mn=(S.ctype==='blended'?3:2)+ms.length;ms.push({id:Date.now(),title:'새 챕터 '+mn});upd({mods:ms});return;}
-        if(a==='removemod'){upd({mods:S.mods.filter(function(m){return m.id!==parseInt(el.dataset.mid);})});return;}
-        if(a==='toblended'){upd({ctype:'blended'});return;}
-        if(a==='openlib'){upd({libOpen:true});return;}
-        if(a==='closelib'){upd({libOpen:false});return;}
-        if(a==='setlibcat'){upd({libCat:el.dataset.val});return;}
-        if(a==='opensettings'){upd({setOpen:true,setTitle:el.dataset.title||''});return;}
-        if(a==='closeset'){upd({setOpen:false,setTitle:''});return;}
-        if(a==='reqtog'){el.classList.toggle('rqr');el.classList.toggle('rqo');el.textContent=el.classList.contains('rqr')?'필수':'선택';return;}
-        return;
+var _clickBound = false;
+
+function handleAppClick(e){
+  var el=e.target;
+  while(el&&el.id!=='app'){
+    if(el.dataset&&el.dataset.stop){e.stopPropagation();return;}
+    if(el.dataset&&el.dataset.action){
+      var a=el.dataset.action;
+      if(a==='seltype'){upd({ctype:el.dataset.val,view:'editor'});return;}
+      if(a==='goback'){_fullRender=true;upd({view:'selection',ctype:null,rule:'single',sessions:[{id:1,date:'',st:'',et:'',place:'',cap:30},{id:2,date:'',st:'',et:'',place:'',cap:30}],mods:[]});return;}
+      if(a==='tog'){var t2=Object.assign({},S.tog);t2[el.dataset.key]=!t2[el.dataset.key];upd({tog:t2});return;}
+      if(a==='setrule'){upd({rule:el.dataset.val});return;}
+      if(a==='togday'){var d=el.dataset.val;var arr=S.days.slice();var i=arr.indexOf(d);if(i>=0)arr.splice(i,1);else arr.push(d);upd({days:arr});return;}
+      if(a==='batch'){var bp=document.getElementById('batch-place');var pl=bp?bp.value:'';S.batchPlace=pl;upd({sessions:[{id:201,date:'2026-03-02',st:'22:00',et:'23:00',place:pl,cap:30},{id:202,date:'2026-03-04',st:'22:00',et:'23:00',place:pl,cap:30},{id:203,date:'2026-03-06',st:'22:00',et:'23:00',place:pl,cap:30},{id:204,date:'2026-03-09',st:'22:00',et:'23:00',place:pl,cap:30}]});return;}
+      if(a==='addsess'){var ss=S.sessions.slice();var maxId=ss.reduce(function(mx,s){return s.id>mx?s.id:mx;},0);ss.push({id:maxId+1,date:'',st:'',et:'',place:'',cap:30});upd({sessions:ss});return;}
+      if(a==='remsess'){upd({sessions:S.sessions.filter(function(s){return s.id!==parseInt(el.dataset.sid);})});return;}
+      if(a==='addmod'){var ms=S.mods.slice();var mn=(S.ctype==='blended'?3:2)+ms.length;ms.push({id:Date.now(),title:'새 챕터 '+mn});upd({mods:ms});return;}
+      if(a==='removemod'){upd({mods:S.mods.filter(function(m){return m.id!==parseInt(el.dataset.mid);})});return;}
+      if(a==='toblended'){upd({ctype:'blended'});return;}
+      if(a==='openlib'){upd({libOpen:true});return;}
+      if(a==='closelib'){upd({libOpen:false});return;}
+      if(a==='setlibcat'){upd({libCat:el.dataset.val});return;}
+      if(a==='opensettings'){upd({setOpen:true,setTitle:el.dataset.title||''});return;}
+      if(a==='closeset'){upd({setOpen:false,setTitle:''});return;}
+      if(a==='reqtog'){el.classList.toggle('rqr');el.classList.toggle('rqo');el.textContent=el.classList.contains('rqr')?'필수':'선택';return;}
+      if(a==='removetag'){
+        S.tags=S.tags.filter(function(t){return t!==el.dataset.val;});
+        _fullRender=true;upd({});return;
       }
-      el=el.parentElement;
+      return;
     }
-  });
-  // session input bindings
+    el=el.parentElement;
+  }
+}
+
+function bind(){
+  // Click delegation: bind ONCE only
+  if(!_clickBound){
+    document.getElementById('app').addEventListener('click', handleAppClick);
+    _clickBound = true;
+  }
+  bindSessionInputs();
+  bindTagInput();
+}
+
+function bindSessionInputs(){
   document.querySelectorAll('.s-date,.s-st,.s-et,.s-pl,.s-cp').forEach(function(inp){
     inp.addEventListener('change',function(){
       var sid=parseInt(inp.dataset.sid);
@@ -722,7 +958,24 @@ function bind(){
     });
   });
 }
- 
+
+function bindTagInput(){
+  var tagInput = document.getElementById('tag-input');
+  if(!tagInput) return;
+  tagInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && tagInput.value.trim()){
+      e.preventDefault();
+      var val = tagInput.value.trim();
+      if(S.tags.indexOf(val) < 0){
+        S.tags.push(val);
+        _fullRender = true;
+        upd({});
+      }
+      tagInput.value = '';
+    }
+  });
+}
+
 render();
 </script>
 </body>
