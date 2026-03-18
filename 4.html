@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학습 자산별 이수 판정 로직 가이드</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
+  .logic-card { transition: all 0.2s ease-in-out; height: 100%; display: flex; flex-direction: column; }
+  .logic-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+</style>
+</head>
+<body class="p-6 md:p-12">
+
+<div class="max-w-7xl mx-auto">
+  
+  <!-- Header -->
+  <header class="mb-12 border-b border-gray-200 pb-8">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="bg-indigo-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Logic Architecture</span>
+      <span class="text-gray-400 text-sm font-bold italic">v1.2 평가 자산 세분화</span>
+    </div>
+    <h1 class="text-4xl font-black text-gray-900 tracking-tighter">학습 자산별 <span class="text-indigo-600">이수 판정 조건</span> 정의서</h1>
+    <p class="text-gray-500 mt-4 text-lg font-medium">단순 열람 시 100% 처리 방지 및 평가 목적에 따른 특화 로직 정의</p>
+  </header>
+
+  <!-- Asset Logic Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- 1. 영상 자산 (Video) -->
+    <div class="logic-card bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+      <div class="bg-blue-600 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎬</span>
+          <h3 class="font-black text-lg">영상 항목</h3>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-blue-600 mb-4 uppercase tracking-widest">Criteria</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> 재생율(95%↑) 달성</li>
+          <li class="flex items-start gap-2"><span>●</span> 배속/탐색 조작 제한</li>
+          <li class="flex items-start gap-2"><span>●</span> 시점 자동 세션 저장</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2. 문서 자산 (Document) -->
+    <div class="logic-card bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+      <div class="bg-purple-600 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📄</span>
+          <h3 class="font-black text-lg">문서 (PDF)</h3>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-purple-600 mb-4 uppercase tracking-widest">Criteria</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> 설정된 체류 시간 경과</li>
+          <li class="flex items-start gap-2"><span>●</span> 마지막 페이지 도달</li>
+          <li class="flex items-start gap-2 text-red-500"><span>●</span> 완료 버튼 수동 클릭</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3. 아티클 자산 (Article) -->
+    <div class="logic-card bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+      <div class="bg-teal-600 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📰</span>
+          <h3 class="font-black text-lg">아티클</h3>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-teal-600 mb-4 uppercase tracking-widest">Criteria</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> 스크롤 도달률 100%</li>
+          <li class="flex items-start gap-2"><span>●</span> 갤러리 이미지 전체 확인</li>
+          <li class="flex items-start gap-2"><span>●</span> 최소 열람 시간 충족</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 4. 출석 자산 (Attendance) -->
+    <div class="logic-card bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+      <div class="bg-green-600 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📍</span>
+          <h3 class="font-black text-lg">오프라인 출석</h3>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-green-600 mb-4 uppercase tracking-widest">Criteria</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> QR 코드 스캔 성공</li>
+          <li class="flex items-start gap-2"><span>●</span> 위치(GPS) 반경 인증</li>
+          <li class="flex items-start gap-2"><span>●</span> 관리자 현장 승인</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 5. 시험 자산 (Exam) -->
+    <div class="logic-card bg-white rounded-3xl border-2 border-red-400 overflow-hidden shadow-md">
+      <div class="bg-red-600 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📝</span>
+          <h3 class="font-black text-lg">시험 (Exam)</h3>
+        </div>
+        <span class="text-[10px] bg-red-800 px-2 py-1 rounded-full font-bold">Pass/Fail</span>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-red-600 mb-4 uppercase tracking-widest font-mono">High-Stakes Evaluation</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> <b>컷오프 점수 이상 획득</b></li>
+          <li class="flex items-start gap-2"><span>●</span> 응시 시간/기회 제한 작동</li>
+          <li class="flex items-start gap-2 text-red-600 italic underline"><span>●</span> 최종 제출 액션 필수</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 6. 퀴즈 자산 (Quiz) -->
+    <div class="logic-card bg-white rounded-3xl border-2 border-orange-400 overflow-hidden shadow-md">
+      <div class="bg-orange-500 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">💡</span>
+          <h3 class="font-black text-lg">퀴즈 (Quiz)</h3>
+        </div>
+        <span class="text-[10px] bg-orange-700 px-2 py-1 rounded-full font-bold">Knowledge Check</span>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-orange-600 mb-4 uppercase tracking-widest font-mono">Learning-Based</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> 모든 문항 풀이 완료</li>
+          <li class="flex items-start gap-2"><span>●</span> 점수 무관 또는 재도전 허용</li>
+          <li class="flex items-start gap-2"><span>●</span> 즉시 피드백/해설 열람</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 7. 설문 자산 (Survey) -->
+    <div class="logic-card bg-white rounded-3xl border-2 border-yellow-400 overflow-hidden shadow-md">
+      <div class="bg-yellow-500 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📊</span>
+          <h3 class="font-black text-lg">설문 (Survey)</h3>
+        </div>
+        <span class="text-[10px] bg-yellow-700 px-2 py-1 rounded-full font-bold">Feedback</span>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-yellow-600 mb-4 uppercase tracking-widest font-mono">Participation</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> <b>설문 응답 제출 완료</b></li>
+          <li class="flex items-start gap-2"><span>●</span> 정답/오답 기준 없음</li>
+          <li class="flex items-start gap-2"><span>●</span> 필수 문항 응답 여부 체크</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 8. 기존 패키지 (Legacy) -->
+    <div class="logic-card bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm opacity-80">
+      <div class="bg-gray-700 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3 border-l-4 border-red-500 pl-3">
+          <span class="text-2xl">📦</span>
+          <h3 class="font-black text-lg">기존 패키지</h3>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="text-[11px] font-black text-gray-500 mb-4 uppercase tracking-widest font-mono">Inherited Logic</div>
+        <ul class="space-y-4 text-sm font-bold text-gray-700">
+          <li class="flex items-start gap-2"><span>●</span> 내부 모든 페이지 이수 완료</li>
+          <li class="flex items-start gap-2"><span>●</span> 기존 통신 API 신호 계승</li>
+          <li class="flex items-start gap-2 italic"><span>●</span> 코스 내 1개 항목으로 취급</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-12 bg-gray-900 rounded-[40px] p-10 text-white flex flex-col md:flex-row items-center gap-10">
+    <div class="flex-1">
+      <h3 class="text-2xl font-black mb-4 italic">"Purpose-Driven Completion Logic"</h3>
+      <p class="text-gray-400 text-sm leading-relaxed">
+        차세대 아키텍처는 평가의 목적에 따라 이수 판정을 세밀하게 분리합니다. <strong>시험</strong>은 엄격한 성적 기준을, <strong>퀴즈</strong>는 학습 경험을, <strong>설문</strong>은 참여 여부를 각각의 독립된 트리거로 관리하여 데이터의 정합성을 확보합니다.
+      </p>
+    </div>
+    <div class="w-full md:w-48 bg-white/10 p-6 rounded-2xl text-center border border-white/10">
+      <div class="text-xs text-indigo-300 font-bold uppercase mb-1">Total Logic Types</div>
+      <div class="text-4xl font-black text-white">08</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
