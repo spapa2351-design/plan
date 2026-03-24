@@ -1,40 +1,389 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UI Page</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>댓글 관리</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f7}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:20px 28px 14px}
+.topbar h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.topbar .bc{font-size:12px;color:#999}
+.content{padding:20px 28px;display:flex;flex-direction:column;gap:16px}
+.filter-bar{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+select,input{height:32px;padding:0 8px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;outline:none;font-size:13px;font-family:inherit}
+input[type=text]{width:160px}input[type=date]{width:148px}
+.sep{font-size:12px;color:#bbb}
+.divider{width:1px;height:20px;background:#e5e5e5;margin:0 4px}
+.ml{margin-left:auto;display:flex;gap:8px}
+.btn{font-size:13px;padding:0 16px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;cursor:pointer;height:34px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit}
+.btn:hover{background:#f5f5f7}
+.btn.pri{background:#1976d2;color:#fff;border-color:#1976d2}.btn.pri:hover{background:#1565c0}
+.btn.err{color:#c62828;border-color:#ef9a9a}.btn.err:hover{background:#ffebee}
+.table-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden}
+.table-top{padding:12px 18px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between}
+.count{font-size:13px;color:#666}.count b{color:#1a1a1a;font-weight:600}
+.tabs{display:flex}
+.tab{padding:6px 14px;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab:hover{color:#1a1a1a}
+.tab.on{color:#1976d2;border-bottom-color:#1976d2;font-weight:500}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:780px}
+th{padding:10px 14px;font-size:12px;font-weight:500;color:#666;text-align:left;border-bottom:1px solid #e5e5e5;background:#fafafa;white-space:nowrap}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f0f0f0;vertical-align:middle;overflow:hidden}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+tr.sel td{background:#e3f2fd}
+.chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.chip-blue{background:#E6F1FB;color:#185FA5}
+.chip-red{background:#FCEBEB;color:#A32D2D}
+.chip-gray{background:#f0f0f0;color:#555}
+.chip-purple{background:#EEEDFE;color:#534AB7}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.link{color:#1976d2;cursor:pointer}.link:hover{text-decoration:underline}
+.del-line{color:#bbb;text-decoration:line-through;font-size:12px;display:block}
+.ava{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.author-cell{display:flex;align-items:center;gap:7px;overflow:hidden}
+.like-btn{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;cursor:pointer;font-size:12px;color:#888}
+.like-btn:hover,.like-btn.on{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+.act{display:flex;gap:4px}
+.ico{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #e0e0e0;border-radius:7px;cursor:pointer;background:#fff;color:#666;font-size:13px}
+.ico:hover{background:#f5f5f7}
+.ico.del:hover{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+.tbl-footer{padding:12px 18px;border-top:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.pgn{display:flex;align-items:center;gap:6px;font-size:13px;color:#666}
 
-        .container {
-            text-align: center;
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        h1 {
-            font-size: 48px;
-            color: #667eea;
-            margin: 0;
-            font-weight: 700;
-        }
-    </style>
+/* 모달 */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:680px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.modal-hd{padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
+.modal-hd-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.modal-title{font-size:17px;font-weight:600;line-height:1.4}
+.modal-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.modal-meta span{font-size:12px;color:#666}
+.close-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #e0e0e0;border-radius:7px;cursor:pointer;background:#fff;color:#666;font-size:14px;flex-shrink:0}
+.close-btn:hover{background:#f5f5f7}
+.modal-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:22px}
+.sec-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}
+.post-content{font-size:14px;line-height:1.78;color:#333}
+.cmt-list{display:flex;flex-direction:column;gap:7px}
+.cmt{padding:10px 13px;border-radius:9px;background:#fafafa;border:1px solid #f0f0f0}
+.cmt.admin{background:#EBF4FF;border-color:#B5D4F4}
+.cmt.reply{margin-left:26px;position:relative}
+.cmt.reply::before{content:'';position:absolute;left:-13px;top:18px;width:9px;height:1px;background:#ccc}
+.cmt-hd{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.cmt-ava{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.cmt-name{font-size:13px;font-weight:500}
+.cmt-date{font-size:11px;color:#bbb;margin-left:auto}
+.cmt-body{font-size:13px;color:#333;line-height:1.65;padding-left:29px}
+.admin-tag{font-size:10px;padding:1px 6px;border-radius:4px;background:#1976d2;color:#fff;font-weight:500}
+.cmt-acts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+.cmt-btn{font-size:11px;padding:3px 8px;border:1px solid #e5e5e5;border-radius:6px;background:#fff;cursor:pointer;color:#888}
+.cmt-btn:hover{background:#f5f5f7}
+.cmt-btn.del:hover{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+.reply-box{margin-left:26px;margin-top:3px;padding:10px 12px;border:1.5px solid #1976d2;border-radius:9px;background:#fff}
+.reply-label{font-size:12px;font-weight:500;color:#1976d2;margin-bottom:7px}
+.reply-box textarea{width:100%;border:1px solid #e5e5e5;border-radius:8px;padding:7px 9px;font-size:13px;resize:none;outline:none;font-family:inherit;line-height:1.5}
+.reply-box textarea:focus{border-color:#1976d2}
+.reply-footer{display:flex;justify-content:flex-end;gap:7px;margin-top:7px}
+.modal-ft{padding:14px 22px 18px;border-top:1px solid #f0f0f0;flex-shrink:0;background:#fafeff;border-radius:0 0 14px 14px}
+.modal-ft-label{font-size:12px;font-weight:600;color:#1976d2;margin-bottom:7px}
+.modal-ft-row{display:flex;gap:8px;align-items:flex-end}
+.modal-ft-row textarea{flex:1;border:1px solid #ddd;border-radius:8px;padding:7px 9px;font-size:13px;resize:none;outline:none;font-family:inherit;line-height:1.5;min-height:52px}
+.modal-ft-row textarea:focus{border-color:#1976d2}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Hello</h1>
+
+<div class="topbar">
+  <h1>댓글 관리</h1>
+  <div class="bc">홈 / 게시판 / 댓글 관리</div>
+</div>
+
+<div class="content">
+  <div class="filter-bar">
+    <input type="text" placeholder="제목 검색"/>
+    <div class="divider"></div>
+    <input type="text" placeholder="작성자 검색" style="width:140px"/>
+    <div class="divider"></div>
+    <span style="font-size:12px;color:#888">작성일</span>
+    <input type="date"/>
+    <span class="sep">~</span>
+    <input type="date"/>
+    <div class="ml">
+      <button class="btn">↓ 다운로드</button>
+      <button class="btn pri">조회</button>
     </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-top">
+      <span class="count">총 <b id="totalCnt">5</b>개</span>
+      <div class="tabs">
+        <button class="tab on" onclick="setTab(this,'전체')">전체</button>
+        <button class="tab" onclick="setTab(this,'댓글')">댓글만</button>
+        <button class="tab" onclick="setTab(this,'답글')">답글만</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <colgroup>
+          <col style="width:40px"/><col style="width:72px"/><col style="width:170px"/>
+          <col/><col style="width:120px"/><col style="width:138px"/>
+          <col style="width:66px"/><col style="width:78px"/><col style="width:80px"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="chkAll" onchange="toggleAll(this)"/></th>
+            <th>토픽</th><th>원글 제목</th><th>댓글 내용</th>
+            <th>작성자</th><th>작성일</th><th>유형</th><th>좋아요</th><th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="tbl-footer">
+      <button class="btn err" id="delSelBtn">선택 삭제</button>
+      <div class="pgn">
+        <button class="ico">◀</button>
+        <span>1 / 35</span>
+        <button class="ico">▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 원글 모달 -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-hd-row">
+        <div class="modal-title" id="mTitle"></div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-meta" id="mMeta"></div>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="sec-label">본문</div>
+        <div class="post-content" id="mBody"></div>
+      </div>
+      <div>
+        <div class="sec-label" id="mCmtLabel">댓글 0개</div>
+        <div class="cmt-list" id="mCmtList"></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <div class="modal-ft-label">관리자 댓글 작성</div>
+      <div class="modal-ft-row">
+        <textarea id="newCmtInput" placeholder="댓글을 입력하세요..." rows="2"></textarea>
+        <button class="btn pri" onclick="submitNewCmt()">등록</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 이미지 확대 모달 -->
+<div class="overlay" id="mediaOverlay" onclick="closeMedia()" style="z-index:300">
+  <div onclick="event.stopPropagation()" style="position:relative;max-width:90vw;max-height:88vh">
+    <img id="mediaImg" src="" style="max-width:90vw;max-height:85vh;border-radius:10px;display:block"/>
+    <button onclick="closeMedia()" style="position:absolute;top:-12px;right:-12px;width:28px;height:28px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✕</button>
+  </div>
+</div>
+
+<script>
+function openMedia(url,type){
+  if(type==='image'){
+    document.getElementById('mediaImg').src=url;
+    document.getElementById('mediaOverlay').classList.add('open');
+  }
+}
+function closeMedia(){document.getElementById('mediaOverlay').classList.remove('open');}
+const POSTS={
+  p1:{title:"2025년도 입사자 자유",topic:"일반",author:"나재완",date:"2026/03/17 13:00",views:6,likes:1,scraps:1,
+    content:"안녕하세요! 2025년도 입사자 여러분 자유롭게 이야기 나눠요\n\n서로 궁금한 것도 묻고, 정보도 공유하고, 편하게 소통해봐요.",
+    comments:[
+      {id:"c1",author:"김민아",init:"김",bg:"#B5D4F4",fg:"#185FA5",date:"2026/03/17 14:20",body:"저도 궁금했는데 감사합니다!",isAdmin:false,
+        replies:[{id:"r1",author:"관리자",init:"관",bg:"#1976d2",fg:"#fff",date:"2026/03/17 15:00",body:"반갑습니다! 궁금한 점 있으면 언제든지 물어보세요",isAdmin:true}]},
+      {id:"c2",author:"박지원",init:"박",bg:"#F4C0D1",fg:"#993556",date:"2026/03/16 15:03",body:"반갑습니다 잘 부탁드려요!",isAdmin:false,replies:[],files:[{type:"video",name:"intro.mp4",url:""}]}
+    ]},
+  p2:{title:"메일 잘 오나요",topic:"일반",author:"임연희",date:"2026/03/18 11:01",views:4,likes:0,scraps:0,
+    content:"안녕하세요, 어제 가입했는데 가입 확인 메일이 안 온 것 같아서요.\n혹시 스팸함도 확인해봐야 할까요?",
+    comments:[
+      {id:"c3",author:"이성현",init:"이",bg:"#9FE1CB",fg:"#0F6E56",date:"2026/03/17 13:51",body:"이 화면 맞나요? 캡처했어요",isAdmin:false,replies:[],files:[{type:"image",name:"screenshot.png",url:"https://picsum.photos/seed/img1/400/260"},{type:"image",name:"screen2.png",url:"https://picsum.photos/seed/img2/400/260"}]}
+    ]}
+};
+const ROWS=[
+  {id:0,pid:"p1",topic:"일반",title:"2025년도 입사자 자유",  cmt:"안녕하세요! 저도 입사한 지 얼마 안 됐는데 같은 고민이 있었어요. 선배분들한테 물어봤더니 처음엔 다 그렇다고 하더라고요. 저도 궁금했는데 이렇게 올려주셔서 정말 감사합니다!",       author:"김민아",   init:"김",bg:"#B5D4F4",fg:"#185FA5",date:"2026/03/19 14:20",type:"댓글",likes:3,liked:true,  files:[]},
+  {id:1,pid:null, topic:"일반",title:null,                   cmt:"저도 완전 공감이에요. 처음에 정말 막막했는데 이 글 보고 많이 위로 받았어요. 같은 상황인 분들이 이렇게 많다니 신기하면서도 안심이 되네요. 아 맞아요 저도 같은 문제 겪었어요.", author:"삭제된 회원",init:"탈",bg:"#f0f0f0",fg:"#888",   date:"2026/03/18 09:11",type:"댓글",likes:0,liked:false,files:[]},
+  {id:2,pid:"p2",topic:"일반",title:"메일 잘 오나요",         cmt:"저도 메일이 안 왔어서 스팸함 확인해봤는데 거기도 없더라고요. 혹시 입력한 이메일 주소가 맞는지 다시 한번 확인해보시는 게 좋을 것 같아요. 이 화면 맞나요? 캡처했어요.",        author:"이성현",   init:"이",bg:"#9FE1CB",fg:"#0F6E56",date:"2026/03/17 13:51",type:"답글",likes:1,liked:false,files:[{type:"image",name:"screenshot.png",url:"https://picsum.photos/seed/img1/400/260"},{type:"image",name:"screen2.png",url:"https://picsum.photos/seed/img2/400/260"}]},
+  {id:3,pid:"p1",topic:"일반",title:"자기소개_2026",          cmt:"안녕하세요! 올해 입사한 신입입니다. 잘 부탁드려요. 앞으로 많은 것들을 배우고 싶고 열심히 하겠습니다. 반갑습니다 잘 부탁드려요!",         author:"박지원",   init:"박",bg:"#F4C0D1",fg:"#993556",date:"2026/03/16 15:03",type:"댓글",likes:2,liked:true,  files:[{type:"video",name:"intro.mp4",url:""}]},
+  {id:4,pid:"p2",topic:"일반",title:"부관리자 생성(op001)2", cmt:"네, 말씀하신 대로 설정해봤는데 정상적으로 잘 됩니다. 혹시 추가로 확인이 필요한 부분이 있으면 말씀해 주세요. 확인했습니다 감사합니다.",            author:"나재완",   init:"나",bg:"#C0DD97",fg:"#3B6D11",date:"2026/03/15 10:22",type:"답글",likes:0,liked:false,files:[]},
+];
+let rows=JSON.parse(JSON.stringify(ROWS));
+let posts=JSON.parse(JSON.stringify(POSTS));
+let selected=new Set();
+let filterType="전체";
+let currentPid=null;
+
+function nowStr(){const d=new Date();return`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function filtered(){return filterType==="전체"?rows:rows.filter(r=>r.type===(filterType==="댓글"?"댓글":"답글"));}
+function setTab(el,type){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');filterType=type;selected=new Set();render();}
+function toggleAll(cb){const fr=filtered();if(cb.checked)fr.forEach(r=>selected.add(r.id));else selected.clear();render();}
+function toggleSel(id){selected.has(id)?selected.delete(id):selected.add(id);render();}
+function toggleLike(id){const r=rows.find(r=>r.id===id);r.liked=!r.liked;r.likes+=r.liked?1:-1;render();}
+
+function openModal(pid){
+  currentPid=pid;
+  const p=posts[pid];
+  document.getElementById('mTitle').textContent=p.title;
+  document.getElementById('mMeta').innerHTML=`
+    <span class="chip chip-blue">${p.topic}</span>
+    <span>${p.author}</span><span>${p.date}</span>
+    <span>조회 ${p.views}</span>
+    <button id="postLikeBtn" onclick="togglePostLike('${pid}')" style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border:1px solid ${p.liked?'#EF9F27':'#e0e0e0'};border-radius:8px;background:${p.liked?'#FAEEDA':'#fff'};cursor:pointer;font-size:12px;color:${p.liked?'#633806':'#888'}">${p.liked?'♥':'♡'} ${p.likes}</button>
+    <span>스크랩 ${p.scraps}</span>`;
+  document.getElementById('mBody').innerHTML=p.content.replace(/\n/g,'<br>');
+  renderCmts(pid);
+  document.getElementById('overlay').classList.add('open');
+}
+
+function renderCmts(pid){
+  const p=posts[pid];
+  const total=p.comments.reduce((a,c)=>a+1+(c.replies||[]).length,0);
+  document.getElementById('mCmtLabel').textContent=`댓글 ${total}개`;
+  document.getElementById('mCmtList').innerHTML=p.comments.map(c=>`
+    <div>
+      <div class="cmt ${c.isAdmin?'admin':''}">
+        <div class="cmt-hd">
+          <div class="cmt-ava" style="background:${c.bg};color:${c.fg}">${c.init}</div>
+          <span class="cmt-name">${c.author}</span>
+          ${c.isAdmin?'<span class="admin-tag">관리자</span>':''}
+          <span class="cmt-date">${c.date}</span>
+        </div>
+        <div class="cmt-body">${c.body}</div>
+        ${(c.files&&c.files.length)?`<div style="padding-left:29px;margin-top:6px">${c.files.map(f=>f.type==='image'
+          ?`<span onclick="openMedia('${f.url}','image')" title="${f.name}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid #c5dcf5;border-radius:6px;background:#e3f2fd;cursor:pointer;font-size:12px;color:#1976d2"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="2"/><circle cx="7" cy="9" r="1.5"/><path d="M2 14l4-4 3 3 3-4 4 5"/></svg>${f.name}</span>`
+          :`<span title="${f.name}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid #ffcdd2;border-radius:6px;background:#ffebee;font-size:12px;color:#e53935"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="12" height="10" rx="2"/><path d="M14 8l4-2v8l-4-2V8z"/></svg>${f.name}</span>`
+        ).join('')}</div>`:''}
+        <div class="cmt-acts">
+          <button class="like-btn" style="font-size:11px">♡ ${c.likes||0}</button>
+          <button class="cmt-btn" onclick="toggleReply('rbox_${c.id}')">답글 달기</button>
+          <button class="cmt-btn del" onclick="deleteCmt('${pid}','${c.id}',false)">삭제</button>
+        </div>
+      </div>
+      ${(c.replies||[]).map(r=>`
+        <div class="cmt reply ${r.isAdmin?'admin':''}">
+          <div class="cmt-hd">
+            <div class="cmt-ava" style="background:${r.bg};color:${r.fg}">${r.init}</div>
+            <span class="cmt-name">${r.author}</span>
+            ${r.isAdmin?'<span class="admin-tag">관리자</span>':''}
+            <span class="cmt-date">${r.date}</span>
+          </div>
+          <div class="cmt-body">${r.body}</div>
+          <div class="cmt-acts">
+            <button class="like-btn" style="font-size:11px">♡ ${r.likes||0}</button>
+            <button class="cmt-btn del" onclick="deleteCmt('${pid}','${r.id}',true)">삭제</button>
+          </div>
+        </div>`).join('')}
+      <div class="reply-box" id="rbox_${c.id}" style="display:none">
+        <div class="reply-label">관리자 답글 — ${c.author}님에게</div>
+        <textarea rows="2" placeholder="답글을 입력하세요..."></textarea>
+        <div class="reply-footer">
+          <button class="btn" style="height:28px;font-size:12px" onclick="toggleReply('rbox_${c.id}')">취소</button>
+          <button class="btn pri" style="height:28px;font-size:12px" onclick="submitReply('${pid}','${c.id}','rbox_${c.id}')">등록</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleReply(id){
+  const el=document.getElementById(id);
+  const show=el.style.display==='none';
+  el.style.display=show?'block':'none';
+  if(show)el.querySelector('textarea').focus();
+}
+
+function submitReply(pid,cid,boxId){
+  const el=document.getElementById(boxId);
+  const txt=el.querySelector('textarea').value.trim();
+  if(!txt)return;
+  const c=posts[pid].comments.find(c=>c.id===cid);
+  if(!c.replies)c.replies=[];
+  c.replies.push({id:'r'+Date.now(),author:'관리자',init:'관',bg:'#1976d2',fg:'#fff',date:nowStr(),body:txt,isAdmin:true});
+  renderCmts(pid);
+}
+
+function submitNewCmt(){
+  const txt=document.getElementById('newCmtInput').value.trim();
+  if(!txt||!currentPid)return;
+  posts[currentPid].comments.push({id:'c'+Date.now(),author:'관리자',init:'관',bg:'#1976d2',fg:'#fff',date:nowStr(),body:txt,isAdmin:true,replies:[]});
+  document.getElementById('newCmtInput').value='';
+  renderCmts(currentPid);
+}
+
+function deleteCmt(pid,id,isReply){
+  if(isReply)posts[pid].comments=posts[pid].comments.map(c=>({...c,replies:(c.replies||[]).filter(r=>r.id!==id)}));
+  else posts[pid].comments=posts[pid].comments.filter(c=>c.id!==id);
+  renderCmts(pid);
+}
+
+function togglePostLike(pid){
+  const p=posts[pid];
+  p.liked=!p.liked;
+  p.likes+=p.liked?1:-1;
+  const btn=document.getElementById('postLikeBtn');
+  if(btn){
+    btn.style.borderColor=p.liked?'#EF9F27':'#e0e0e0';
+    btn.style.background=p.liked?'#FAEEDA':'#fff';
+    btn.style.color=p.liked?'#633806':'#888';
+    btn.textContent=(p.liked?'♥ ':'♡ ')+p.likes;
+  }
+}
+
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+
+function render(){
+  const fr=filtered();
+  document.getElementById('totalCnt').textContent=fr.length;
+  document.getElementById('delSelBtn').textContent=`선택 삭제${selected.size>0?' ('+selected.size+')':''}`;
+  document.getElementById('tbody').innerHTML=fr.map(r=>`
+    <tr class="${selected.has(r.id)?'sel':''}">
+      <td><input type="checkbox" ${selected.has(r.id)?'checked':''} onchange="toggleSel(${r.id})"/></td>
+      <td><span class="chip chip-blue">${r.topic}</span></td>
+      <td style="overflow:hidden">
+        ${r.pid
+          ?`<a class="ell link" onclick="openModal('${r.pid}')">${r.title}</a>`
+          :`<span class="del-line">(삭제된 글)</span><span class="chip chip-red" style="font-size:10px">삭제</span>`}
+      </td>
+      <td style="overflow:hidden">
+        <div style="display:flex;align-items:center;gap:6px;overflow:hidden">
+          <span class="ell" style="flex:1">${r.cmt}</span>
+          ${r.files&&r.files.length?(r.files[0].type==='image'
+            ?`<span title="이미지 첨부" style="flex-shrink:0;display:inline-flex;align-items:center;color:#1976d2"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="2"/><circle cx="7" cy="9" r="1.5"/><path d="M2 14l4-4 3 3 3-4 4 5"/></svg></span>`
+            :`<span title="동영상 첨부" style="flex-shrink:0;display:inline-flex;align-items:center;color:#e53935"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="12" height="10" rx="2"/><path d="M14 8l4-2v8l-4-2V8z"/></svg></span>`)
+          :''}
+        </div>
+      </td>
+      <td style="overflow:hidden">
+        <div class="author-cell">
+          <div class="ava" style="background:${r.bg};color:${r.fg}">${r.init}</div>
+          <span class="ell" style="color:${r.author==='삭제된 회원'?'#aaa':'#1a1a1a'}">${r.author}</span>
+        </div>
+      </td>
+      <td style="font-size:12px;color:#888;white-space:nowrap">${r.date}</td>
+      <td><span class="chip ${r.type==='답글'?'chip-purple':'chip-gray'}">${r.type}</span></td>
+      <td><button class="like-btn ${r.liked?'on':''}" onclick="toggleLike(${r.id})">${r.liked?'♥':'♡'} ${r.likes}</button></td>
+      <td>
+        <div class="act">
+          <div class="ico del" title="삭제">✕</div>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+render();
+</script>
 </body>
 </html>
