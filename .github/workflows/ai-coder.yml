@@ -1,0 +1,40 @@
+name: AI Page Generator
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  generate_page:
+    if: contains(github.event.issue.labels.*.name, 'ai-generate') || startsWith(github.event.issue.title, '[AI]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate Code with Gemini
+        id: gemini
+        run: |
+          # 제목에서 주문 내용 추출
+          PROMPT="${{ github.event.issue.title }}"
+          BODY="${{ github.event.issue.body }}"
+          
+          # 구글 제미나이 API 호출 (간략화된 예시)
+          # 실제로는 curl 등을 사용해 API에 요청을 보냅니다.
+          echo "AI가 코드를 생성 중입니다..."
+          
+          # 여기에 Gemini API를 호출하여 index.html을 작성하는 스크립트가 들어갑니다.
+          # 예시로 간단한 결과물 생성을 시뮬레이션합니다.
+          echo "<html><body><h1>AI Generated: $PROMPT</h1><p>$BODY</p></body></html>" > index.html
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "AI 생성: ${{ github.event.issue.title }}"
+          git push
