@@ -4,95 +4,316 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>댓글 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f7}
-.topbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:20px 28px 14px}
-.topbar h1{font-size:22px;font-weight:600;margin-bottom:4px}
-.topbar .bc{font-size:12px;color:#999}
-.content{padding:20px 28px;display:flex;flex-direction:column;gap:16px}
-.filter-bar{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-select,input{height:32px;padding:0 8px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;outline:none;font-size:13px;font-family:inherit}
-input[type=text]{width:160px}input[type=date]{width:148px}
-.sep{font-size:12px;color:#bbb}
-.divider{width:1px;height:20px;background:#e5e5e5;margin:0 4px}
+:root{
+  --primary:#5569ff;
+  --primary-light:#a8b0ff;
+  --primary-lighter:#EEF0FF;
+  --primary-dark:#4454CC;
+  --secondary:#6E759F;
+  --success:#57CA22;
+  --warning:#FFA319;
+  --error:#FF1943;
+  --info:#33C2FF;
+  --black:#223354;
+  --body-bg:#f2f5f9;
+  --white:#ffffff;
+  --card-shadow:0px 9px 16px rgba(159,162,191,.18),0px 2px 2px rgba(159,162,191,0.32);
+  --card-shadow-sm:0px 2px 3px rgba(159,162,191,.18),0px 1px 1px rgba(159,162,191,0.32);
+  --primary-shadow:0px 1px 4px rgba(85,105,255,.25),0px 3px 12px 2px rgba(85,105,255,.35);
+  --error-shadow:0px 1px 4px rgba(255,25,67,.25),0px 3px 12px 2px rgba(255,25,67,.35);
+  --radius-sm:6px;
+  --radius:10px;
+  --radius-lg:12px;
+  --radius-xl:16px;
+}
+body{font-family:'Pretendard','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:var(--black);background:var(--body-bg);min-height:100vh}
+
+/* Topbar */
+.topbar{background:var(--white);border-bottom:1px solid rgba(34,51,84,.1);padding:20px 28px 16px;box-shadow:var(--card-shadow-sm)}
+.topbar h1{font-size:22px;font-weight:700;margin-bottom:4px;color:var(--black)}
+.topbar .bc{font-size:12px;color:var(--secondary);opacity:.7}
+
+/* Content */
+.content{padding:24px 28px;display:flex;flex-direction:column;gap:18px}
+
+/* Filter bar */
+.filter-bar{background:var(--white);border-radius:var(--radius-lg);padding:16px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--card-shadow-sm)}
+.filter-label{font-size:12px;color:var(--secondary);font-weight:500;white-space:nowrap}
+select,input[type=text],input[type=date]{
+  height:34px;padding:0 10px;
+  border:1px solid rgba(34,51,84,.15);
+  border-radius:var(--radius-sm);
+  background:var(--white);
+  color:var(--black);
+  outline:none;
+  font-size:13px;
+  font-family:inherit;
+  transition:border-color .15s;
+}
+select:focus,input[type=text]:focus,input[type=date]:focus{border-color:var(--primary)}
+input[type=text]{width:160px}
+input[type=date]{width:148px}
+.sep{font-size:12px;color:rgba(34,51,84,.3)}
+.divider-v{width:1px;height:22px;background:rgba(34,51,84,.1);margin:0 4px}
 .ml{margin-left:auto;display:flex;gap:8px}
-.btn{font-size:13px;padding:0 16px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;cursor:pointer;height:34px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit}
-.btn:hover{background:#f5f5f7}
-.btn.pri{background:#1976d2;color:#fff;border-color:#1976d2}.btn.pri:hover{background:#1565c0}
-.btn.err{color:#c62828;border-color:#ef9a9a}.btn.err:hover{background:#ffebee}
-.table-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden}
-.table-top{padding:12px 18px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between}
-.count{font-size:13px;color:#666}.count b{color:#1a1a1a;font-weight:600}
-.tabs{display:flex}
-.tab{padding:6px 14px;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
-.tab:hover{color:#1a1a1a}
-.tab.on{color:#1976d2;border-bottom-color:#1976d2;font-weight:500}
+
+/* Buttons */
+.btn{
+  font-size:13px;padding:0 16px;
+  border:1px solid rgba(34,51,84,.15);
+  border-radius:var(--radius-sm);
+  background:var(--white);
+  color:var(--black);
+  cursor:pointer;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  font-family:inherit;
+  font-weight:500;
+  transition:all .15s;
+}
+.btn:hover{background:var(--body-bg);border-color:rgba(34,51,84,.25)}
+.btn.pri{
+  background:var(--primary);
+  color:var(--white);
+  border-color:var(--primary);
+  box-shadow:var(--primary-shadow);
+}
+.btn.pri:hover{background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn.err{color:var(--error);border-color:rgba(255,25,67,.3);background:var(--white)}
+.btn.err:hover{background:#FFF0F3;box-shadow:var(--error-shadow)}
+.btn.sm{height:28px;font-size:12px;padding:0 12px}
+
+/* Table card */
+.table-card{background:var(--white);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--card-shadow)}
+.table-top{padding:14px 20px;border-bottom:1px solid rgba(34,51,84,.08);display:flex;align-items:center;justify-content:space-between}
+.count{font-size:13px;color:var(--secondary)}
+.count b{color:var(--black);font-weight:700}
+.tabs{display:flex;gap:2px;background:var(--body-bg);border-radius:var(--radius-sm);padding:3px}
+.tab{
+  padding:5px 14px;
+  font-size:13px;
+  color:var(--secondary);
+  cursor:pointer;
+  border-radius:5px;
+  background:transparent;
+  border:none;
+  font-family:inherit;
+  font-weight:500;
+  transition:all .15s;
+}
+.tab:hover{color:var(--black)}
+.tab.on{background:var(--white);color:var(--primary);box-shadow:var(--card-shadow-sm)}
+
+/* Table */
 .tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:780px}
-th{padding:10px 14px;font-size:12px;font-weight:500;color:#666;text-align:left;border-bottom:1px solid #e5e5e5;background:#fafafa;white-space:nowrap}
-td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f0f0f0;vertical-align:middle;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:800px}
+th{
+  padding:10px 16px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--secondary);
+  text-align:left;
+  border-bottom:1px solid rgba(34,51,84,.08);
+  background:#fafbfd;
+  white-space:nowrap;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+td{padding:11px 16px;font-size:13px;border-bottom:1px solid rgba(34,51,84,.05);vertical-align:middle;overflow:hidden}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#fafafa}
-tr.sel td{background:#e3f2fd}
-.chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+tr:hover td{background:#fafbfd}
+tr.sel td{background:var(--primary-lighter)}
+
+/* Chips */
+.chip{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
 .chip-blue{background:#E6F1FB;color:#185FA5}
 .chip-red{background:#FCEBEB;color:#A32D2D}
-.chip-gray{background:#f0f0f0;color:#555}
+.chip-gray{background:rgba(34,51,84,.07);color:var(--secondary)}
 .chip-purple{background:#EEEDFE;color:#534AB7}
-.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-.link{color:#1976d2;cursor:pointer}.link:hover{text-decoration:underline}
-.del-line{color:#bbb;text-decoration:line-through;font-size:12px;display:block}
-.ava{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
-.author-cell{display:flex;align-items:center;gap:7px;overflow:hidden}
-.like-btn{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;cursor:pointer;font-size:12px;color:#888}
-.like-btn:hover,.like-btn.on{background:#FAEEDA;border-color:#EF9F27;color:#633806}
-.act{display:flex;gap:4px}
-.ico{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #e0e0e0;border-radius:7px;cursor:pointer;background:#fff;color:#666;font-size:13px}
-.ico:hover{background:#f5f5f7}
-.ico.del:hover{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
-.tbl-footer{padding:12px 18px;border-top:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
-.pgn{display:flex;align-items:center;gap:6px;font-size:13px;color:#666}
 
-/* 모달 */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center}
+/* Util */
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.link{color:var(--primary);cursor:pointer;font-weight:500}
+.link:hover{text-decoration:underline}
+.del-line{color:rgba(34,51,84,.3);text-decoration:line-through;font-size:12px;display:block}
+.ava{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.author-cell{display:flex;align-items:center;gap:8px;overflow:hidden}
+
+/* Like btn */
+.like-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;
+  border:1px solid rgba(34,51,84,.12);
+  border-radius:var(--radius-sm);
+  background:var(--white);
+  cursor:pointer;
+  font-size:12px;
+  color:var(--secondary);
+  font-family:inherit;
+  transition:all .15s;
+}
+.like-btn:hover,.like-btn.on{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+
+/* Icon btns */
+.act{display:flex;gap:4px}
+.ico{
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(34,51,84,.12);
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  background:var(--white);
+  color:var(--secondary);
+  font-size:13px;
+  transition:all .15s;
+}
+.ico:hover{background:var(--body-bg)}
+.ico.del:hover{background:#FCEBEB;color:var(--error);border-color:rgba(255,25,67,.3)}
+
+/* Pagination */
+.pgn{display:flex;align-items:center;gap:4px}
+.pgn-btn{
+  min-width:32px;height:32px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid transparent;
+  border-radius:var(--radius-sm);
+  background:transparent;
+  color:var(--secondary);
+  font-size:13px;font-weight:500;
+  cursor:pointer;font-family:inherit;
+  padding:0 4px;
+  transition:all .15s;
+}
+.pgn-btn:hover{background:var(--body-bg);color:var(--black)}
+.pgn-btn.active{background:var(--primary);color:var(--white);border-color:var(--primary);box-shadow:var(--primary-shadow)}
+.pgn-btn.nav{color:var(--secondary)}
+.pgn-btn.nav:disabled{opacity:.3;cursor:default;pointer-events:none}
+.pgn-dots{min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:rgba(34,51,84,.35);pointer-events:none}
+.tbl-footer{padding:12px 20px;border-top:1px solid rgba(34,51,84,.06);display:flex;align-items:center;gap:12px}
+
+/* ——— MODAL ——— */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,12,87,.2);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
 .overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:680px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.18)}
-.modal-hd{padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
-.modal-hd-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
-.modal-title{font-size:17px;font-weight:600;line-height:1.4}
+.modal{
+  background:var(--white);
+  border-radius:var(--radius-xl);
+  width:700px;
+  max-width:96vw;
+  max-height:90vh;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,12,87,.18),0 4px 16px rgba(0,12,87,.1);
+}
+.modal-hd{padding:20px 24px 16px;border-bottom:1px solid rgba(34,51,84,.08);flex-shrink:0}
+.modal-hd-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.modal-title{font-size:17px;font-weight:700;line-height:1.4;color:var(--black)}
 .modal-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.modal-meta span{font-size:12px;color:#666}
-.close-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #e0e0e0;border-radius:7px;cursor:pointer;background:#fff;color:#666;font-size:14px;flex-shrink:0}
-.close-btn:hover{background:#f5f5f7}
-.modal-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:22px}
-.sec-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px}
-.post-content{font-size:14px;line-height:1.78;color:#333}
-.cmt-list{display:flex;flex-direction:column;gap:7px}
-.cmt{padding:10px 13px;border-radius:9px;background:#fafafa;border:1px solid #f0f0f0}
-.cmt.admin{background:#EBF4FF;border-color:#B5D4F4}
-.cmt.reply{margin-left:26px;position:relative}
-.cmt.reply::before{content:'';position:absolute;left:-13px;top:18px;width:9px;height:1px;background:#ccc}
-.cmt-hd{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.cmt-ava{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
-.cmt-name{font-size:13px;font-weight:500}
-.cmt-date{font-size:11px;color:#bbb;margin-left:auto}
-.cmt-body{font-size:13px;color:#333;line-height:1.65;padding-left:29px}
-.admin-tag{font-size:10px;padding:1px 6px;border-radius:4px;background:#1976d2;color:#fff;font-weight:500}
-.cmt-acts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
-.cmt-btn{font-size:11px;padding:3px 8px;border:1px solid #e5e5e5;border-radius:6px;background:#fff;cursor:pointer;color:#888}
-.cmt-btn:hover{background:#f5f5f7}
-.cmt-btn.del:hover{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
-.reply-box{margin-left:26px;margin-top:3px;padding:10px 12px;border:1.5px solid #1976d2;border-radius:9px;background:#fff}
-.reply-label{font-size:12px;font-weight:500;color:#1976d2;margin-bottom:7px}
-.reply-box textarea{width:100%;border:1px solid #e5e5e5;border-radius:8px;padding:7px 9px;font-size:13px;resize:none;outline:none;font-family:inherit;line-height:1.5}
-.reply-box textarea:focus{border-color:#1976d2}
-.reply-footer{display:flex;justify-content:flex-end;gap:7px;margin-top:7px}
-.modal-ft{padding:14px 22px 18px;border-top:1px solid #f0f0f0;flex-shrink:0;background:#fafeff;border-radius:0 0 14px 14px}
-.modal-ft-label{font-size:12px;font-weight:600;color:#1976d2;margin-bottom:7px}
-.modal-ft-row{display:flex;gap:8px;align-items:flex-end}
-.modal-ft-row textarea{flex:1;border:1px solid #ddd;border-radius:8px;padding:7px 9px;font-size:13px;resize:none;outline:none;font-family:inherit;line-height:1.5;min-height:52px}
-.modal-ft-row textarea:focus{border-color:#1976d2}
+.modal-meta span{font-size:12px;color:var(--secondary)}
+.close-btn{
+  width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(34,51,84,.12);
+  border-radius:var(--radius-sm);
+  cursor:pointer;background:var(--white);
+  color:var(--secondary);font-size:14px;flex-shrink:0;
+  transition:all .15s;
+}
+.close-btn:hover{background:var(--body-bg)}
+
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:24px}
+.sec-label{font-size:11px;font-weight:700;color:rgba(34,51,84,.35);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.post-content{font-size:14px;line-height:1.8;color:#333}
+
+/* Comments */
+.cmt-list{display:flex;flex-direction:column;gap:8px}
+.cmt{
+  padding:12px 14px;
+  border-radius:var(--radius);
+  background:#fafbfd;
+  border:1px solid rgba(34,51,84,.07);
+  transition:border-color .15s;
+}
+.cmt:hover{border-color:rgba(34,51,84,.14)}
+.cmt.admin{background:var(--primary-lighter);border-color:rgba(85,105,255,.18)}
+.cmt.reply{margin-left:28px;position:relative}
+.cmt.reply::before{content:'';position:absolute;left:-14px;top:20px;width:10px;height:1px;background:rgba(34,51,84,.2)}
+.cmt-hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.cmt-ava{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.cmt-name{font-size:13px;font-weight:600;color:var(--black)}
+.cmt-date{font-size:11px;color:rgba(34,51,84,.35);margin-left:auto}
+.cmt-body{font-size:13px;color:#444;line-height:1.7;padding-left:32px}
+.admin-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--primary);color:var(--white);font-weight:600;letter-spacing:.02em}
+.cmt-acts{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.cmt-btn{
+  font-size:11px;padding:3px 10px;
+  border:1px solid rgba(34,51,84,.12);
+  border-radius:var(--radius-sm);
+  background:var(--white);
+  cursor:pointer;color:var(--secondary);
+  font-family:inherit;
+  transition:all .15s;
+}
+.cmt-btn:hover{background:var(--body-bg)}
+.cmt-btn.del:hover{background:#FCEBEB;color:var(--error);border-color:rgba(255,25,67,.3)}
+
+/* Reply box */
+.reply-box{
+  margin-left:28px;margin-top:4px;
+  padding:12px 14px;
+  border:1.5px solid var(--primary);
+  border-radius:var(--radius);
+  background:var(--white);
+}
+.reply-label{font-size:12px;font-weight:600;color:var(--primary);margin-bottom:8px}
+.reply-box textarea{
+  width:100%;border:1px solid rgba(34,51,84,.12);
+  border-radius:var(--radius-sm);
+  padding:8px 10px;
+  font-size:13px;resize:none;outline:none;
+  font-family:inherit;line-height:1.6;
+  transition:border-color .15s;
+}
+.reply-box textarea:focus{border-color:var(--primary)}
+.reply-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+
+/* Modal footer */
+.modal-ft{
+  padding:16px 24px 20px;
+  border-top:1px solid rgba(34,51,84,.08);
+  flex-shrink:0;
+  background:#fafbff;
+  border-radius:0 0 var(--radius-xl) var(--radius-xl);
+}
+.modal-ft-label{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px;letter-spacing:.02em}
+.modal-ft-row{display:flex;gap:10px;align-items:flex-end}
+.modal-ft-row textarea{
+  flex:1;border:1px solid rgba(34,51,84,.12);
+  border-radius:var(--radius-sm);
+  padding:8px 10px;
+  font-size:13px;resize:none;outline:none;
+  font-family:inherit;line-height:1.6;min-height:52px;
+  transition:border-color .15s;
+}
+.modal-ft-row textarea:focus{border-color:var(--primary)}
+
+/* File chips */
+.file-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:var(--radius-sm);
+  font-size:12px;cursor:pointer;
+  transition:all .15s;
+}
+.file-chip.img{background:#E6F1FB;border:1px solid #B5D4F4;color:#185FA5}
+.file-chip.img:hover{background:#d0e8f8}
+.file-chip.vid{background:#FCEBEB;border:1px solid #F7C1C1;color:#A32D2D}
 </style>
 </head>
 <body>
@@ -105,15 +326,18 @@ tr.sel td{background:#e3f2fd}
 <div class="content">
   <div class="filter-bar">
     <input type="text" placeholder="제목 검색"/>
-    <div class="divider"></div>
+    <div class="divider-v"></div>
     <input type="text" placeholder="작성자 검색" style="width:140px"/>
-    <div class="divider"></div>
-    <span style="font-size:12px;color:#888">작성일</span>
+    <div class="divider-v"></div>
+    <span class="filter-label">작성일</span>
     <input type="date"/>
     <span class="sep">~</span>
     <input type="date"/>
     <div class="ml">
-      <button class="btn">↓ 다운로드</button>
+      <button class="btn">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2v9M4 8l4 4 4-4"/><path d="M2 14h12"/></svg>
+        다운로드
+      </button>
       <button class="btn pri">조회</button>
     </div>
   </div>
@@ -130,9 +354,9 @@ tr.sel td{background:#e3f2fd}
     <div class="tbl-wrap">
       <table>
         <colgroup>
-          <col style="width:40px"/><col style="width:72px"/><col style="width:170px"/>
-          <col/><col style="width:120px"/><col style="width:138px"/>
-          <col style="width:66px"/><col style="width:78px"/><col style="width:80px"/>
+          <col style="width:42px"/><col style="width:72px"/><col style="width:172px"/>
+          <col/><col style="width:128px"/><col style="width:140px"/>
+          <col style="width:68px"/><col style="width:80px"/><col style="width:72px"/>
         </colgroup>
         <thead>
           <tr>
@@ -146,10 +370,14 @@ tr.sel td{background:#e3f2fd}
     </div>
     <div class="tbl-footer">
       <button class="btn err" id="delSelBtn">선택 삭제</button>
-      <div class="pgn">
-        <button class="ico">◀</button>
-        <span>1 / 35</span>
-        <button class="ico">▶</button>
+      <div class="pgn" id="pgnWrap"></div>
+      <div style="margin-left:auto">
+        <select id="pageSizeSelect" onchange="changePageSize(this.value)" style="height:32px;padding:0 28px 0 10px;border:1px solid rgba(34,51,84,.15);border-radius:var(--radius-sm);background:var(--white);color:var(--secondary);font-size:13px;font-family:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236E759F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 9px center">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
       </div>
     </div>
   </div>
@@ -188,12 +416,15 @@ tr.sel td{background:#e3f2fd}
 <!-- 이미지 확대 모달 -->
 <div class="overlay" id="mediaOverlay" onclick="closeMedia()" style="z-index:300">
   <div onclick="event.stopPropagation()" style="position:relative;max-width:90vw;max-height:88vh">
-    <img id="mediaImg" src="" style="max-width:90vw;max-height:85vh;border-radius:10px;display:block"/>
-    <button onclick="closeMedia()" style="position:absolute;top:-12px;right:-12px;width:28px;height:28px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✕</button>
+    <img id="mediaImg" src="" style="max-width:90vw;max-height:85vh;border-radius:var(--radius-lg);display:block"/>
+    <button onclick="closeMedia()" style="position:absolute;top:-12px;right:-12px;width:28px;height:28px;border-radius:50%;border:none;background:var(--white);box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--black)">✕</button>
   </div>
 </div>
 
 <script>
+const svgImg=`<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="2"/><circle cx="7" cy="9" r="1.5"/><path d="M2 14l4-4 3 3 3-4 4 5"/></svg>`;
+const svgVid=`<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="12" height="10" rx="2"/><path d="M14 8l4-2v8l-4-2V8z"/></svg>`;
+
 function openMedia(url,type){
   if(type==='image'){
     document.getElementById('mediaImg').src=url;
@@ -201,32 +432,75 @@ function openMedia(url,type){
   }
 }
 function closeMedia(){document.getElementById('mediaOverlay').classList.remove('open');}
+
 const POSTS={
-  p1:{title:"2025년도 입사자 자유",topic:"일반",author:"나재완",date:"2026/03/17 13:00",views:6,likes:1,scraps:1,
+  p1:{title:"2025년도 입사자 자유",topic:"일반",author:"나재완",date:"2026/03/17 13:00",views:6,likes:1,liked:false,scraps:1,
     content:"안녕하세요! 2025년도 입사자 여러분 자유롭게 이야기 나눠요\n\n서로 궁금한 것도 묻고, 정보도 공유하고, 편하게 소통해봐요.",
     comments:[
-      {id:"c1",author:"김민아",init:"김",bg:"#B5D4F4",fg:"#185FA5",date:"2026/03/17 14:20",body:"저도 궁금했는데 감사합니다!",isAdmin:false,
-        replies:[{id:"r1",author:"관리자",init:"관",bg:"#1976d2",fg:"#fff",date:"2026/03/17 15:00",body:"반갑습니다! 궁금한 점 있으면 언제든지 물어보세요",isAdmin:true}]},
-      {id:"c2",author:"박지원",init:"박",bg:"#F4C0D1",fg:"#993556",date:"2026/03/16 15:03",body:"반갑습니다 잘 부탁드려요!",isAdmin:false,replies:[],files:[{type:"video",name:"intro.mp4",url:""}]}
+      {id:"c1",author:"김민아",init:"김",bg:"#B5D4F4",fg:"#185FA5",date:"2026/03/17 14:20",body:"저도 궁금했는데 감사합니다!",isAdmin:false,likes:2,
+        replies:[{id:"r1",author:"관리자",init:"관",bg:"#5569ff",fg:"#fff",date:"2026/03/17 15:00",body:"반갑습니다! 궁금한 점 있으면 언제든지 물어보세요",isAdmin:true,likes:0}]},
+      {id:"c2",author:"박지원",init:"박",bg:"#F4C0D1",fg:"#993556",date:"2026/03/16 15:03",body:"반갑습니다 잘 부탁드려요!",isAdmin:false,replies:[],likes:1,files:[{type:"video",name:"intro.mp4",url:""}]}
     ]},
-  p2:{title:"메일 잘 오나요",topic:"일반",author:"임연희",date:"2026/03/18 11:01",views:4,likes:0,scraps:0,
+  p2:{title:"메일 잘 오나요",topic:"일반",author:"임연희",date:"2026/03/18 11:01",views:4,likes:0,liked:false,scraps:0,
     content:"안녕하세요, 어제 가입했는데 가입 확인 메일이 안 온 것 같아서요.\n혹시 스팸함도 확인해봐야 할까요?",
     comments:[
-      {id:"c3",author:"이성현",init:"이",bg:"#9FE1CB",fg:"#0F6E56",date:"2026/03/17 13:51",body:"이 화면 맞나요? 캡처했어요",isAdmin:false,replies:[],files:[{type:"image",name:"screenshot.png",url:"https://picsum.photos/seed/img1/400/260"},{type:"image",name:"screen2.png",url:"https://picsum.photos/seed/img2/400/260"}]}
+      {id:"c3",author:"이성현",init:"이",bg:"#9FE1CB",fg:"#0F6E56",date:"2026/03/17 13:51",body:"이 화면 맞나요? 캡처했어요",isAdmin:false,replies:[],likes:1,files:[{type:"image",name:"screenshot.png",url:"https://picsum.photos/seed/img1/400/260"},{type:"image",name:"screen2.png",url:"https://picsum.photos/seed/img2/400/260"}]}
     ]}
 };
+
 const ROWS=[
-  {id:0,pid:"p1",topic:"일반",title:"2025년도 입사자 자유",  cmt:"안녕하세요! 저도 입사한 지 얼마 안 됐는데 같은 고민이 있었어요. 선배분들한테 물어봤더니 처음엔 다 그렇다고 하더라고요. 저도 궁금했는데 이렇게 올려주셔서 정말 감사합니다!",       author:"김민아",   init:"김",bg:"#B5D4F4",fg:"#185FA5",date:"2026/03/19 14:20",type:"댓글",likes:3,liked:true,  files:[]},
-  {id:1,pid:null, topic:"일반",title:null,                   cmt:"저도 완전 공감이에요. 처음에 정말 막막했는데 이 글 보고 많이 위로 받았어요. 같은 상황인 분들이 이렇게 많다니 신기하면서도 안심이 되네요. 아 맞아요 저도 같은 문제 겪었어요.", author:"삭제된 회원",init:"탈",bg:"#f0f0f0",fg:"#888",   date:"2026/03/18 09:11",type:"댓글",likes:0,liked:false,files:[]},
-  {id:2,pid:"p2",topic:"일반",title:"메일 잘 오나요",         cmt:"저도 메일이 안 왔어서 스팸함 확인해봤는데 거기도 없더라고요. 혹시 입력한 이메일 주소가 맞는지 다시 한번 확인해보시는 게 좋을 것 같아요. 이 화면 맞나요? 캡처했어요.",        author:"이성현",   init:"이",bg:"#9FE1CB",fg:"#0F6E56",date:"2026/03/17 13:51",type:"답글",likes:1,liked:false,files:[{type:"image",name:"screenshot.png",url:"https://picsum.photos/seed/img1/400/260"},{type:"image",name:"screen2.png",url:"https://picsum.photos/seed/img2/400/260"}]},
-  {id:3,pid:"p1",topic:"일반",title:"자기소개_2026",          cmt:"안녕하세요! 올해 입사한 신입입니다. 잘 부탁드려요. 앞으로 많은 것들을 배우고 싶고 열심히 하겠습니다. 반갑습니다 잘 부탁드려요!",         author:"박지원",   init:"박",bg:"#F4C0D1",fg:"#993556",date:"2026/03/16 15:03",type:"댓글",likes:2,liked:true,  files:[{type:"video",name:"intro.mp4",url:""}]},
-  {id:4,pid:"p2",topic:"일반",title:"부관리자 생성(op001)2", cmt:"네, 말씀하신 대로 설정해봤는데 정상적으로 잘 됩니다. 혹시 추가로 확인이 필요한 부분이 있으면 말씀해 주세요. 확인했습니다 감사합니다.",            author:"나재완",   init:"나",bg:"#C0DD97",fg:"#3B6D11",date:"2026/03/15 10:22",type:"답글",likes:0,liked:false,files:[]},
+  {id:0,pid:"p1",topic:"일반",title:"2025년도 입사자 자유",  cmt:"안녕하세요! 저도 입사한 지 얼마 안 됐는데 같은 고민이 있었어요. 선배분들한테 물어봤더니 처음엔 다 그렇다고 하더라고요.",author:"김민아",   init:"김",bg:"#B5D4F4",fg:"#185FA5",date:"2026/03/19 14:20",type:"댓글",likes:3,liked:true, files:[]},
+  {id:1,pid:null, topic:"일반",title:null,                   cmt:"저도 완전 공감이에요. 처음에 정말 막막했는데 이 글 보고 많이 위로 받았어요. 같은 상황인 분들이 이렇게 많다니 신기하면서도 안심이 되네요.",author:"삭제된 회원",init:"탈",bg:"rgba(34,51,84,.1)",fg:"#8892a4",date:"2026/03/18 09:11",type:"댓글",likes:0,liked:false,files:[]},
+  {id:2,pid:"p2",topic:"일반",title:"메일 잘 오나요",         cmt:"저도 메일이 안 왔어서 스팸함 확인해봤는데 거기도 없더라고요. 이 화면 맞나요? 캡처했어요.",author:"이성현",   init:"이",bg:"#9FE1CB",fg:"#0F6E56",date:"2026/03/17 13:51",type:"답글",likes:1,liked:false,files:[{type:"image",name:"screenshot.png",url:"https://picsum.photos/seed/img1/400/260"},{type:"image",name:"screen2.png",url:"https://picsum.photos/seed/img2/400/260"}]},
+  {id:3,pid:"p1",topic:"일반",title:"자기소개_2026",          cmt:"안녕하세요! 올해 입사한 신입입니다. 잘 부탁드려요. 앞으로 많은 것들을 배우고 싶고 열심히 하겠습니다.",author:"박지원",   init:"박",bg:"#F4C0D1",fg:"#993556",date:"2026/03/16 15:03",type:"댓글",likes:2,liked:true, files:[{type:"video",name:"intro.mp4",url:""}]},
+  {id:4,pid:"p2",topic:"일반",title:"부관리자 생성(op001)2", cmt:"네, 말씀하신 대로 설정해봤는데 정상적으로 잘 됩니다. 혹시 추가로 확인이 필요한 부분이 있으면 말씀해 주세요.",author:"나재완",   init:"나",bg:"#C0DD97",fg:"#3B6D11",date:"2026/03/15 10:22",type:"답글",likes:0,liked:false,files:[]},
 ];
+
 let rows=JSON.parse(JSON.stringify(ROWS));
 let posts=JSON.parse(JSON.stringify(POSTS));
 let selected=new Set();
 let filterType="전체";
 let currentPid=null;
+let currentPage=1;
+let pageSize=10;
+const TOTAL_PAGES=3979;
+
+function changePageSize(v){pageSize=parseInt(v);currentPage=1;renderPgn();}
+
+function renderPgn(){
+  const wrap=document.getElementById('pgnWrap');
+  const svgL=`<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>`;
+  const svgR=`<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2l4 4-4 4"/></svg>`;
+  const tp=TOTAL_PAGES;
+  const cp=currentPage;
+  let pages=[];
+  if(tp<=7){
+    for(let i=1;i<=tp;i++)pages.push(i);
+  } else {
+    pages.push(1);
+    if(cp>3)pages.push('...');
+    let s=Math.max(2,cp-1), e=Math.min(tp-1,cp+1);
+    if(cp<=3){s=2;e=5;}
+    if(cp>=tp-2){s=tp-4;e=tp-1;}
+    for(let i=s;i<=e;i++)pages.push(i);
+    if(cp<tp-2)pages.push('...');
+    pages.push(tp);
+  }
+  wrap.innerHTML=
+    `<button class="pgn-btn nav" onclick="goPage(${cp-1})" ${cp===1?'disabled':''}>${svgL}</button>`+
+    pages.map(p=>p==='...'
+      ?`<span class="pgn-dots">···</span>`
+      :`<button class="pgn-btn${p===cp?' active':''}" onclick="goPage(${p})">${p}</button>`
+    ).join('')+
+    `<button class="pgn-btn nav" onclick="goPage(${cp+1})" ${cp===tp?'disabled':''}>${svgR}</button>`;
+}
+
+function goPage(p){
+  const tp=TOTAL_PAGES;
+  if(p<1||p>tp)return;
+  currentPage=p;
+  renderPgn();
+}
 
 function nowStr(){const d=new Date();return`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
 function filtered(){return filterType==="전체"?rows:rows.filter(r=>r.type===(filterType==="댓글"?"댓글":"답글"));}
@@ -241,9 +515,10 @@ function openModal(pid){
   document.getElementById('mTitle').textContent=p.title;
   document.getElementById('mMeta').innerHTML=`
     <span class="chip chip-blue">${p.topic}</span>
-    <span>${p.author}</span><span>${p.date}</span>
+    <span>${p.author}</span>
+    <span>${p.date}</span>
     <span>조회 ${p.views}</span>
-    <button id="postLikeBtn" onclick="togglePostLike('${pid}')" style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border:1px solid ${p.liked?'#EF9F27':'#e0e0e0'};border-radius:8px;background:${p.liked?'#FAEEDA':'#fff'};cursor:pointer;font-size:12px;color:${p.liked?'#633806':'#888'}">${p.liked?'♥':'♡'} ${p.likes}</button>
+    <button id="postLikeBtn" onclick="togglePostLike('${pid}')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid ${p.liked?'#EF9F27':'rgba(34,51,84,.15)'};border-radius:6px;background:${p.liked?'#FAEEDA':'#fff'};cursor:pointer;font-size:12px;color:${p.liked?'#633806':'#6E759F'};font-family:inherit;transition:all .15s">${p.liked?'♥':'♡'} ${p.likes}</button>
     <span>스크랩 ${p.scraps}</span>`;
   document.getElementById('mBody').innerHTML=p.content.replace(/\n/g,'<br>');
   renderCmts(pid);
@@ -264,9 +539,9 @@ function renderCmts(pid){
           <span class="cmt-date">${c.date}</span>
         </div>
         <div class="cmt-body">${c.body}</div>
-        ${(c.files&&c.files.length)?`<div style="padding-left:29px;margin-top:6px">${c.files.map(f=>f.type==='image'
-          ?`<span onclick="openMedia('${f.url}','image')" title="${f.name}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid #c5dcf5;border-radius:6px;background:#e3f2fd;cursor:pointer;font-size:12px;color:#1976d2"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="2"/><circle cx="7" cy="9" r="1.5"/><path d="M2 14l4-4 3 3 3-4 4 5"/></svg>${f.name}</span>`
-          :`<span title="${f.name}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid #ffcdd2;border-radius:6px;background:#ffebee;font-size:12px;color:#e53935"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="12" height="10" rx="2"/><path d="M14 8l4-2v8l-4-2V8z"/></svg>${f.name}</span>`
+        ${(c.files&&c.files.length)?`<div style="padding-left:32px;margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${c.files.map(f=>f.type==='image'
+          ?`<span class="file-chip img" onclick="openMedia('${f.url}','image')" title="${f.name}">${svgImg} ${f.name}</span>`
+          :`<span class="file-chip vid" title="${f.name}">${svgVid} ${f.name}</span>`
         ).join('')}</div>`:''}
         <div class="cmt-acts">
           <button class="like-btn" style="font-size:11px">♡ ${c.likes||0}</button>
@@ -292,8 +567,8 @@ function renderCmts(pid){
         <div class="reply-label">관리자 답글 — ${c.author}님에게</div>
         <textarea rows="2" placeholder="답글을 입력하세요..."></textarea>
         <div class="reply-footer">
-          <button class="btn" style="height:28px;font-size:12px" onclick="toggleReply('rbox_${c.id}')">취소</button>
-          <button class="btn pri" style="height:28px;font-size:12px" onclick="submitReply('${pid}','${c.id}','rbox_${c.id}')">등록</button>
+          <button class="btn sm" onclick="toggleReply('rbox_${c.id}')">취소</button>
+          <button class="btn pri sm" onclick="submitReply('${pid}','${c.id}','rbox_${c.id}')">등록</button>
         </div>
       </div>
     </div>`).join('');
@@ -305,44 +580,37 @@ function toggleReply(id){
   el.style.display=show?'block':'none';
   if(show)el.querySelector('textarea').focus();
 }
-
 function submitReply(pid,cid,boxId){
   const el=document.getElementById(boxId);
   const txt=el.querySelector('textarea').value.trim();
   if(!txt)return;
   const c=posts[pid].comments.find(c=>c.id===cid);
   if(!c.replies)c.replies=[];
-  c.replies.push({id:'r'+Date.now(),author:'관리자',init:'관',bg:'#1976d2',fg:'#fff',date:nowStr(),body:txt,isAdmin:true});
+  c.replies.push({id:'r'+Date.now(),author:'관리자',init:'관',bg:'#5569ff',fg:'#fff',date:nowStr(),body:txt,isAdmin:true,likes:0});
   renderCmts(pid);
 }
-
 function submitNewCmt(){
   const txt=document.getElementById('newCmtInput').value.trim();
   if(!txt||!currentPid)return;
-  posts[currentPid].comments.push({id:'c'+Date.now(),author:'관리자',init:'관',bg:'#1976d2',fg:'#fff',date:nowStr(),body:txt,isAdmin:true,replies:[]});
+  posts[currentPid].comments.push({id:'c'+Date.now(),author:'관리자',init:'관',bg:'#5569ff',fg:'#fff',date:nowStr(),body:txt,isAdmin:true,replies:[],likes:0});
   document.getElementById('newCmtInput').value='';
   renderCmts(currentPid);
 }
-
 function deleteCmt(pid,id,isReply){
   if(isReply)posts[pid].comments=posts[pid].comments.map(c=>({...c,replies:(c.replies||[]).filter(r=>r.id!==id)}));
   else posts[pid].comments=posts[pid].comments.filter(c=>c.id!==id);
   renderCmts(pid);
 }
-
 function togglePostLike(pid){
-  const p=posts[pid];
-  p.liked=!p.liked;
-  p.likes+=p.liked?1:-1;
+  const p=posts[pid];p.liked=!p.liked;p.likes+=p.liked?1:-1;
   const btn=document.getElementById('postLikeBtn');
   if(btn){
-    btn.style.borderColor=p.liked?'#EF9F27':'#e0e0e0';
+    btn.style.borderColor=p.liked?'#EF9F27':'rgba(34,51,84,.15)';
     btn.style.background=p.liked?'#FAEEDA':'#fff';
-    btn.style.color=p.liked?'#633806':'#888';
+    btn.style.color=p.liked?'#633806':'#6E759F';
     btn.textContent=(p.liked?'♥ ':'♡ ')+p.likes;
   }
 }
-
 function closeModal(){document.getElementById('overlay').classList.remove('open');}
 
 function render(){
@@ -356,24 +624,24 @@ function render(){
       <td style="overflow:hidden">
         ${r.pid
           ?`<a class="ell link" onclick="openModal('${r.pid}')">${r.title}</a>`
-          :`<span class="del-line">(삭제된 글)</span><span class="chip chip-red" style="font-size:10px">삭제</span>`}
+          :`<span class="del-line">(삭제된 글)</span><span class="chip chip-red" style="font-size:10px;margin-top:2px">삭제</span>`}
       </td>
       <td style="overflow:hidden">
         <div style="display:flex;align-items:center;gap:6px;overflow:hidden">
           <span class="ell" style="flex:1">${r.cmt}</span>
           ${r.files&&r.files.length?(r.files[0].type==='image'
-            ?`<span title="이미지 첨부" style="flex-shrink:0;display:inline-flex;align-items:center;color:#1976d2"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12" rx="2"/><circle cx="7" cy="9" r="1.5"/><path d="M2 14l4-4 3 3 3-4 4 5"/></svg></span>`
-            :`<span title="동영상 첨부" style="flex-shrink:0;display:inline-flex;align-items:center;color:#e53935"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="12" height="10" rx="2"/><path d="M14 8l4-2v8l-4-2V8z"/></svg></span>`)
+            ?`<span title="이미지 첨부" style="flex-shrink:0;display:inline-flex;align-items:center;color:#185FA5">${svgImg}</span>`
+            :`<span title="동영상 첨부" style="flex-shrink:0;display:inline-flex;align-items:center;color:#A32D2D">${svgVid}</span>`)
           :''}
         </div>
       </td>
       <td style="overflow:hidden">
         <div class="author-cell">
           <div class="ava" style="background:${r.bg};color:${r.fg}">${r.init}</div>
-          <span class="ell" style="color:${r.author==='삭제된 회원'?'#aaa':'#1a1a1a'}">${r.author}</span>
+          <span class="ell" style="color:${r.author==='삭제된 회원'?'rgba(34,51,84,.3)':'var(--black)'}">${r.author}</span>
         </div>
       </td>
-      <td style="font-size:12px;color:#888;white-space:nowrap">${r.date}</td>
+      <td style="font-size:12px;color:var(--secondary);white-space:nowrap">${r.date}</td>
       <td><span class="chip ${r.type==='답글'?'chip-purple':'chip-gray'}">${r.type}</span></td>
       <td><button class="like-btn ${r.liked?'on':''}" onclick="toggleLike(${r.id})">${r.liked?'♥':'♡'} ${r.likes}</button></td>
       <td>
@@ -384,6 +652,7 @@ function render(){
     </tr>`).join('');
 }
 render();
+renderPgn();
 </script>
 </body>
 </html>
