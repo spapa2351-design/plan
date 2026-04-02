@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차세대 LMS 전환: 부서별 가치 흐름도</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+  
+  .flow-line {
+    position: absolute;
+    background-color: #cbd5e1;
+    z-index: 0;
+  }
+  .card-node {
+    position: relative;
+    z-index: 10;
+  }
+</style>
+</head>
+<body class="min-h-screen p-10 flex flex-col items-center">
+
+<div class="w-full max-w-6xl">
+  
+  <!-- Header -->
+  <header class="mb-12 text-center">
+    <h1 class="text-3xl font-black text-gray-900 tracking-tight">차세대 LMS 아키텍처 도입 흐름도</h1>
+    <p class="text-gray-500 mt-2 font-bold">에디터 종속성 탈피 및 B2B 대량 배포 자동화 파급 효과</p>
+  </header>
+
+  <!-- Core Architecture Node -->
+  <div class="flex justify-center mb-16 relative">
+    <div class="card-node bg-gray-900 text-white rounded-xl shadow-2xl p-8 w-[500px] text-center border-t-4 border-blue-500">
+      <div class="text-blue-400 font-bold tracking-widest text-sm mb-2">CORE ENGINE</div>
+      <h2 class="text-2xl font-black mb-4">참조 무결성 기반 통합 자산 라이브러리</h2>
+      <p class="text-gray-400 text-sm">물리적 복사 중단. 논리적 API 뷰(UNION) 통합 및 Blueprint 클로닝 적용.</p>
+    </div>
+    <!-- Vertical Line down from Core -->
+    <div class="flow-line w-1 h-16 top-full left-1/2 transform -translate-x-1/2 bg-gray-300"></div>
+  </div>
+
+  <!-- Departmental Flows -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative mt-8">
+    
+    <!-- Horizontal connecting line -->
+    <div class="hidden md:block flow-line h-1 w-2/3 top-[-34px] left-1/6 right-1/6 mx-auto bg-gray-300 transform translate-x-[25%]"></div>
+    <!-- Vertical connecting lines for side columns -->
+    <div class="hidden md:block flow-line w-1 h-8 top-[-34px] left-[16.666%] bg-gray-300"></div>
+    <div class="hidden md:block flow-line w-1 h-8 top-[-34px] right-[16.666%] bg-gray-300"></div>
+
+    <!-- 1. Operations Flow -->
+    <div class="card-node flex flex-col items-center">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 w-full overflow-hidden">
+        <div class="bg-blue-50 border-b border-blue-100 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          </div>
+          <h3 class="text-lg font-black text-gray-800">운영 / CS</h3>
+        </div>
+        
+        <div class="p-6">
+          <div class="mb-4">
+            <div class="text-xs font-bold text-gray-400 mb-1">AS-IS (문제점)</div>
+            <div class="text-sm font-semibold text-gray-700 bg-gray-50 p-3 rounded">무거운 에디터 강제 사용.<br>동일 자산 반복 업로드.</div>
+          </div>
+          
+          <div class="flex justify-center my-3 text-gray-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+          </div>
+
+          <div class="mb-4">
+            <div class="text-xs font-bold text-blue-500 mb-1">ACTION (해결책)</div>
+            <div class="text-sm font-bold text-blue-900 bg-blue-50 p-3 rounded border border-blue-100">통합 라이브러리에 단일 파일 직접 등록 (Fast Track).</div>
+          </div>
+
+          <div class="flex justify-center my-3 text-blue-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-green-600 mb-1">RESULT (결과)</div>
+            <div class="text-sm font-black text-white bg-blue-600 p-3 rounded shadow-md">코스 조립 공수 80% 감소.<br>무한 재사용 보장.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Development Flow -->
+    <div class="card-node flex flex-col items-center mt-0 md:mt-8">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 w-full overflow-hidden">
+        <div class="bg-green-50 border-b border-green-100 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+          </div>
+          <h3 class="text-lg font-black text-gray-800">개발 / 시스템</h3>
+        </div>
+        
+        <div class="p-6">
+          <div class="mb-4">
+            <div class="text-xs font-bold text-gray-400 mb-1">AS-IS (문제점)</div>
+            <div class="text-sm font-semibold text-gray-700 bg-gray-50 p-3 rounded">레거시 데이터 마이그레이션 공포.<br>복잡한 데이터 해체 요구.</div>
+          </div>
+          
+          <div class="flex justify-center my-3 text-gray-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+          </div>
+
+          <div class="mb-4">
+            <div class="text-xs font-bold text-green-600 mb-1">ACTION (해결책)</div>
+            <div class="text-sm font-bold text-green-900 bg-green-50 p-3 rounded border border-green-100">물리적 분해 차단. 기존 DB 유지.<br>논리적 API 뷰(UNION) 통합 적용.</div>
+          </div>
+
+          <div class="flex justify-center my-3 text-green-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-green-600 mb-1">RESULT (결과)</div>
+            <div class="text-sm font-black text-white bg-green-600 p-3 rounded shadow-md">데이터 이관 공수 제로화.<br>3개월 내 MVP 배포 달성.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Sales Flow -->
+    <div class="card-node flex flex-col items-center">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 w-full overflow-hidden">
+        <div class="bg-purple-50 border-b border-purple-100 p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+          </div>
+          <h3 class="text-lg font-black text-gray-800">영업 / 비즈니스</h3>
+        </div>
+        
+        <div class="p-6">
+          <div class="mb-4">
+            <div class="text-xs font-bold text-gray-400 mb-1">AS-IS (문제점)</div>
+            <div class="text-sm font-semibold text-gray-700 bg-gray-50 p-3 rounded">고객사별 수작업 콘텐츠 복사.<br>비효율적 스토리지 원가 증가.</div>
+          </div>
+          
+          <div class="flex justify-center my-3 text-gray-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+          </div>
+
+          <div class="mb-4">
+            <div class="text-xs font-bold text-purple-600 mb-1">ACTION (해결책)</div>
+            <div class="text-sm font-bold text-purple-900 bg-purple-50 p-3 rounded border border-purple-100">원본 복사 중단. 마스터 코스 생성 후 Blueprint 클로닝 배포.</div>
+          </div>
+
+          <div class="flex justify-center my-3 text-purple-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-green-600 mb-1">RESULT (결과)</div>
+            <div class="text-sm font-black text-white bg-purple-600 p-3 rounded shadow-md">B2B 배포 속도 1초로 단축.<br>과금 모델 라이선스 단위 전환.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

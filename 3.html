@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LMS 차세대 아키텍처 구조도</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
+  .flow-arrow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .box-shadow {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  }
+</style>
+</head>
+<body class="p-6 md:p-12">
+
+<div class="max-w-7xl mx-auto">
+  
+  <!-- 상단 헤더 -->
+  <header class="mb-12 border-b border-gray-200 pb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+    <div>
+      <h1 class="text-4xl font-black tracking-tighter text-gray-900">차세대 LMS <span class="text-blue-600">통합 아키텍처</span> 구조도</h1>
+      <p class="text-gray-500 mt-2 font-medium text-lg">자산 중심의 데이터 선순환 및 코스 배포 자동화 모델</p>
+    </div>
+    <div class="flex gap-2">
+      <span class="px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-xs font-black border border-blue-100 italic">v2.5 Flash-Preview</span>
+    </div>
+  </header>
+
+  <!-- 메인 아키텍처 영역 -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+    <!-- 1. 자산 라이브러리 (데이터 원천) -->
+    <div class="lg:col-span-3 flex flex-col">
+      <div class="bg-orange-600 text-white p-4 rounded-t-2xl flex items-center gap-2">
+        <span class="text-xl">🗄️</span>
+        <h2 class="font-black tracking-tight">자산 라이브러리</h2>
+      </div>
+      <div class="flex-1 bg-white border-x border-b border-gray-200 p-5 rounded-b-2xl box-shadow space-y-4">
+        <div class="text-[11px] font-black text-orange-600 uppercase tracking-widest mb-2">Source of Truth</div>
+        
+        <!-- Asset Types -->
+        <div class="p-3 bg-orange-50 rounded-xl border border-orange-100 flex items-center justify-between group hover:bg-orange-100 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">🎬</span>
+            <span class="text-sm font-bold text-gray-700">단일 영상</span>
+          </div>
+          <span class="text-[10px] bg-white px-2 py-0.5 rounded font-mono">mp4</span>
+        </div>
+        <div class="p-3 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between group hover:bg-blue-100 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">📄</span>
+            <span class="text-sm font-bold text-gray-700">단일 문서</span>
+          </div>
+          <span class="text-[10px] bg-white px-2 py-0.5 rounded font-mono">pdf</span>
+        </div>
+        <div class="p-3 bg-purple-50 rounded-xl border border-purple-100 flex items-center justify-between group hover:bg-purple-100 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">📝</span>
+            <span class="text-sm font-bold text-gray-700">시험 / 설문</span>
+          </div>
+          <span class="text-[10px] bg-white px-2 py-0.5 rounded font-mono">db</span>
+        </div>
+        <div class="p-3 bg-red-50 rounded-xl border border-red-100 flex items-center justify-between group hover:bg-red-100 transition-colors">
+          <div class="flex items-center gap-3 border-l-2 border-red-400 pl-2">
+            <span class="text-lg">📦</span>
+            <span class="text-sm font-bold text-gray-700">기존 패키지</span>
+          </div>
+          <span class="text-[10px] bg-white px-2 py-0.5 rounded font-mono">legacy</span>
+        </div>
+        
+        <div class="mt-6 p-4 bg-gray-900 rounded-xl text-white">
+          <div class="text-[10px] font-bold text-orange-400 mb-1 italic">Policy: Versioning</div>
+          <p class="text-[10px] text-gray-400 leading-relaxed">자산은 고유 ID로 관리되며, 덮어쓰기 시 버전이 생성되어 기존 코스의 붕괴를 방지함.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 1 -->
+    <div class="lg:col-span-1 flex flex-col justify-center items-center py-4 lg:py-0">
+      <div class="text-[10px] font-black text-gray-400 mb-2 uppercase">Reference</div>
+      <div class="w-8 h-8 lg:rotate-0 rotate-90 text-gray-300">
+        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"></path></svg>
+      </div>
+    </div>
+
+    <!-- 2. 코스 빌더 (논리적 조립) -->
+    <div class="lg:col-span-4 flex flex-col">
+      <div class="bg-blue-600 text-white p-4 rounded-t-2xl flex items-center gap-2">
+        <span class="text-xl">🛠️</span>
+        <h2 class="font-black tracking-tight">코스 등록 및 구성</h2>
+      </div>
+      <div class="flex-1 bg-white border-x border-b border-gray-200 p-5 rounded-b-2xl box-shadow">
+        <div class="text-[11px] font-black text-blue-600 uppercase tracking-widest mb-4">Logical Assembly</div>
+        
+        <!-- Course Box -->
+        <div class="border-2 border-blue-100 rounded-2xl p-4 bg-blue-50/30">
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-blue-100">
+            <span class="text-xs font-black text-blue-900">신규 코스 껍데기</span>
+            <span class="text-[10px] text-blue-400 font-bold tracking-tighter">ID: C_2024_A</span>
+          </div>
+          
+          <div class="space-y-3">
+            <!-- Chapter -->
+            <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm relative">
+              <div class="text-[9px] font-black text-blue-500 mb-1 uppercase">Chapter 01</div>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between bg-gray-50 p-2 rounded text-[11px] font-bold text-gray-700">
+                  <span>1-1. 기초 이론</span>
+                  <span class="text-[9px] text-orange-600 font-mono">Ref: ASSET_001</span>
+                </div>
+                <div class="flex items-center justify-between bg-gray-50 p-2 rounded text-[11px] font-bold text-gray-700">
+                  <span>1-2. 보충 자료</span>
+                  <span class="text-[9px] text-blue-600 font-mono">Ref: ASSET_002</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Chapter -->
+            <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm relative">
+              <div class="text-[9px] font-black text-blue-500 mb-1 uppercase">Chapter 02</div>
+              <div class="bg-gray-50 p-2 rounded text-[11px] font-bold text-gray-700 flex justify-between">
+                <span>2-1. 최종 테스트</span>
+                <span class="text-[9px] text-purple-600 font-mono">Ref: ASSET_003</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-blue-100 rounded-xl border border-blue-200">
+          <div class="text-[10px] font-black text-blue-800 mb-1 uppercase tracking-tight">Efficiency Benefit</div>
+          <p class="text-[10px] text-blue-700 leading-relaxed font-medium">데이터 복사가 아닌 '참조' 방식이므로 코스 생성 및 수정이 즉각적이며 스토리지 비용을 발생시키지 않음.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 2 -->
+    <div class="lg:col-span-1 flex flex-col justify-center items-center py-4 lg:py-0">
+      <div class="text-[10px] font-black text-gray-400 mb-2 uppercase">Execution</div>
+      <div class="w-8 h-8 lg:rotate-0 rotate-90 text-gray-300">
+        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"></path></svg>
+      </div>
+    </div>
+
+    <!-- 3. 운영 및 통제 (결과) -->
+    <div class="lg:col-span-3 flex flex-col">
+      <div class="bg-indigo-600 text-white p-4 rounded-t-2xl flex items-center gap-2">
+        <span class="text-xl">📊</span>
+        <h2 class="font-black tracking-tight">수강 관리 및 통계</h2>
+      </div>
+      <div class="flex-1 bg-white border-x border-b border-gray-200 p-5 rounded-b-2xl box-shadow flex flex-col">
+        <div class="text-[11px] font-black text-indigo-600 uppercase tracking-widest mb-4">Operational Insight</div>
+        
+        <div class="space-y-6 flex-1">
+          <!-- Management Card -->
+          <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
+            <h4 class="text-xs font-black text-gray-800 mb-3">항목 이행 기반 진도율</h4>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="w-[75%] h-full bg-indigo-500"></div>
+              </div>
+              <span class="text-xs font-black text-indigo-600">75%</span>
+            </div>
+            <div class="text-[9px] text-gray-400">전체 4개 활동 중 3개 완료</div>
+          </div>
+
+          <!-- Safety Policy -->
+          <div class="p-4 bg-red-50 rounded-2xl border border-red-100 border-l-4 border-l-red-500">
+            <h4 class="text-xs font-black text-red-800 mb-2 flex items-center gap-1">
+              <span>🛡️</span> 삭제 방어 가동
+            </h4>
+            <p class="text-[10px] text-red-600 leading-relaxed font-medium">
+              "현재 12개 코스에서 사용 중인 자산입니다. 원본 삭제가 불가능합니다."
+            </p>
+          </div>
+          
+          <!-- B2B Distribution -->
+          <div class="p-4 bg-green-50 rounded-2xl border border-green-100">
+            <h4 class="text-xs font-black text-green-800 mb-2 flex items-center gap-1">
+              <span>🚀</span> B2B 대량 배포
+            </h4>
+            <p class="text-[10px] text-green-600 leading-relaxed font-medium">
+              Blueprint 클로닝으로 전 고객사에 수강 껍데기 즉시 배포 가능.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8 text-center">
+          <div class="inline-block px-4 py-2 bg-gray-900 text-white text-[11px] font-black rounded-full shadow-lg">
+            3개월 내 MVP 구현 목표
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 하단 부연 설명 박스 -->
+  <div class="mt-12 bg-white rounded-3xl p-8 border border-gray-200 flex flex-col md:flex-row gap-10 items-center">
+    <div class="flex-1">
+      <h3 class="text-xl font-black mb-4">기획 포인트: 왜 이 구조여야 하는가?</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">1</div>
+          <p class="text-xs text-gray-500 leading-relaxed"><strong>에디터 프리(Editor-free):</strong> 영상/문서를 에디터 없이 자산 라이브러리에서 직접 코스에 꽂아 넣습니다.</p>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">2</div>
+          <p class="text-xs text-gray-500 leading-relaxed"><strong>참조 기반 업데이트:</strong> 라이브러리에서 원본 하나만 바꾸면 수천 개의 코스가 동시 업데이트됩니다.</p>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">3</div>
+          <p class="text-xs text-gray-500 leading-relaxed"><strong>데이터 보호:</strong> 코스에서 사용 중인 자산은 삭제할 수 없도록 시스템이 정합성을 보장합니다.</p>
+        </div>
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">4</div>
+          <p class="text-xs text-gray-500 leading-relaxed"><strong>유연한 배포:</strong> 고객사마다 콘텐츠를 물리적으로 복사해줄 필요 없이 'Blueprint' 배포가 가능해집니다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="w-full md:w-64 bg-gray-50 rounded-2xl p-6 border border-dashed border-gray-300 flex flex-col items-center justify-center text-center">
+      <div class="text-4xl mb-3">💎</div>
+      <div class="text-sm font-black text-gray-800 italic">"Value Beyond Efficiency"</div>
+      <p class="text-[10px] text-gray-400 mt-2">단순한 관리 편의를 넘어<br>데이터 자산화의 기반을 만듭니다.</p>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

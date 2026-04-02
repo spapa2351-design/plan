@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합 자산 라이브러리 & 아티클 에디터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; overflow: hidden; }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Dropdown Animation */
+        .dropdown-menu { transform-origin: top right; transition: transform 0.1s ease-out, opacity 0.1s ease-out; }
+        .dropdown-menu.hidden { transform: scale(0.95); opacity: 0; pointer-events: none; }
+        .dropdown-menu.visible { transform: scale(1); opacity: 1; pointer-events: auto; }
+
+        /* Modal Animation */
+        .modal-overlay { transition: opacity 0.3s ease-out; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out; }
+
+        /* =========================================
+           Notion Style Editor (Modal inside)
+           ========================================= */
+        .editor-canvas { font-size: 16px; color: #37352f; line-height: 1.6; padding-bottom: 200px; }
+        .editor-canvas:focus { outline: none; }
+        .notion-title:empty:before { content: attr(placeholder); color: #e0e0e0; pointer-events: none; display: block; }
+        .notion-placeholder:empty:before { content: attr(placeholder); color: #d1d5db; pointer-events: none; display: block; font-weight: normal; }
+        .notion-block { position: relative; padding: 3px 0; margin-bottom: 2px; border-radius: 4px; }
+        .notion-handle {
+            position: absolute; left: -48px; top: 4px; display: flex; align-items: center; gap: 2px;
+            opacity: 0; transition: opacity 0.15s ease-in-out;
+        }
+        .notion-block:hover .notion-handle { opacity: 1; }
+        .handle-btn {
+            width: 20px; height: 24px; display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; color: #9ca3af; cursor: pointer;
+        }
+        .handle-btn:hover { background-color: #f1f5f9; color: #475569; }
+        .handle-drag { cursor: grab; letter-spacing: -2px; font-size: 14px; }
+        
+        /* Simulated Inline Toolbar */
+        .inline-toolbar {
+            position: absolute; top: -45px; left: 50%; transform: translateX(-50%);
+            background: #2f3437; color: white; border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; align-items: center; padding: 4px 6px; gap: 2px; z-index: 60;
+        }
+        .inline-btn {
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; font-size: 14px; color: #e2e8f0; cursor: pointer;
+        }
+        .inline-btn:hover { background-color: #474c50; color: white; }
+        .inline-divider { width: 1px; height: 16px; background-color: #474c50; margin: 0 4px; }
+    </style>
+</head>
+<body class="h-screen flex text-slate-800 bg-slate-50">
+
+    <!-- 1. Global Left Sidebar (대메뉴) -->
+    <nav class="w-60 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20 overflow-y-auto custom-scroll">
+        <!-- Logo -->
+        <div class="h-14 flex items-center px-6 border-b border-slate-100 shrink-0">
+            <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-lg shadow-inner mr-2">🔥</div>
+            <span class="font-black text-lg tracking-tight">NEX-LMS</span>
+        </div>
+        
+        <!-- Menu Items -->
+        <div class="flex-1 py-4 px-3 space-y-1 text-sm font-bold text-slate-600">
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">👥</span> 회원</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">📖</span> 코스</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            
+            <!-- Active Group: 콘텐츠 -->
+            <div class="bg-indigo-50/50 rounded-xl overflow-hidden mb-1 border border-indigo-50">
+                <a href="#" class="flex items-center justify-between px-3 py-2.5 text-indigo-700">
+                    <div class="flex items-center gap-3"><span class="text-lg">📄</span> 콘텐츠</div>
+                    <span class="text-xs">⌃</span>
+                </a>
+                <div class="flex flex-col pb-2">
+                    <a href="#" class="py-2 pl-11 pr-3 text-indigo-700 font-black relative">
+                        <span class="absolute left-5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                        라이브러리
+                    </a>
+                    <a href="#" class="py-2 pl-11 pr-3 text-slate-500 hover:text-slate-700 transition-colors">콘텐츠 (레거시)</a>
+                    <a href="#" class="py-2 pl-11 pr-3 text-slate-500 hover:text-slate-700 transition-colors">PLUS 콘텐츠 (레거시)</a>
+                </div>
+            </div>
+
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">▶️</span> T튜브</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">✨</span> AI 퀵메이커 <span class="bg-rose-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">N</span></div>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">🎓</span> 문제 은행</div>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">💬</span> 의견</div>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">🏆</span> 게이미피케이션</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">📺</span> 라이브 스트리밍</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">👥</span> 터치투게더</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">📅</span> 출석 체크</div>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">🤖</span> AI 챗봇 <span class="bg-rose-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">N</span></div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3"><span class="text-lg opacity-50">📊</span> 통계</div>
+                <span class="text-xs opacity-50">⌄</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 2. Main Layout Wrapper -->
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+        
+        <!-- Top Navbar (우측 영역 상단바) -->
+        <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
+            <div class="flex items-center gap-4">
+                <button class="text-slate-400 hover:text-slate-600 text-xl font-bold">☰</button>
+                <div class="font-black text-lg text-slate-800">통합 자산 라이브러리</div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs font-bold text-slate-400">admin@company.com</span>
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-600 text-sm">A</div>
+            </div>
+        </header>
+
+        <!-- Content Area Wrapper -->
+        <div class="flex flex-1 overflow-hidden relative">
+            
+            <!-- Sub Sidebar (Asset Filters) -->
+            <aside class="w-64 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto custom-scroll z-0">
+                <div class="p-6">
+                    <h3 class="text-xs font-black text-slate-400 mb-3 tracking-widest uppercase">Asset Types</h3>
+                    <ul class="space-y-1">
+                        <li>
+                            <a href="#" class="flex items-center justify-between px-3 py-2 bg-white shadow-sm border border-slate-200 text-indigo-700 font-bold rounded-lg">
+                                <div class="flex items-center gap-2"><span>🗂️</span> 전체 자산</div>
+                                <span class="text-xs bg-indigo-100 px-2 py-0.5 rounded-full">1,204</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors mt-1">
+                                <div class="flex items-center gap-2"><span>🎬</span> 동영상</div>
+                                <span class="text-xs text-slate-400">420</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors">
+                                <div class="flex items-center gap-2"><span>📰</span> 아티클</div>
+                                <span class="text-xs text-slate-400">128</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors">
+                                <div class="flex items-center gap-2"><span>📄</span> 문서 (PDF)</div>
+                                <span class="text-xs text-slate-400">150</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors border-t border-slate-200 mt-2 pt-2">
+                                <div class="flex items-center gap-2"><span>📦</span> 레거시 패키지</div>
+                                <span class="text-xs text-slate-400">421</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Content (Table & Toolbar) -->
+            <main class="flex-1 flex flex-col min-w-0 bg-white relative z-0">
+                
+                <!-- Action Toolbar -->
+                <div class="p-6 pb-4 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0">
+                    <div class="relative flex-1 max-w-md">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                        <input type="text" placeholder="자산명, UUID, 태그 검색..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50">필터</button>
+                        
+                        <!-- Dropdown for Adding Asset -->
+                        <div class="relative inline-block text-left" id="addDropdownContainer">
+                            <button onclick="toggleAddDropdown(event)" class="inline-flex justify-center items-center rounded-xl px-5 py-2 bg-indigo-600 text-sm font-black text-white hover:bg-indigo-700 shadow-md transition-colors gap-2">
+                                <span>+</span> 자산 추가하기
+                            </button>
+                            
+                            <!-- Dropdown Menu Options -->
+                            <div id="addDropdownMenu" class="dropdown-menu hidden absolute right-0 mt-2 w-56 rounded-2xl shadow-xl bg-white border border-slate-100 z-30 overflow-hidden">
+                                <div class="py-2">
+                                    <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50">파일 업로드</div>
+                                    <button onclick="alert('파일 탐색기가 열립니다.')" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-3 font-bold transition-colors">
+                                        <span class="text-lg">🎬</span> 영상 / 문서 (PDF)
+                                    </button>
+                                    
+                                    <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50 border-t border-slate-100">에디터 작성</div>
+                                    <!-- 모달 열기 버튼 -->
+                                    <button onclick="openModal()" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-700 flex items-center gap-3 font-bold transition-colors">
+                                        <span class="text-lg">📰</span> 아티클 작성 (Web)
+                                    </button>
+                                    <button onclick="alert('시험 출제 화면으로 이동합니다.')" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-3 font-bold transition-colors">
+                                        <span class="text-lg">📝</span> 시험 / 설문 생성
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Asset Data Table -->
+                <div class="flex-1 overflow-auto custom-scroll">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="bg-white sticky top-0 z-10 shadow-sm">
+                            <tr class="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                                <th class="px-6 py-4 w-12 text-center"><input type="checkbox" class="rounded border-slate-300"></th>
+                                <th class="px-6 py-4 w-28">Type</th>
+                                <th class="px-6 py-4">자산 정보</th>
+                                <th class="px-6 py-4 w-32">UUID</th>
+                                <th class="px-6 py-4 w-24 text-center">연결된 코스</th>
+                                <th class="px-6 py-4 w-32 text-right">수정일</th>
+                                <th class="px-6 py-4 w-24 text-center">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetTableBody" class="divide-y divide-slate-100 text-sm">
+                            
+                            <!-- Row 1: Article -->
+                            <tr class="hover:bg-slate-50 transition-colors group">
+                                <td class="px-6 py-4 text-center"><input type="checkbox" class="rounded border-slate-300"></td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 bg-teal-100 text-teal-700 px-2 py-1 rounded text-[11px] font-black">
+                                        <span>📰</span> 아티클
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900 mb-0.5 text-base">2026년 핵심가치 가이드북</div>
+                                    <div class="text-[11px] text-slate-500 flex gap-2 items-center">
+                                        <span>텍스트 및 이미지 8장</span>
+                                        <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                        <span>예상 5분</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4"><span class="font-mono text-[10px] text-slate-400 bg-slate-50 rounded p-1">AST-7B2X</span></td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="bg-slate-100 text-slate-600 font-bold text-xs px-2 py-0.5 rounded-full">0</span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-xs text-slate-500">
+                                    <div>오늘 14:22</div><div class="text-[10px] text-slate-400">admin</div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <button onclick="openModal()" class="text-slate-400 hover:text-indigo-600 font-bold text-lg transition-colors px-2 py-1 rounded hover:bg-indigo-50" title="에디터 열람">✏️</button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 2: Video -->
+                            <tr class="hover:bg-slate-50 transition-colors group">
+                                <td class="px-6 py-4 text-center"><input type="checkbox" class="rounded border-slate-300"></td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 px-2 py-1 rounded text-[11px] font-black">
+                                        <span>🎬</span> 영상
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900 mb-0.5 text-base">대표이사 신년사 및 비전 선포</div>
+                                    <div class="text-[11px] text-slate-500 flex gap-2 items-center">
+                                        <span class="truncate max-w-[150px]">vision_2026_final_v2.mp4</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4"><span class="font-mono text-[10px] text-slate-400 bg-slate-50 rounded p-1">AST-9A1F</span></td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="bg-emerald-100 text-emerald-700 font-bold text-xs px-2 py-0.5 rounded-full">3</span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-xs text-slate-500">
+                                    <div>2026.03.15</div><div class="text-[10px] text-slate-400">김영상</div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <button class="text-slate-400 hover:text-indigo-600 font-bold text-lg transition-colors px-2 py-1 rounded hover:bg-indigo-50">⚙️</button>
+                                </td>
+                            </tr>
+
+                            <!-- Row 3: Legacy -->
+                            <tr class="hover:bg-slate-50 transition-colors group bg-slate-50/50">
+                                <td class="px-6 py-4 text-center"><input type="checkbox" class="rounded border-slate-300"></td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 bg-slate-200 text-slate-700 px-2 py-1 rounded text-[11px] font-black">
+                                        <span>📦</span> 레거시
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900 mb-0.5 text-base">영업 기초 마인드셋 (구버전)</div>
+                                    <div class="text-[11px] text-slate-500 flex gap-2 items-center">
+                                        <span>다중 페이지 패키지</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4"><span class="font-mono text-[10px] text-slate-400 bg-slate-50 rounded p-1">AST-1L5X</span></td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="bg-emerald-100 text-emerald-700 font-bold text-xs px-2 py-0.5 rounded-full">12</span>
+                                </td>
+                                <td class="px-6 py-4 text-right text-xs text-slate-500">
+                                    <div>2024.11.20</div><div class="text-[10px] text-slate-400">이전관리자</div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <button class="text-slate-400 hover:text-indigo-600 font-bold text-sm transition-colors px-2 py-1 rounded hover:bg-indigo-50">기존 편집기</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ARTICLE EDITOR MODAL (Full Screen Overlay)                     -->
+    <!-- ============================================================== -->
+    <div id="articleModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <!-- Backdrop -->
+        <div id="modalBackdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm modal-overlay opacity-0" onclick="closeModal()"></div>
+        
+        <!-- Modal Content Container -->
+        <div id="modalContent" class="bg-white w-[96vw] h-[96vh] max-w-7xl rounded-3xl shadow-2xl flex flex-col relative z-10 modal-content scale-95 opacity-0 overflow-hidden">
+            
+            <!-- Modal Header -->
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-20">
+                <div class="flex items-center gap-4">
+                    <button onclick="closeModal()" class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-100 text-slate-500 transition-colors" title="닫기 (라이브러리로 복귀)">
+                        <span class="font-bold text-lg">✕</span>
+                    </button>
+                    <div class="h-4 w-px bg-slate-300"></div>
+                    <span class="bg-teal-100 text-teal-700 text-[10px] font-black px-2 py-0.5 rounded flex items-center gap-1">
+                        <span>📰</span> 아티클 작성기
+                    </span>
+                    <span class="text-[11px] font-bold text-slate-400">임시 저장됨</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="publishArticle()" class="px-6 py-2 bg-teal-600 text-white rounded-xl text-sm font-black shadow-md hover:bg-teal-700 transition-colors">라이브러리에 게시</button>
+                </div>
+            </header>
+
+            <div class="flex flex-1 overflow-hidden bg-white">
+                
+                <!-- Editor Canvas Area (Notion Style) -->
+                <main class="flex-1 flex flex-col relative overflow-y-auto custom-scroll cursor-text" onclick="document.getElementById('editor-end').focus()">
+                    
+                    <div class="max-w-[700px] w-full mx-auto px-8 pt-16 editor-canvas">
+                        
+                        <!-- Title -->
+                        <div class="mb-10 group relative">
+                            <h1 id="articleTitleInput" class="text-4xl font-black text-slate-900 border-none outline-none leading-tight notion-title" contenteditable="true" placeholder="제목 없음">새로운 아티클 제목</h1>
+                        </div>
+
+                        <!-- Block: Heading -->
+                        <div class="notion-block group">
+                            <div class="notion-handle">
+                                <!-- 플러스 버튼 (메뉴 열기) -->
+                                <div class="handle-btn text-lg" onclick="openBlockMenu(event, this)">+</div>
+                                <div class="handle-btn handle-drag">⋮⋮</div>
+                            </div>
+                            <h2 class="text-2xl font-bold text-slate-800 outline-none mt-4 mb-1" contenteditable="true">섹션 제목을 입력하세요</h2>
+                        </div>
+
+                        <!-- Block: Paragraph w/ Simulated Toolbar -->
+                        <div class="notion-block group relative">
+                            <div class="notion-handle">
+                                <div class="handle-btn text-lg" onclick="openBlockMenu(event, this)">+</div>
+                                <div class="handle-btn handle-drag">⋮⋮</div>
+                            </div>
+                            
+                            <!-- Inline Toolbar (Simulated Hover) -->
+                            <div class="inline-toolbar hidden group-hover:flex opacity-0 hover:opacity-100 transition-opacity delay-500">
+                                <button class="inline-btn text-xs font-bold w-16 hover:bg-[#474c50]">텍스트 ▾</button>
+                                <div class="inline-divider"></div>
+                                <button class="inline-btn font-serif font-bold">B</button>
+                                <button class="inline-btn font-serif italic">i</button>
+                                <button class="inline-btn underline">U</button>
+                                <button class="inline-btn text-red-400 font-bold">A</button>
+                                <div class="inline-divider"></div>
+                                <button class="inline-btn">🔗</button>
+                            </div>
+
+                            <p class="outline-none text-slate-600" contenteditable="true">여기에 내용을 입력하세요. 마우스를 올리면 좌측에 + 버튼이 나타납니다. 노션처럼 가볍고 직관적으로 작성해 보세요.</p>
+                        </div>
+
+                        <!-- Block: Image Placeholder -->
+                        <div class="notion-block group my-6">
+                            <div class="notion-handle">
+                                <div class="handle-btn text-lg" onclick="openBlockMenu(event, this)">+</div>
+                                <div class="handle-btn handle-drag">⋮⋮</div>
+                            </div>
+                            <div class="w-full bg-slate-50 rounded-xl border border-slate-200 flex flex-col group/img cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="h-48 flex flex-col items-center justify-center text-slate-400">
+                                    <span class="text-3xl mb-2">🖼️</span>
+                                    <span class="text-sm font-bold text-slate-500">클릭하여 이미지 업로드</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty Block for focus -->
+                        <div class="notion-block group">
+                            <div class="notion-handle">
+                                <div class="handle-btn text-lg" onclick="openBlockMenu(event, this)">+</div>
+                                <div class="handle-btn handle-drag">⋮⋮</div>
+                            </div>
+                            <p id="editor-end" class="outline-none notion-placeholder empty:before:content-[attr(placeholder)] text-slate-600" contenteditable="true" placeholder="명령어를 사용하려면 '/'를 입력하세요"></p>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Editor Sidebar (Metadata) -->
+                <aside class="w-72 bg-slate-50 border-l border-slate-200 flex flex-col shrink-0 overflow-y-auto custom-scroll z-10">
+                    <div class="p-6 border-b border-slate-200 bg-slate-100/50">
+                        <h3 class="text-sm font-black text-slate-800">속성 설정</h3>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        
+                        <!-- Auto-extracted Thumbnail Logic concept -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">✨</span>
+                                <h4 class="text-xs font-black text-slate-700">대표 이미지 (자동)</h4>
+                            </div>
+                            <p class="text-[10px] text-slate-500 leading-relaxed">
+                                본문에 삽입된 <strong>첫 번째 이미지</strong>가 리스트 썸네일로 자동 지정됩니다. 별도로 등록할 필요가 없습니다.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">검색 태그</label>
+                            <div class="p-2 border border-slate-300 rounded-lg bg-white flex flex-wrap gap-1 min-h-[42px] items-center">
+                                <input type="text" placeholder="#태그 입력 후 Enter" class="flex-1 min-w-[100px] text-[11px] outline-none border-none bg-transparent">
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Options</h4>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs font-bold text-slate-700">의견 (Social) 허용</div>
+                                </div>
+                                <div class="w-8 h-5 bg-teal-500 rounded-full p-1 cursor-pointer relative">
+                                    <div class="w-3 h-3 bg-white rounded-full shadow-sm transform translate-x-3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- Block Insertion Menu (Notion Style Menu Popup) -->
+        <div id="blockInsertMenu" class="hidden fixed bg-white rounded-xl shadow-2xl border border-slate-200 w-64 z-[100] overflow-hidden text-sm flex flex-col transition-opacity duration-200 opacity-0">
+            <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100">기본 블록</div>
+            <button class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 text-slate-700 transition-colors text-left" onclick="insertBlock('text')">
+                <span class="text-lg text-slate-400 font-serif w-6 text-center">T</span>
+                <div class="flex flex-col">
+                    <span class="font-bold">텍스트</span>
+                    <span class="text-[10px] text-slate-400">일반 텍스트를 작성하세요.</span>
+                </div>
+            </button>
+            <button class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 text-slate-700 transition-colors text-left" onclick="insertBlock('h2')">
+                <span class="text-lg text-slate-400 font-bold w-6 text-center">H2</span>
+                <div class="flex flex-col">
+                    <span class="font-bold">섹션 제목</span>
+                    <span class="text-[10px] text-slate-400">중간 크기의 제목입니다.</span>
+                </div>
+            </button>
+            <button class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 text-slate-700 transition-colors text-left" onclick="insertBlock('bullet')">
+                <span class="text-lg text-slate-400 w-6 text-center">●</span>
+                <div class="flex flex-col">
+                    <span class="font-bold">글머리 기호</span>
+                    <span class="text-[10px] text-slate-400">간단한 목록을 만듭니다.</span>
+                </div>
+            </button>
+            <div class="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 border-y border-slate-100">미디어</div>
+            <button class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 text-slate-700 transition-colors text-left" onclick="insertBlock('image')">
+                <span class="text-lg text-slate-400 w-6 text-center">🖼️</span>
+                <div class="flex flex-col">
+                    <span class="font-bold">이미지</span>
+                    <span class="text-[10px] text-slate-400">이미지를 업로드합니다.</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        // Dropdown Toggle Logic (자산 추가 버튼)
+        function toggleAddDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('addDropdownMenu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                setTimeout(() => { menu.classList.add('visible'); }, 10);
+            } else {
+                menu.classList.remove('visible');
+                setTimeout(() => { menu.classList.add('hidden'); }, 100);
+            }
+        }
+
+        // Click Outside Logic (드롭다운 및 블록 메뉴 닫기)
+        window.addEventListener('click', function(e) {
+            // Main dropdown
+            const menu = document.getElementById('addDropdownMenu');
+            if (menu && !menu.classList.contains('hidden') && !e.target.closest('#addDropdownContainer')) {
+                menu.classList.remove('visible');
+                setTimeout(() => { menu.classList.add('hidden'); }, 100);
+            }
+
+            // Block Insert Menu
+            const blockMenu = document.getElementById('blockInsertMenu');
+            if (blockMenu && !blockMenu.classList.contains('hidden') && !e.target.closest('#blockInsertMenu') && !e.target.classList.contains('handle-btn')) {
+                blockMenu.classList.add('opacity-0');
+                setTimeout(() => { blockMenu.classList.add('hidden'); }, 200);
+            }
+        });
+
+        // Modal Logic (아티클 에디터 모달)
+        const modal = document.getElementById('articleModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const modalContent = document.getElementById('modalContent');
+
+        function openModal() {
+            const menu = document.getElementById('addDropdownMenu');
+            menu.classList.remove('visible');
+            menu.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeModal() {
+            backdrop.classList.add('opacity-0');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // 새 아티클 퍼블리싱 (테이블 리스트 추가)
+        function publishArticle() {
+            const title = document.getElementById('articleTitleInput').innerText || "새로운 아티클";
+            const uuid = 'AST-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+            const time = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: "numeric", minute: "numeric" });
+            
+            const newRow = `
+                <tr class="hover:bg-slate-50 transition-colors group bg-teal-50/20">
+                    <td class="px-6 py-4 text-center"><input type="checkbox" class="rounded border-slate-300"></td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 bg-teal-100 text-teal-700 px-2 py-1 rounded text-[11px] font-black">
+                            <span>📰</span> 아티클
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-900 mb-0.5 text-base">${title}</div>
+                        <div class="text-[11px] text-slate-500 flex gap-2 items-center">
+                            <span class="font-bold text-teal-600">방금 작성됨</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-[10px] text-slate-400 bg-slate-50 rounded p-1 inline-block mt-3">${uuid}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="bg-slate-100 text-slate-600 font-bold text-xs px-2 py-0.5 rounded-full">0</span>
+                    </td>
+                    <td class="px-6 py-4 text-right text-xs text-slate-500">
+                        <div>오늘 ${time}</div><div class="text-[10px] text-slate-400">admin</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="openModal()" class="text-slate-400 hover:text-indigo-600 font-bold text-lg transition-colors px-2 py-1 rounded hover:bg-indigo-50" title="에디터 열람">✏️</button>
+                    </td>
+                </tr>
+            `;
+            
+            document.getElementById('assetTableBody').insertAdjacentHTML('afterbegin', newRow);
+            closeModal();
+        }
+
+        // Block Insert Menu Logic (+ 버튼 팝업)
+        function openBlockMenu(event, btn) {
+            event.stopPropagation();
+            const menu = document.getElementById('blockInsertMenu');
+            const rect = btn.getBoundingClientRect();
+            
+            menu.style.top = (rect.bottom + 8) + 'px';
+            menu.style.left = rect.left + 'px';
+            
+            menu.classList.remove('hidden');
+            setTimeout(() => menu.classList.remove('opacity-0'), 10);
+        }
+
+        function insertBlock(type) {
+            const menu = document.getElementById('blockInsertMenu');
+            menu.classList.add('opacity-0');
+            setTimeout(() => menu.classList.add('hidden'), 200);
+        }
+    </script>
+</body>
+</html>
