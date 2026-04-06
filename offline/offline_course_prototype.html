@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LMS 오프라인 코스 — 사용자 프로토타입</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%; min-height: 100vh;
+      background: #e8eaf0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    }
+    /* ── Device Frame ─────────────────────────── */
+    .device {
+      width: 393px; height: 852px;
+      background: #f5f5f7;
+      border-radius: 52px;
+      box-shadow:
+        0 0 0 1px #c7c7cc,
+        0 0 0 11px #e5e5ea,
+        0 0 0 12px #c7c7cc,
+        0 50px 120px rgba(0,0,0,.25);
+      overflow: hidden; position: relative; flex-shrink: 0;
+    }
+    .island {
+      position: absolute; top: 13px; left: 50%;
+      transform: translateX(-50%);
+      width: 122px; height: 36px;
+      background: #000; border-radius: 20px; z-index: 9999;
+    }
+
+    /* ── Screens ──────────────────────────────── */
+    .screen {
+      position: absolute; inset: 0;
+      background: #f5f5f7;
+      display: none; flex-direction: column; overflow: hidden;
+    }
+    .screen.active { display: flex; }
+    @keyframes slideIn  { from { transform: translateX(100%); opacity:.3 } to { transform: translateX(0); opacity:1 } }
+    @keyframes slideBack{ from { transform: translateX(-22%); opacity:.5 } to { transform: translateX(0); opacity:1 } }
+    .screen.anim-in   { animation: slideIn  .26s cubic-bezier(.25,.46,.45,.94) forwards; }
+    .screen.anim-back { animation: slideBack .22s cubic-bezier(.25,.46,.45,.94) forwards; }
+
+    /* ── Status Bar ───────────────────────────── */
+    .sbar {
+      height: 56px; display: flex; align-items: flex-end;
+      justify-content: space-between; padding: 0 28px 10px;
+      flex-shrink: 0; position: relative; z-index: 10;
+    }
+    .sbar .t  { color:#1c1c1e; font-size:15px; font-weight:600; letter-spacing:-.3px }
+    .sbar .ic { display:flex; gap:5px; align-items:center; color:#1c1c1e; font-size:13px }
+
+    /* ── Nav Bar ──────────────────────────────── */
+    .nbar { height:50px; display:flex; align-items:center; padding:0 16px; flex-shrink:0 }
+    .nbk  { width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:#6366f1; font-size:24px; cursor:pointer; border-radius:10px }
+    .nbtl { flex:1; text-align:center; color:#1c1c1e; font-size:17px; font-weight:600 }
+    .nbr  { width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:#8e8e93; font-size:20px; cursor:pointer }
+
+    /* ── Scroll Pane ──────────────────────────── */
+    .scrl { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch }
+    .scrl::-webkit-scrollbar { display:none }
+
+    /* ── Tab Bar ──────────────────────────────── */
+    .tabbar {
+      height:86px; background:#ffffff;
+      border-top:1px solid rgba(0,0,0,.09);
+      display:flex; align-items:flex-start; padding-top:10px; flex-shrink:0;
+    }
+    .tabi { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:2px 0 }
+    .tabi .ico { font-size:22px; color:#c7c7cc }
+    .tabi .lbl { font-size:10px; color:#c7c7cc; font-weight:500 }
+    .tabi.on .ico, .tabi.on .lbl { color:#6366f1 }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: HOME                                */
+    /* ─────────────────────────────────────────── */
+    .h-top   { padding:4px 20px 14px }
+    .h-greet { color:#8e8e93; font-size:13px; margin-bottom:2px }
+    .h-title { color:#1c1c1e; font-size:22px; font-weight:700 }
+
+    .searchbar {
+      margin:0 20px 16px; background:#ffffff; border-radius:14px;
+      height:46px; display:flex; align-items:center; padding:0 16px; gap:10px;
+      border:1px solid #e5e5ea; cursor:pointer;
+    }
+    .searchbar span { color:#aeaeb2; font-size:14px }
+
+    .chips { display:flex; gap:8px; padding:0 20px 16px; overflow-x:auto }
+    .chips::-webkit-scrollbar { display:none }
+    .chip {
+      padding:7px 16px; border-radius:22px; border:1px solid #e5e5ea;
+      color:#8e8e93; font-size:13px; white-space:nowrap; cursor:pointer; flex-shrink:0; font-weight:500;
+    }
+    .chip.on { background:#6366f1; border-color:#6366f1; color:#fff; font-weight:600 }
+
+    .sechead { display:flex; justify-content:space-between; align-items:center; padding:0 20px 10px }
+    .sechead h2 { color:#1c1c1e; font-size:16px; font-weight:700 }
+    .sechead a  { color:#6366f1; font-size:13px; cursor:pointer }
+
+    /* Course Card */
+    .ccard {
+      margin:0 20px 16px; background:#ffffff; border-radius:18px;
+      overflow:hidden; cursor:pointer; border:1px solid #e5e5ea;
+      transition:transform .12s;
+    }
+    .ccard:active { transform:scale(.97) }
+    .ccard-img {
+      height:154px;
+      background: linear-gradient(145deg,#e8e8ff 0%,#dde8ff 55%,#d8eef8 100%);
+      display:flex; align-items:center; justify-content:center; position:relative;
+    }
+    .ccard-img.g2 { background:linear-gradient(145deg,#e0f0e0 0%,#d0ead8 60%,#c8e8d4 100%) }
+    .ccard-img.g3 { background:linear-gradient(145deg,#fce8e8 0%,#fad5d5 60%,#f8cccc 100%) }
+    .cbgs { position:absolute; top:12px; left:12px; display:flex; gap:6px }
+    .cbg {
+      padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700;
+    }
+    .cbg-t { background:rgba(99,102,241,.85); color:#fff }
+    .cbg-h { background:rgba(239,68,68,.85); color:#fff }
+    .cbg-n { background:rgba(34,197,94,.85); color:#fff }
+    .ccard-emo { font-size:50px }
+    .ccard-body { padding:14px 16px 16px }
+    .ccard-title { color:#1c1c1e; font-size:15px; font-weight:700; line-height:1.4; margin-bottom:8px }
+    .ccard-meta { margin-bottom:10px }
+    .ccard-mrow  { display:flex; align-items:center; gap:6px; color:#8e8e93; font-size:12px; margin-bottom:3px }
+    .seat-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px }
+    .seat-lbl { color:#8e8e93; font-size:11px }
+    .seat-rem { font-size:11px; font-weight:700; color:#6366f1 }
+    .seat-rem.hot { color:#ef4444 }
+    .seat-trk { height:5px; background:#e5e5ea; border-radius:3px; overflow:hidden }
+    .seat-fill { height:100%; border-radius:3px; background:#6366f1 }
+    .seat-fill.hot { background:#ef4444 }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: COURSE DETAIL                       */
+    /* ─────────────────────────────────────────── */
+    .hero {
+      height:222px;
+      background:linear-gradient(160deg,#ede9ff 0%,#dce8ff 55%,#d4eef8 100%);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      position:relative; flex-shrink:0;
+    }
+    .hero-emo  { font-size:60px; margin-bottom:8px }
+    .hero-tag  { background:rgba(99,102,241,.85); color:#fff; font-size:12px; font-weight:700; padding:4px 14px; border-radius:8px }
+    .hero-bgs  { position:absolute; top:14px; left:14px; display:flex; gap:6px }
+
+    .dbody   { padding:20px }
+    .dcat    { color:#6366f1; font-size:12px; font-weight:600; margin-bottom:5px }
+    .dtitle  { color:#1c1c1e; font-size:20px; font-weight:700; line-height:1.4; margin-bottom:4px }
+    .dsub    { color:#8e8e93; font-size:12px; line-height:1.6; margin-bottom:18px }
+
+    .dtabs { display:flex; border-bottom:1px solid #e5e5ea; margin:0 -20px; padding:0 20px; flex-shrink:0 }
+    .dtab  {
+      padding:12px 16px; color:#8e8e93; font-size:14px; font-weight:500;
+      cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+    }
+    .dtab.on { color:#6366f1; border-bottom-color:#6366f1; font-weight:700 }
+
+    .ibox { background:#ffffff; border-radius:14px; padding:16px; margin-bottom:14px; border:1px solid #e5e5ea }
+    .irow { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid #f0f0f5 }
+    .irow:first-child { padding-top:0 }
+    .irow:last-child  { border-bottom:none; padding-bottom:0 }
+    .irow-ico { font-size:18px; flex-shrink:0; margin-top:2px }
+    .irow-lbl { color:#8e8e93; font-size:11px; margin-bottom:3px }
+    .irow-val { color:#1c1c1e; font-size:14px; font-weight:500 }
+    .irow-sub { color:#aeaeb2; font-size:12px; margin-top:2px }
+
+    .mapbox {
+      background:#ffffff; border-radius:14px; height:112px;
+      display:flex; align-items:center; justify-content:center;
+      flex-direction:column; gap:5px; margin-bottom:14px;
+      border:1px solid #e5e5ea; cursor:pointer; position:relative; overflow:hidden;
+    }
+    .map-pin  { font-size:26px }
+    .map-addr { color:#8e8e93; font-size:12px }
+    .map-btn  { position:absolute; bottom:10px; right:10px; background:#6366f1; color:#fff; font-size:11px; font-weight:600; padding:4px 12px; border-radius:8px }
+
+    .curr-head { display:flex; justify-content:space-between; align-items:center; padding:14px 20px 8px }
+    .curr-head span { color:#8e8e93; font-size:13px }
+    .curr-tog  { color:#6366f1; font-size:12px; cursor:pointer }
+    .curr-item { display:flex; align-items:center; padding:14px 20px; border-bottom:1px solid #f0f0f5; cursor:pointer }
+    .curr-num  {
+      width:28px; height:28px; background:#f0f0f5; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      color:#6366f1; font-size:12px; font-weight:700; margin-right:12px; flex-shrink:0;
+    }
+    .curr-tit  { color:#1c1c1e; font-size:14px; flex:1 }
+    .curr-time { color:#8e8e93; font-size:12px }
+
+    .dbot { padding:14px 20px; background:#ffffff; border-top:1px solid #e5e5ea; display:flex; gap:10px; flex-shrink:0 }
+    .wish {
+      width:50px; height:50px; border-radius:14px; background:#f5f5f7;
+      border:1px solid #e5e5ea; display:flex; align-items:center; justify-content:center;
+      font-size:22px; cursor:pointer;
+    }
+    .cta {
+      flex:1; height:50px; border-radius:14px; background:#6366f1; color:#fff;
+      font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; border:none; letter-spacing:-.3px;
+    }
+    .cta:active { opacity:.85 }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: REGISTER                            */
+    /* ─────────────────────────────────────────── */
+    .regbody { padding:20px; flex:1; overflow-y:auto }
+    .regbody::-webkit-scrollbar { display:none }
+    .fgrp   { margin-bottom:22px }
+    .flbl   { color:#8e8e93; font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; margin-bottom:8px }
+    .fsel   {
+      background:#ffffff; border:1px solid #e5e5ea; border-radius:14px;
+      padding:14px 16px; display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer; transition:border-color .2s;
+    }
+    .fsel.on { border-color:#6366f1 }
+    .fsel-v  { color:#1c1c1e; font-size:15px; font-weight:500 }
+    .fsel-ph { color:#c7c7cc; font-size:15px }
+    .fsel-ar { color:#aeaeb2; font-size:12px }
+
+    .ipanel { background:#ffffff; border-radius:14px; padding:16px; margin-bottom:14px; border:1px solid #e5e5ea }
+    .iptit  { display:flex; align-items:center; gap:8px; color:#6366f1; font-size:13px; font-weight:700; margin-bottom:9px }
+    .iplist { list-style:none }
+    .iplist li { color:#636366; font-size:13px; line-height:1.7; padding-left:12px; position:relative }
+    .iplist li::before { content:"·"; position:absolute; left:2px; color:#aeaeb2 }
+
+    .notice { background:rgba(99,102,241,.06); border:1px solid rgba(99,102,241,.2); border-radius:12px; padding:12px 14px; margin-bottom:14px }
+    .notice p { color:#4b4b9a; font-size:12px; line-height:1.7 }
+    .notice strong { color:#3a3a8a }
+
+    .regbot { padding:14px 20px; background:#ffffff; border-top:1px solid #e5e5ea; flex-shrink:0 }
+    .regbtn {
+      width:100%; height:52px; border-radius:14px; background:#6366f1; color:#fff;
+      font-size:17px; font-weight:700; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; border:none; transition:background .2s, opacity .2s;
+    }
+    .regbtn.dis { background:#e5e5ea; color:#aeaeb2; cursor:not-allowed }
+    .regbtn:not(.dis):active { opacity:.85 }
+
+    /* ─────────────────────────────────────────── */
+    /* BOTTOM SHEET                                */
+    /* ─────────────────────────────────────────── */
+    .shbk {
+      position:absolute; inset:0; background:rgba(0,0,0,.65); z-index:50;
+      opacity:0; pointer-events:none; transition:opacity .3s;
+    }
+    .shbk.open { opacity:1; pointer-events:all }
+
+    .bsheet {
+      position:absolute; bottom:0; left:0; width:100%;
+      background:#ffffff; border-radius:24px 24px 0 0; z-index:51;
+      padding-bottom:44px;
+      transform:translateY(100%);
+      transition:transform .3s cubic-bezier(.32,.72,0,1);
+      border-top:1px solid #e5e5ea;
+    }
+    .bsheet.open { transform:translateY(0) }
+    .bsh-handle { width:36px; height:4px; background:#d1d1d6; border-radius:2px; margin:14px auto 18px }
+    .bsh-title  { color:#1c1c1e; font-size:17px; font-weight:700; padding:0 20px 14px; border-bottom:1px solid #e5e5ea }
+
+    .sopt { display:flex; align-items:center; padding:18px 20px; border-bottom:1px solid #f0f0f5; cursor:pointer }
+    .sopt:last-child { border-bottom:none }
+    .sopt:active { background:rgba(99,102,241,.05) }
+
+    .sopt-radio {
+      width:22px; height:22px; border:2px solid #d1d1d6; border-radius:50%;
+      margin-right:14px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+      transition:border-color .15s;
+    }
+    .sopt-radio.on { border-color:#6366f1 }
+    .sopt-radio.on::after { content:''; width:12px; height:12px; background:#6366f1; border-radius:50% }
+    .sopt-info  { flex:1 }
+    .sopt-name  { color:#1c1c1e; font-size:15px; font-weight:600; margin-bottom:3px }
+    .sopt-dates { color:#8e8e93; font-size:12px }
+    .sopt-seat  { text-align:right }
+    .sopt-snum  { font-size:15px; font-weight:700; color:#6366f1 }
+    .sopt-snum.hot { color:#ef4444 }
+    .sopt-slbl  { color:#8e8e93; font-size:11px; margin-top:2px }
+
+    /* ─────────────────────────────────────────── */
+    /* MODAL                                       */
+    /* ─────────────────────────────────────────── */
+    .modbk {
+      position:absolute; inset:0; background:rgba(0,0,0,.75); z-index:60;
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .22s;
+    }
+    .modbk.open { opacity:1; pointer-events:all }
+    .modal {
+      width:calc(100% - 48px); background:#ffffff; border-radius:22px; padding:24px;
+      border:1px solid #e5e5ea;
+      transform:scale(.88); transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .modbk.open .modal { transform:scale(1) }
+    .mod-title { color:#1c1c1e; font-size:17px; font-weight:700; text-align:center; margin-bottom:20px }
+    .mod-row { display:flex; justify-content:space-between; align-items:flex-start; padding:11px 0; border-bottom:1px solid #f0f0f5 }
+    .mod-row:last-of-type { border-bottom:none }
+    .mod-k { color:#8e8e93; font-size:14px }
+    .mod-v { color:#1c1c1e; font-size:14px; font-weight:500; text-align:right; max-width:200px; line-height:1.4 }
+    .mod-btns { display:flex; gap:10px; margin-top:20px }
+    .mbtn-c { flex:1; height:48px; background:transparent; border:1px solid #d1d1d6; border-radius:12px; color:#8e8e93; font-size:15px; font-weight:600; cursor:pointer }
+    .mbtn-ok{ flex:1; height:48px; background:#6366f1; border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:700; cursor:pointer }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: SUCCESS                             */
+    /* ─────────────────────────────────────────── */
+    .succ-wrap {
+      flex:1; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:32px 28px; overflow-y:auto;
+    }
+    .succ-wrap::-webkit-scrollbar { display:none }
+    .succ-ico {
+      width:88px; height:88px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:40px; color:#fff; margin-bottom:22px;
+      box-shadow:0 12px 40px rgba(99,102,241,.4);
+      animation:popIn .5s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+    .succ-h1 { color:#1c1c1e; font-size:22px; font-weight:700; margin-bottom:7px }
+    .succ-p  { color:#8e8e93; font-size:14px; text-align:center; line-height:1.6; margin-bottom:28px }
+
+    .conf-card { width:100%; background:#ffffff; border-radius:16px; padding:18px; margin-bottom:16px; border:1px solid #e5e5ea }
+    .conf-row  { display:flex; justify-content:space-between; align-items:flex-start; padding:8px 0; border-bottom:1px solid #f0f0f5 }
+    .conf-row:last-child { border-bottom:none }
+    .conf-k { color:#8e8e93; font-size:13px }
+    .conf-v { color:#1c1c1e; font-size:13px; font-weight:500; text-align:right; max-width:190px; line-height:1.4 }
+
+    .cal-hint {
+      display:flex; align-items:center; gap:10px;
+      background:rgba(99,102,241,.07); border:1px solid rgba(99,102,241,.2);
+      border-radius:12px; padding:12px 16px; width:100%; margin-bottom:28px; cursor:pointer;
+    }
+    .cal-hint .ci { font-size:20px }
+    .cal-hint-txt { flex:1 }
+    .cal-hint-txt p { color:#4b4b9a; font-size:12px; line-height:1.5 }
+    .cal-hint-txt strong { color:#3a3a8a }
+    .cal-hint .arr { color:#6366f1; font-size:16px }
+
+    .succ-homebtn {
+      width:100%; height:52px; background:#6366f1; border-radius:14px;
+      color:#fff; font-size:17px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: MY PAGE                             */
+    /* ─────────────────────────────────────────── */
+    .my-hd { padding:8px 20px 16px; display:flex; align-items:center; gap:14px }
+    .avatar {
+      width:54px; height:54px; border-radius:16px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      display:flex; align-items:center; justify-content:center; font-size:26px;
+    }
+    .my-name  { color:#1c1c1e; font-size:17px; font-weight:700 }
+    .my-email { color:#8e8e93; font-size:12px; margin-top:2px }
+
+    .my-stats { display:flex; margin:0 20px 16px; background:#ffffff; border-radius:14px; border:1px solid #e5e5ea; overflow:hidden }
+    .my-stat  { flex:1; padding:14px; text-align:center; border-right:1px solid #e5e5ea }
+    .my-stat:last-child { border-right:none }
+    .msn { color:#1c1c1e; font-size:20px; font-weight:700 }
+    .msl { color:#8e8e93; font-size:11px; margin-top:2px }
+
+    .my-tabs { display:flex; border-bottom:1px solid #e5e5ea; padding:0 20px; flex-shrink:0 }
+    .my-tab  { padding:10px 10px; color:#aeaeb2; font-size:13px; font-weight:500; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap }
+    .my-tab.on { color:#6366f1; border-bottom-color:#6366f1; font-weight:700 }
+
+    .mc { margin:0 20px 14px; background:#ffffff; border-radius:16px; padding:18px; cursor:pointer; border:1px solid #e5e5ea }
+    .mc:active { opacity:.85 }
+    .mc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px }
+    .mc-title { color:#1c1c1e; font-size:14px; font-weight:700; line-height:1.4; flex:1; margin-right:10px }
+    .mcbadge { padding:4px 10px; border-radius:7px; font-size:11px; font-weight:700; flex-shrink:0 }
+    .mcb-prog { background:rgba(99,102,241,.2); color:#6366f1 }
+    .mcb-done { background:rgba(34,197,94,.2); color:#22c55e }
+
+    .mc-next { display:flex; align-items:center; gap:8px; background:rgba(99,102,241,.07); border-radius:10px; padding:9px 12px; margin-bottom:14px }
+    .mc-next .ico { font-size:14px }
+    .mc-next .txt { color:#4b4b9a; font-size:12px }
+    .mc-next .val { color:#6366f1; font-size:12px; font-weight:700 }
+    .mc-next .dtag { margin-left:auto; background:#ef4444; color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:5px }
+
+    .att-lrow { display:flex; justify-content:space-between; margin-bottom:8px }
+    .att-lbl  { color:#8e8e93; font-size:12px }
+    .att-sts  { color:#6366f1; font-size:12px; font-weight:700 }
+
+    .dots { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap }
+    .dot { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600 }
+    .dok  { background:#6366f1; color:#fff }
+    .dmis { background:rgba(239,68,68,.10); color:#ef4444; border:1px solid #ef4444 }
+    .dson { background:#f0f0f5; color:#c7c7cc; border:1px dashed #d1d1d6 }
+    .dgl  { background:rgba(99,102,241,.08); color:#6366f1; border:2px dashed #6366f1 }
+
+    .mc-msg { background:rgba(99,102,241,.07); border-radius:8px; padding:9px 12px; color:#4b4b9a; font-size:12px; line-height:1.5; margin-bottom:13px }
+    .mc-msg.done { background:rgba(34,197,94,.07); color:#16a34a }
+
+    .mc-acts { display:flex; gap:8px }
+    .mac { flex:1; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; gap:5px; font-size:12px; font-weight:600; cursor:pointer; border:none }
+    .mac-qr  { background:#6366f1; color:#fff }
+    .mac-chg { background:rgba(99,102,241,.08); color:#6366f1; border:1px solid rgba(99,102,241,.2) }
+    .mac-del { background:rgba(239,68,68,.07); color:#ef4444; border:1px solid rgba(239,68,68,.2) }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: QR                                  */
+    /* ─────────────────────────────────────────── */
+    .qr-body { flex:1; display:flex; flex-direction:column; align-items:center; padding:16px 20px; overflow-y:auto }
+    .qr-body::-webkit-scrollbar { display:none }
+
+    .qr-strip {
+      width:100%; background:#ffffff; border-radius:14px; padding:14px 16px;
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:18px; border:1px solid #e5e5ea;
+    }
+    .qr-cname  { color:#1c1c1e; font-size:13px; font-weight:600; margin-bottom:2px }
+    .qr-sname  { color:#8e8e93; font-size:12px }
+    .qr-live   { background:rgba(34,197,94,.2); color:#22c55e; font-size:11px; font-weight:700; padding:4px 10px; border-radius:7px; display:flex; align-items:center; gap:4px }
+    .live-dot  { width:6px; height:6px; background:#22c55e; border-radius:50%; animation:blink 1.2s infinite }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .qr-frame {
+      width:226px; height:226px; background:#fff; border-radius:22px;
+      padding:13px; margin-bottom:16px;
+      box-shadow:0 8px 32px rgba(0,0,0,.12);
+      cursor:pointer; position:relative; overflow:hidden; flex-shrink:0;
+    }
+    .qr-frame:active { transform:scale(.97) }
+    .qr-frame svg { width:100%; height:100% }
+
+    .qr-scan-fx {
+      position:absolute; inset:0; border-radius:22px;
+      background:#6366f1; display:flex; align-items:center; justify-content:center;
+      font-size:64px; color:#fff; opacity:0; transition:opacity .4s;
+    }
+    .qr-scan-fx.on { opacity:1 }
+
+    .qr-timer-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; width:100% }
+    .qr-tc { width:46px; height:46px; border-radius:50%; border:3px solid #6366f1; display:flex; align-items:center; justify-content:center; color:#6366f1; font-size:13px; font-weight:700; flex-shrink:0 }
+    .qr-tc.warn { border-color:#ef4444; color:#ef4444 }
+    .qr-tt .l1 { color:#1c1c1e; font-size:13px; font-weight:600 }
+    .qr-tt .l2 { color:#8e8e93; font-size:12px }
+
+    .bkcode { width:100%; background:#ffffff; border-radius:14px; padding:14px 16px; margin-bottom:12px; border:1px solid #e5e5ea }
+    .bkcode-lbl { color:#8e8e93; font-size:11px; margin-bottom:6px }
+    .bkcode-num { color:#1c1c1e; font-size:30px; font-weight:700; letter-spacing:10px; text-align:center }
+    .bkcode-ht  { color:#aeaeb2; font-size:11px; text-align:center; margin-top:4px }
+
+    .refresh-btn {
+      width:100%; height:44px; background:transparent; border:1px solid #e5e5ea;
+      border-radius:12px; color:#8e8e93; font-size:14px; display:flex;
+      align-items:center; justify-content:center; gap:6px; cursor:pointer; margin-bottom:10px;
+    }
+    .appeal { color:#aeaeb2; font-size:12px; cursor:pointer; text-decoration:underline; text-align:center }
+
+    .qr-succ {
+      position:absolute; inset:0; background:#f5f5f7; z-index:200;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:40px 32px; display:none;
+    }
+    .qr-succ.on { display:flex }
+    .qsico { font-size:78px; margin-bottom:18px; animation:popIn .5s cubic-bezier(.34,1.56,.64,1) }
+    .qsh1  { color:#1c1c1e; font-size:24px; font-weight:700; margin-bottom:8px }
+    .qsp   { color:#8e8e93; font-size:14px; text-align:center; line-height:1.65; margin-bottom:36px }
+    .qsgobtn {
+      width:100%; height:52px; background:#6366f1; border-radius:14px;
+      color:#fff; font-size:17px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+
+    /* ─────────────────────────────────────────── */
+    /* SCREEN: CALENDAR                            */
+    /* ─────────────────────────────────────────── */
+    .cal-top { display:flex; align-items:center; justify-content:space-between; padding:4px 20px 14px }
+    .cal-mo  { color:#1c1c1e; font-size:20px; font-weight:700 }
+    .cal-navs { display:flex; gap:2px }
+    .cal-navb { color:#6366f1; font-size:24px; cursor:pointer; padding:4px 8px }
+
+    .cal-gw  { padding:0 12px; flex-shrink:0 }
+    .cal-wds { display:grid; grid-template-columns:repeat(7,1fr) }
+    .cal-wd  { text-align:center; color:#8e8e93; font-size:12px; padding:5px 0 }
+    .cal-wd.s { color:#ef4444 } .cal-wd.sa { color:#6366f1 }
+
+    .cal-dg { display:grid; grid-template-columns:repeat(7,1fr); gap:2px }
+    .cday   { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:5px; cursor:pointer; border-radius:10px }
+    .cday:active { background:#f0f0f5 }
+    .cday-n { font-size:13px; color:#1c1c1e; font-weight:400; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50% }
+    .cday-n.tod { background:#6366f1; color:#fff; font-weight:700 }
+    .cday-n.sel { background:#8b5cf6; color:#fff; font-weight:700 }
+    .cday-n.s { color:#ef4444 } .cday-n.sa { color:#6366f1 } .cday-n.dim { color:#d1d1d6 }
+    .cday-dots { display:flex; gap:2px; margin-top:2px }
+    .cd { width:5px; height:5px; border-radius:50% }
+    .cd-b { background:#6366f1 } .cd-g { background:#22c55e } .cd-o { background:#f59e0b } .cd-r { background:#ef4444 }
+
+    .cal-sum { display:flex; margin:14px 20px 12px; gap:10px; flex-shrink:0 }
+    .cal-sc  { flex:1; background:#ffffff; border-radius:12px; padding:12px; text-align:center; border:1px solid #e5e5ea }
+    .cal-sn  { color:#1c1c1e; font-size:20px; font-weight:700 }
+    .cal-sl  { color:#8e8e93; font-size:11px; margin-top:2px }
+
+    .cal-leg { display:flex; flex-wrap:wrap; gap:12px; padding:0 20px 12px; flex-shrink:0 }
+    .cal-li  { display:flex; align-items:center; gap:5px; color:#8e8e93; font-size:11px }
+    .li-dot  { width:8px; height:8px; border-radius:50%; display:inline-block }
+
+    .cal-crs { padding:0 20px 24px }
+    .cal-crh { color:#1c1c1e; font-size:15px; font-weight:700; margin-bottom:10px }
+    .cal-cr  { display:flex; align-items:center; gap:12px; background:#ffffff; border-radius:12px; padding:12px 14px; margin-bottom:8px; border:1px solid #e5e5ea; cursor:pointer }
+    .cal-cr:active { opacity:.85 }
+    .cal-dl  { width:10px; height:10px; border-radius:50%; flex-shrink:0 }
+    .cal-cn  { color:#1c1c1e; font-size:13px; font-weight:600; margin-bottom:2px }
+    .cal-cd  { color:#8e8e93; font-size:12px }
+    .cal-cb  { padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; margin-left:auto; flex-shrink:0 }
+  </style>
+</head>
+<body>
+<div class="device">
+  <div class="island"></div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 1 · HOME                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-home" class="screen active">
+    <div class="sbar"><span class="t">9:41</span><div class="ic">▲▲▲ WiFi 🔋</div></div>
+
+    <div class="h-top">
+      <div class="h-greet">안녕하세요, 김한샘님 👋</div>
+      <div class="h-title">어떤 수업을 찾으세요?</div>
+    </div>
+
+    <div class="searchbar">
+      <span>🔍</span><span>강의명, 강사명으로 검색</span>
+    </div>
+
+    <div class="chips">
+      <div class="chip on">전체</div>
+      <div class="chip">📍 서울</div>
+      <div class="chip">📍 부산</div>
+      <div class="chip">📍 대구</div>
+      <div class="chip">💻 온라인</div>
+    </div>
+
+    <div class="scrl">
+      <div class="sechead"><h2>🏫 오프라인 코스</h2><a>전체보기</a></div>
+
+      <div class="ccard" onclick="go('s-detail')">
+        <div class="ccard-img">
+          <div class="cbgs"><span class="cbg cbg-t">현장강의</span><span class="cbg cbg-h">마감임박</span></div>
+          <span class="ccard-emo">📊</span>
+        </div>
+        <div class="ccard-body">
+          <div class="ccard-title">2026 하반기 데이터 분석 전문가 과정 (실기)</div>
+          <div class="ccard-meta">
+            <div class="ccard-mrow">📅 6/1(월) ~ 6/22(월) · 매주 월요일</div>
+            <div class="ccard-mrow">📍 서울 강남구 테헤란로 · 강남역 5번 출구</div>
+            <div class="ccard-mrow">⏱ 총 4회차 · 16시간</div>
+          </div>
+          <div class="seat-hd"><span class="seat-lbl">잔여 좌석</span><span class="seat-rem hot">⚠ 3석 남음</span></div>
+          <div class="seat-trk"><div class="seat-fill hot" style="width:85%"></div></div>
+        </div>
+      </div>
+
+      <div class="ccard" onclick="go('s-detail')">
+        <div class="ccard-img g2">
+          <div class="cbgs"><span class="cbg cbg-t">현장강의</span><span class="cbg cbg-n">NEW</span></div>
+          <span class="ccard-emo">🎨</span>
+        </div>
+        <div class="ccard-body">
+          <div class="ccard-title">UX/UI 실전 디자인 워크샵 — 피그마 마스터</div>
+          <div class="ccard-meta">
+            <div class="ccard-mrow">📅 7/5(일) ~ 7/26(일) · 매주 일요일</div>
+            <div class="ccard-mrow">📍 서울 마포구 서교동 · 홍대입구역 9번 출구</div>
+            <div class="ccard-mrow">⏱ 총 4회차 · 12시간</div>
+          </div>
+          <div class="seat-hd"><span class="seat-lbl">잔여 좌석</span><span class="seat-rem">12석 남음</span></div>
+          <div class="seat-trk"><div class="seat-fill" style="width:40%"></div></div>
+        </div>
+      </div>
+
+      <div class="sechead" style="padding-top:6px"><h2>🔥 마감 임박</h2><a>더보기</a></div>
+
+      <div class="ccard" onclick="go('s-detail')">
+        <div class="ccard-img g3">
+          <div class="cbgs"><span class="cbg cbg-t">현장강의</span><span class="cbg cbg-h">D-2 마감</span></div>
+          <span class="ccard-emo">🤖</span>
+        </div>
+        <div class="ccard-body">
+          <div class="ccard-title">생성형 AI 실무 활용 — ChatGPT·Claude 집중 과정</div>
+          <div class="ccard-meta">
+            <div class="ccard-mrow">📅 5/10(토) ~ 5/31(토) · 매주 토요일</div>
+            <div class="ccard-mrow">📍 서울 강남구 역삼동 · 강남역 인근</div>
+          </div>
+          <div class="seat-hd"><span class="seat-lbl">잔여 좌석</span><span class="seat-rem hot">1석 남음</span></div>
+          <div class="seat-trk"><div class="seat-fill hot" style="width:97%"></div></div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tabi on"  onclick="tabGo('s-home')"><div class="ico">🏠</div><div class="lbl">홈</div></div>
+      <div class="tabi"     onclick="tabGo('s-home')"><div class="ico">🔍</div><div class="lbl">검색</div></div>
+      <div class="tabi"     onclick="tabGo('s-calendar')"><div class="ico">📅</div><div class="lbl">캘린더</div></div>
+      <div class="tabi"     onclick="tabGo('s-mypage')"><div class="ico">👤</div><div class="lbl">MY</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 2 · COURSE DETAIL                   -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-detail" class="screen">
+    <div class="sbar" style="position:absolute;width:100%;z-index:20"><span class="t">9:30</span><div class="ic">▲▲▲ 🔋</div></div>
+    <div class="nbar" style="position:absolute;width:100%;top:0;z-index:20;padding-top:56px">
+      <div class="nbk" onclick="back()">‹</div>
+      <div class="nbtl"></div>
+      <div class="nbr">⋯</div>
+    </div>
+
+    <div class="scrl">
+      <div class="hero">
+        <div class="hero-bgs"><span class="cbg cbg-t">현장강의</span><span class="cbg cbg-h">마감임박</span></div>
+        <div class="hero-emo">📊</div>
+        <span class="hero-tag">데이터 분석 · 실기과정</span>
+      </div>
+
+      <div class="dbody">
+        <div class="dcat">데이터 분석 / 실기 과정</div>
+        <div class="dtitle">2026 하반기 데이터 분석 전문가 과정 (실기)</div>
+        <div class="dsub">본 과정은 오프라인으로 진행되는 대면 교육 및 평가입니다. 이하의 상세 일정과 유의사항을 반드시 확인하신 후 신청해 주세요.</div>
+
+        <div class="dtabs">
+          <div class="dtab on" onclick="dtabSwitch(this,'dp-info')">정보</div>
+          <div class="dtab"    onclick="dtabSwitch(this,'dp-curr')">커리큘럼</div>
+        </div>
+
+        <!-- 정보 탭 -->
+        <div id="dp-info">
+          <br>
+          <div class="ibox">
+            <div class="irow"><div class="irow-ico">📅</div><div><div class="irow-lbl">교육 일정</div><div class="irow-val">2026. 6/1 ~ 6/22 (4회차)</div><div class="irow-sub">매주 월요일 · 14:00 ~ 18:00</div></div></div>
+            <div class="irow"><div class="irow-ico">⏱</div><div><div class="irow-lbl">총 교육 시간</div><div class="irow-val">16시간 (4회차 × 4시간)</div></div></div>
+            <div class="irow"><div class="irow-ico">👤</div><div><div class="irow-lbl">강사</div><div class="irow-val">김데이터 (경력 8년)</div><div class="irow-sub">前 카카오 데이터 분석팀 리드</div></div></div>
+            <div class="irow"><div class="irow-ico">👥</div><div><div class="irow-lbl">정원 / 잔여</div><div class="irow-val" style="color:#ef4444">20명 정원 / <strong>3석</strong> 남음</div></div></div>
+            <div class="irow"><div class="irow-ico">🎓</div><div><div class="irow-lbl">수료 기준</div><div class="irow-val">4회차 중 3회 이상 출석 시 수료</div><div class="irow-sub">QR 출석 필수 · 출석률 75% 이상</div></div></div>
+          </div>
+          <div class="mapbox" onclick="alert('외부 지도 앱으로 이동합니다')">
+            <div class="map-pin">📍</div>
+            <div class="map-addr">서울특별시 강남구 테헤란로 OOO빌딩 5층</div>
+            <div class="map-btn">길 찾기 →</div>
+          </div>
+        </div>
+
+        <!-- 커리큘럼 탭 -->
+        <div id="dp-curr" style="display:none">
+          <div class="curr-head"><span>4 커리큘럼</span><span class="curr-tog">모두 펼치기</span></div>
+          <div class="curr-item"><div class="curr-num">1</div><div class="curr-tit">데이터 분석의 기초</div><div class="curr-time">60분</div><span style="color:#aeaeb2;margin-left:8px">›</span></div>
+          <div class="curr-item"><div class="curr-num">2</div><div class="curr-tit">데이터 시각화 전략</div><div class="curr-time">60분</div><span style="color:#aeaeb2;margin-left:8px">›</span></div>
+          <div class="curr-item"><div class="curr-num">3</div><div class="curr-tit">심화 시각화 기법</div><div class="curr-time">60분</div><span style="color:#aeaeb2;margin-left:8px">›</span></div>
+          <div class="curr-item"><div class="curr-num">4</div><div class="curr-tit">대시보드 설계 및 구축</div><div class="curr-time">60분</div><span style="color:#aeaeb2;margin-left:8px">›</span></div>
+        </div>
+        <div style="height:20px"></div>
+      </div>
+    </div>
+
+    <div class="dbot">
+      <div class="wish" id="wish-btn" onclick="toggleWish()">🤍</div>
+      <div class="cta" onclick="go('s-register')">수강신청 하기</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 3 · REGISTER                        -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-register" class="screen">
+    <div class="sbar"><span class="t">9:30</span><div class="ic">▲▲▲ 🔋</div></div>
+    <div class="nbar"><div class="nbk" onclick="back()">‹</div><div class="nbtl">수강신청</div><div class="nbr"></div></div>
+
+    <div class="regbody">
+      <div class="fgrp">
+        <div class="flbl">장소</div>
+        <div class="fsel on">
+          <span class="fsel-v">서울</span><span class="fsel-ar">▾</span>
+        </div>
+      </div>
+
+      <div class="fgrp">
+        <div class="flbl">기수 선택</div>
+        <div class="fsel" id="sess-sel" onclick="openSheet()">
+          <span class="fsel-ph" id="sess-ph">기수 선택</span>
+          <span class="fsel-ar">▾</span>
+        </div>
+      </div>
+
+      <div class="ipanel">
+        <div class="iptit">📍 찾아오시는길</div>
+        <ul class="iplist">
+          <li>장소: 서울특별시 강남구 테헤란로 OOO빌딩 5층</li>
+          <li>교통: 지하철 2호선 강남역 10번 출구에서 도보 5분</li>
+        </ul>
+      </div>
+
+      <div class="ipanel">
+        <div class="iptit">🚗 교통 및 주차 안내</div>
+        <ul class="iplist">
+          <li>시험장 건물 내 주차는 지원해드리지 않습니다.</li>
+          <li>주차 공간이 협소하오니 가급적 대중교통을 이용해 주시기 바랍니다.</li>
+          <li>부득이하게 차량을 가져오신 경우에는 시험장 근처의 유료 주차장을 직접 확인 후 이용해 주세요.</li>
+        </ul>
+      </div>
+
+      <div class="notice">
+        <p><strong>취소 및 환불 정책</strong><br>
+        개강 D-14 이전 취소 시 전액 환불<br>
+        D-7 ~ D-14 취소 시 80% 환불<br>
+        D-3 ~ D-7 취소 시 50% 환불 · 이후 환불 불가</p>
+      </div>
+    </div>
+
+    <div class="regbot">
+      <div class="regbtn dis" id="reg-btn" onclick="openConfirm()">수강신청하기</div>
+    </div>
+
+    <!-- Bottom Sheet: 기수 선택 -->
+    <div class="shbk" id="shbk" onclick="closeSheet()"></div>
+    <div class="bsheet" id="bsheet">
+      <div class="bsh-handle"></div>
+      <div class="bsh-title">기수 선택</div>
+      <div class="sopt" onclick="selectSess('1기 (6월반)','1','6/1, 6/8, 6/15, 6/22 · 매주 월요일 14:00')">
+        <div class="sopt-radio" id="radio-1"></div>
+        <div class="sopt-info">
+          <div class="sopt-name">1기 (6월반)</div>
+          <div class="sopt-dates">2026/06/01 시작 · 매주 월요일 14:00~18:00</div>
+        </div>
+        <div class="sopt-seat">
+          <div class="sopt-snum hot">3</div>
+          <div class="sopt-slbl">잔여석</div>
+        </div>
+      </div>
+      <div class="sopt" onclick="selectSess('2기 (7월반)','2','7/1, 7/8, 7/15, 7/22 · 매주 수요일 14:00')">
+        <div class="sopt-radio" id="radio-2"></div>
+        <div class="sopt-info">
+          <div class="sopt-name">2기 (7월반)</div>
+          <div class="sopt-dates">2026/07/01 시작 · 매주 수요일 14:00~18:00</div>
+        </div>
+        <div class="sopt-seat">
+          <div class="sopt-snum">20</div>
+          <div class="sopt-slbl">잔여석</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 최종 확인 Modal -->
+    <div class="modbk" id="modbk">
+      <div class="modal">
+        <div class="mod-title">최종 신청 정보 확인</div>
+        <div class="mod-row"><span class="mod-k">코스</span><span class="mod-v">2026 하반기 데이터 분석 전문가 과정 (실기)</span></div>
+        <div class="mod-row"><span class="mod-k">지역</span><span class="mod-v">서울</span></div>
+        <div class="mod-row"><span class="mod-k">기수</span><span class="mod-v" id="mod-sess">—</span></div>
+        <div class="mod-btns">
+          <button class="mbtn-c" onclick="closeModal()">취소</button>
+          <button class="mbtn-ok" onclick="confirmReg()">최종 신청</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 4 · SUCCESS                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-success" class="screen">
+    <div class="sbar"><span class="t">9:30</span><div class="ic">▲▲▲ 🔋</div></div>
+
+    <div class="succ-wrap">
+      <div class="succ-ico">✓</div>
+      <div class="succ-h1">수강 신청 등록 완료!</div>
+      <div class="succ-p">수강 신청 등록이 완료되었습니다.<br>아래에서 신청 정보를 확인하세요.</div>
+
+      <div class="conf-card">
+        <div class="conf-row"><span class="conf-k">코스</span><span class="conf-v">2026 하반기 데이터 분석 전문가 과정</span></div>
+        <div class="conf-row"><span class="conf-k">지역</span><span class="conf-v">서울</span></div>
+        <div class="conf-row"><span class="conf-k">기수</span><span class="conf-v" id="succ-sess">1기 6월 매주 월요일</span></div>
+        <div class="conf-row"><span class="conf-k">일정</span><span class="conf-v" id="succ-dates">6/1, 6/8, 6/15, 6/22</span></div>
+      </div>
+
+      <div class="cal-hint" onclick="tabGo('s-calendar')">
+        <span class="ci">📅</span>
+        <div class="cal-hint-txt"><p><strong>캘린더 사용</strong><br>해당 코스를 날짜별로 확인할 수 있습니다.</p></div>
+        <span class="arr">›</span>
+      </div>
+
+      <div class="succ-homebtn" onclick="goHome()">홈 화면으로 이동</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 5 · MY PAGE                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-mypage" class="screen">
+    <div class="sbar"><span class="t">9:30</span><div class="ic">▲▲▲ 🔋</div></div>
+    <div class="nbar"><div class="nbk" style="opacity:0">‹</div><div class="nbtl">마이페이지</div><div class="nbr">⚙</div></div>
+
+    <div class="my-hd">
+      <div class="avatar">👤</div>
+      <div><div class="my-name">김한샘</div><div class="my-email">hansaem@company.com</div></div>
+    </div>
+
+    <div class="my-stats">
+      <div class="my-stat"><div class="msn" style="color:#6366f1">2</div><div class="msl">수강 중</div></div>
+      <div class="my-stat"><div class="msn" style="color:#22c55e">3</div><div class="msl">완료 코스</div></div>
+      <div class="my-stat"><div class="msn" style="color:#f59e0b">10</div><div class="msl">신청 코스</div></div>
+    </div>
+
+    <div class="my-tabs">
+      <div class="my-tab"    onclick="myTabSwitch(this)">온라인 코스</div>
+      <div class="my-tab on" onclick="myTabSwitch(this)">오프라인 코스</div>
+      <div class="my-tab"    onclick="myTabSwitch(this)">블렌디드</div>
+    </div>
+
+    <div class="scrl" style="padding-top:12px">
+      <!-- 수강 중 코스 -->
+      <div class="mc">
+        <div class="mc-top">
+          <div class="mc-title">2026 하반기 데이터 분석 전문가 과정 (실기)</div>
+          <div class="mcbadge mcb-prog">수강 중</div>
+        </div>
+        <div class="mc-next">
+          <span class="ico">📅</span>
+          <span class="txt">다음 일정:</span>
+          <span class="val">6/22(월) 14:00</span>
+          <span class="dtag">D-3</span>
+        </div>
+        <div class="att-lrow"><span class="att-lbl">출석 현황 (4회차)</span><span class="att-sts">앞으로 2회 더 참석하면 수료 확정</span></div>
+        <div class="dots">
+          <div class="dot dok" title="출석">1</div>
+          <div class="dot dok" title="출석">2</div>
+          <div class="dot dson" title="예정">3</div>
+          <div class="dot dgl" title="수료 목표">🎯</div>
+        </div>
+        <div class="mc-msg">✨ <strong>2회</strong> 더 참석하면 수료 확정! (4회 중 3회 이상 출석 기준)</div>
+        <div class="mc-acts">
+          <button class="mac mac-qr" onclick="go('s-qr')">📱 QR 출석</button>
+          <button class="mac mac-chg" onclick="alert('일정 변경 페이지로 이동합니다')">일정 변경</button>
+          <button class="mac mac-del" onclick="alert('취소 정책을 확인 후 취소하시겠습니까?')">취소</button>
+        </div>
+      </div>
+
+      <!-- 수료 완료 코스 -->
+      <div class="mc">
+        <div class="mc-top">
+          <div class="mc-title">2026 상반기 Python 머신러닝 기초과정</div>
+          <div class="mcbadge mcb-done">수료 완료</div>
+        </div>
+        <div class="att-lrow"><span class="att-lbl">출석 현황 (4회차)</span><span class="att-sts" style="color:#22c55e">수료 완료 🎉</span></div>
+        <div class="dots">
+          <div class="dot dok">1</div><div class="dot dok">2</div>
+          <div class="dot dok">3</div><div class="dot dok">4</div>
+        </div>
+        <div class="mc-msg done">🏆 수료증이 발급되었습니다. 아래에서 다운로드하세요.</div>
+        <div class="mc-acts">
+          <button class="mac mac-qr" style="background:#22c55e;flex:2" onclick="alert('수료증 PDF를 다운로드합니다')">📄 수료증 다운로드</button>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tabi"     onclick="tabGo('s-home')"><div class="ico">🏠</div><div class="lbl">홈</div></div>
+      <div class="tabi"     onclick="tabGo('s-home')"><div class="ico">🔍</div><div class="lbl">검색</div></div>
+      <div class="tabi"     onclick="tabGo('s-calendar')"><div class="ico">📅</div><div class="lbl">캘린더</div></div>
+      <div class="tabi on"  onclick="tabGo('s-mypage')"><div class="ico">👤</div><div class="lbl">MY</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 6 · QR 출석                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-qr" class="screen">
+    <div class="sbar"><span class="t">9:30</span><div class="ic">▲▲▲ 🔋</div></div>
+    <div class="nbar"><div class="nbk" onclick="back()">‹</div><div class="nbtl">QR 출석</div><div class="nbr"></div></div>
+
+    <div class="qr-body">
+      <div class="qr-strip">
+        <div>
+          <div class="qr-cname">데이터 분석 전문가 과정 (실기)</div>
+          <div class="qr-sname">1기 · 3회차 · 6월 22일(월) 14:00</div>
+        </div>
+        <div class="qr-live"><div class="live-dot"></div>LIVE</div>
+      </div>
+
+      <!-- QR Code (tap to simulate scan) -->
+      <div class="qr-frame" id="qr-frame" onclick="simulateScan()" title="탭하면 스캔 시뮬레이션">
+        <svg viewBox="0 0 210 210" xmlns="http://www.w3.org/2000/svg">
+          <!-- Finder TL --><rect x="0" y="0" w="63" width="63" height="63" fill="#000"/><rect x="9" y="9" width="45" height="45" fill="#fff"/><rect x="18" y="18" width="27" height="27" fill="#000"/>
+          <!-- Finder TR --><rect x="147" y="0" width="63" height="63" fill="#000"/><rect x="156" y="9" width="45" height="45" fill="#fff"/><rect x="165" y="18" width="27" height="27" fill="#000"/>
+          <!-- Finder BL --><rect x="0" y="147" width="63" height="63" fill="#000"/><rect x="9" y="156" width="45" height="45" fill="#fff"/><rect x="18" y="165" width="27" height="27" fill="#000"/>
+          <!-- Timing --><rect x="72" y="63" width="9" height="9" fill="#000"/><rect x="90" y="63" width="9" height="9" fill="#000"/><rect x="108" y="63" width="9" height="9" fill="#000"/><rect x="63" y="72" width="9" height="9" fill="#000"/><rect x="63" y="90" width="9" height="9" fill="#000"/><rect x="63" y="108" width="9" height="9" fill="#000"/>
+          <!-- Data modules -->
+          <rect x="72" y="72" width="9" height="9" fill="#000"/><rect x="90" y="72" width="9" height="9" fill="#000"/><rect x="117" y="72" width="9" height="9" fill="#000"/>
+          <rect x="81" y="81" width="9" height="9" fill="#000"/><rect x="108" y="81" width="9" height="9" fill="#000"/>
+          <rect x="72" y="90" width="9" height="9" fill="#000"/><rect x="99" y="90" width="9" height="9" fill="#000"/>
+          <rect x="81" y="99" width="9" height="9" fill="#000"/><rect x="108" y="99" width="9" height="9" fill="#000"/><rect x="126" y="99" width="9" height="9" fill="#000"/>
+          <rect x="72" y="108" width="9" height="9" fill="#000"/><rect x="90" y="108" width="9" height="9" fill="#000"/><rect x="117" y="108" width="9" height="9" fill="#000"/>
+          <rect x="81" y="117" width="9" height="9" fill="#000"/><rect x="99" y="117" width="9" height="9" fill="#000"/><rect x="126" y="117" width="9" height="9" fill="#000"/>
+          <rect x="72" y="126" width="9" height="9" fill="#000"/><rect x="108" y="126" width="9" height="9" fill="#000"/>
+          <rect x="81" y="135" width="9" height="9" fill="#000"/><rect x="99" y="135" width="9" height="9" fill="#000"/><rect x="117" y="135" width="9" height="9" fill="#000"/>
+          <rect x="126" y="72" width="9" height="9" fill="#000"/><rect x="144" y="72" width="9" height="9" fill="#000"/>
+          <rect x="135" y="81" width="9" height="9" fill="#000"/><rect x="144" y="90" width="9" height="9" fill="#000"/>
+          <rect x="126" y="108" width="9" height="9" fill="#000"/><rect x="135" y="117" width="9" height="9" fill="#000"/>
+          <rect x="144" y="117" width="9" height="9" fill="#000"/><rect x="126" y="126" width="9" height="9" fill="#000"/>
+          <rect x="135" y="135" width="9" height="9" fill="#000"/><rect x="144" y="144" width="9" height="9" fill="#000"/>
+          <rect x="72" y="144" width="9" height="9" fill="#000"/><rect x="90" y="144" width="9" height="9" fill="#000"/><rect x="108" y="144" width="9" height="9" fill="#000"/><rect x="126" y="144" width="9" height="9" fill="#000"/>
+          <rect x="81" y="153" width="9" height="9" fill="#000"/><rect x="108" y="153" width="9" height="9" fill="#000"/>
+          <rect x="72" y="162" width="9" height="9" fill="#000"/><rect x="99" y="162" width="9" height="9" fill="#000"/><rect x="117" y="162" width="9" height="9" fill="#000"/><rect x="135" y="162" width="9" height="9" fill="#000"/>
+          <rect x="72" y="171" width="9" height="9" fill="#000"/><rect x="90" y="171" width="9" height="9" fill="#000"/><rect x="108" y="171" width="9" height="9" fill="#000"/><rect x="144" y="171" width="9" height="9" fill="#000"/>
+          <rect x="81" y="180" width="9" height="9" fill="#000"/><rect x="99" y="180" width="9" height="9" fill="#000"/><rect x="126" y="180" width="9" height="9" fill="#000"/><rect x="144" y="180" width="9" height="9" fill="#000"/>
+          <!-- Top data strip -->
+          <rect x="72" y="0" width="9" height="9" fill="#000"/><rect x="90" y="0" width="9" height="9" fill="#000"/><rect x="117" y="0" width="9" height="9" fill="#000"/>
+          <rect x="81" y="9" width="9" height="9" fill="#000"/><rect x="108" y="9" width="9" height="9" fill="#000"/>
+          <rect x="72" y="18" width="9" height="9" fill="#000"/><rect x="99" y="18" width="9" height="9" fill="#000"/>
+          <rect x="90" y="27" width="9" height="9" fill="#000"/><rect x="117" y="27" width="9" height="9" fill="#000"/>
+          <rect x="72" y="36" width="9" height="9" fill="#000"/><rect x="108" y="36" width="9" height="9" fill="#000"/>
+          <rect x="81" y="45" width="9" height="9" fill="#000"/><rect x="99" y="45" width="9" height="9" fill="#000"/>
+          <!-- Left data strip -->
+          <rect x="0" y="72" width="9" height="9" fill="#000"/><rect x="18" y="72" width="9" height="9" fill="#000"/>
+          <rect x="9" y="81" width="9" height="9" fill="#000"/><rect x="27" y="81" width="9" height="9" fill="#000"/>
+          <rect x="0" y="90" width="9" height="9" fill="#000"/><rect x="18" y="99" width="9" height="9" fill="#000"/>
+          <rect x="9" y="108" width="9" height="9" fill="#000"/><rect x="27" y="108" width="9" height="9" fill="#000"/>
+          <rect x="0" y="117" width="9" height="9" fill="#000"/><rect x="9" y="126" width="9" height="9" fill="#000"/>
+          <rect x="27" y="126" width="9" height="9" fill="#000"/><rect x="0" y="135" width="9" height="9" fill="#000"/>
+          <rect x="18" y="135" width="9" height="9" fill="#000"/><rect x="9" y="144" width="9" height="9" fill="#000"/>
+          <!-- Right data strip -->
+          <rect x="153" y="72" width="9" height="9" fill="#000"/><rect x="171" y="72" width="9" height="9" fill="#000"/>
+          <rect x="162" y="81" width="9" height="9" fill="#000"/><rect x="180" y="81" width="9" height="9" fill="#000"/>
+          <rect x="153" y="90" width="9" height="9" fill="#000"/><rect x="171" y="99" width="9" height="9" fill="#000"/>
+          <rect x="162" y="108" width="9" height="9" fill="#000"/><rect x="153" y="117" width="9" height="9" fill="#000"/>
+          <rect x="180" y="117" width="9" height="9" fill="#000"/><rect x="162" y="126" width="9" height="9" fill="#000"/>
+          <rect x="171" y="135" width="9" height="9" fill="#000"/><rect x="153" y="144" width="9" height="9" fill="#000"/>
+          <rect x="180" y="144" width="9" height="9" fill="#000"/>
+        </svg>
+        <div class="qr-scan-fx" id="qr-fx">✓</div>
+      </div>
+      <div style="color:#aeaeb2;font-size:11px;margin-bottom:14px">QR 코드를 탭하면 출석 스캔을 시뮬레이션합니다</div>
+
+      <div class="qr-timer-row">
+        <div class="qr-tc" id="qr-tc">28:34</div>
+        <div class="qr-tt">
+          <div class="l1">QR 유효 시간</div>
+          <div class="l2">30분마다 자동 갱신됩니다</div>
+        </div>
+      </div>
+
+      <div class="bkcode">
+        <div class="bkcode-lbl">🔢 숫자 인증 코드 (QR 대체용)</div>
+        <div class="bkcode-num">4 8 2 7 1 9</div>
+        <div class="bkcode-ht">담당자에게 이 6자리 숫자를 보여주세요</div>
+      </div>
+
+      <div class="refresh-btn" onclick="alert('QR 코드가 갱신되었습니다')">↻&nbsp; QR 코드 갱신하기</div>
+      <div class="appeal" onclick="alert('출석 미반영 신고 페이지로 이동합니다')">출석이 반영되지 않았나요? 신고하기 →</div>
+    </div>
+
+    <!-- QR 출석 완료 전체 화면 오버레이 -->
+    <div class="qr-succ" id="qr-succ">
+      <div class="qsico">✅</div>
+      <div class="qsh1">출석이 확인되었습니다</div>
+      <div class="qsp">김한샘 | 6월 22일(월) 14:05 출석<br>데이터 분석 전문가 과정 · 1기 3회차</div>
+      <div class="qsgobtn" onclick="goMy()">MY 페이지로 이동</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  SCREEN 7 · CALENDAR                        -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="s-calendar" class="screen">
+    <div class="sbar"><span class="t">9:30</span><div class="ic">▲▲▲ 🔋</div></div>
+    <div class="nbar"><div class="nbk" style="opacity:0">‹</div><div class="nbtl">코스 일정</div><div class="nbr"></div></div>
+
+    <div class="cal-top">
+      <div class="cal-mo">26년 7월 코스 일정</div>
+      <div class="cal-navs">
+        <span class="cal-navb" onclick="alert('이전 달')">‹</span>
+        <span class="cal-navb" onclick="alert('다음 달')">›</span>
+      </div>
+    </div>
+
+    <div class="cal-gw">
+      <div class="cal-wds">
+        <div class="cal-wd s">일</div><div class="cal-wd">월</div><div class="cal-wd">화</div>
+        <div class="cal-wd">수</div><div class="cal-wd">목</div><div class="cal-wd">금</div>
+        <div class="cal-wd sa">토</div>
+      </div>
+      <div class="cal-dg" id="cal-dg"></div>
+    </div>
+
+    <div class="cal-sum">
+      <div class="cal-sc"><div class="cal-sn" style="color:#6366f1">10</div><div class="cal-sl">신청 코스</div></div>
+      <div class="cal-sc"><div class="cal-sn" style="color:#22c55e">3</div><div class="cal-sl">완료 코스</div></div>
+      <div class="cal-sc"><div class="cal-sn" style="color:#f59e0b">2</div><div class="cal-sl">이번 달</div></div>
+    </div>
+
+    <div class="cal-leg">
+      <div class="cal-li"><span class="li-dot" style="background:#6366f1"></span>데이터 분석 과정</div>
+      <div class="cal-li"><span class="li-dot" style="background:#22c55e"></span>Python 과정</div>
+      <div class="cal-li"><span class="li-dot" style="background:#f59e0b"></span>UX 워크샵</div>
+    </div>
+
+    <div class="scrl">
+      <div class="cal-crs">
+        <div class="cal-crh">📋 이번 달 코스 목록</div>
+        <div class="cal-cr">
+          <div class="cal-dl" style="background:#6366f1"></div>
+          <div><div class="cal-cn">데이터 분석 전문가 과정</div><div class="cal-cd">7/1(수), 7/8(수), 7/15(수), 7/22(수)</div></div>
+          <div class="cal-cb" style="background:rgba(99,102,241,.2);color:#6366f1">수강 중</div>
+        </div>
+        <div class="cal-cr">
+          <div class="cal-dl" style="background:#f59e0b"></div>
+          <div><div class="cal-cn">UX/UI 디자인 워크샵</div><div class="cal-cd">7/5(일), 7/12(일), 7/19(일), 7/26(일)</div></div>
+          <div class="cal-cb" style="background:rgba(245,158,11,.2);color:#f59e0b">예정</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <div class="tabi"     onclick="tabGo('s-home')"><div class="ico">🏠</div><div class="lbl">홈</div></div>
+      <div class="tabi"     onclick="tabGo('s-home')"><div class="ico">🔍</div><div class="lbl">검색</div></div>
+      <div class="tabi on"  onclick="tabGo('s-calendar')"><div class="ico">📅</div><div class="lbl">캘린더</div></div>
+      <div class="tabi"     onclick="tabGo('s-mypage')"><div class="ico">👤</div><div class="lbl">MY</div></div>
+    </div>
+  </div>
+
+</div><!-- .device -->
+
+<script>
+// ── State ──────────────────────────────────────
+let hist = [];
+let selSess = null;
+let wished = false;
+let timerVal = 1714;
+let timerIv = null;
+
+// ── Navigation ──────────────────────────────────
+function go(id) {
+  const all = document.querySelectorAll('.screen');
+  let curId = null;
+  all.forEach(s => { if (s.classList.contains('active')) curId = s.id; });
+  if (curId) hist.push(curId);
+  all.forEach(s => s.classList.remove('active','anim-in','anim-back'));
+  const t = document.getElementById(id);
+  t.classList.add('active','anim-in');
+  if (id === 's-qr') startTimer();
+  else stopTimer();
+}
+
+function back() {
+  if (!hist.length) return;
+  const prev = hist.pop();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','anim-in','anim-back'));
+  document.getElementById(prev).classList.add('active','anim-back');
+  stopTimer();
+}
+
+function goHome() {
+  hist = [];
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','anim-in','anim-back'));
+  document.getElementById('s-home').classList.add('active');
+}
+
+function tabGo(id) {
+  hist = [];
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','anim-in','anim-back'));
+  document.getElementById(id).classList.add('active');
+  if (id !== 's-qr') stopTimer();
+}
+
+// ── Detail Tabs ────────────────────────────────
+function dtabSwitch(el, tabId) {
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('dp-info').style.display = tabId === 'dp-info' ? 'block' : 'none';
+  document.getElementById('dp-curr').style.display = tabId === 'dp-curr' ? 'block' : 'none';
+}
+
+// ── Wish ───────────────────────────────────────
+function toggleWish() {
+  wished = !wished;
+  document.getElementById('wish-btn').textContent = wished ? '❤️' : '🤍';
+}
+
+// ── Bottom Sheet ───────────────────────────────
+function openSheet() {
+  document.getElementById('shbk').classList.add('open');
+  document.getElementById('bsheet').classList.add('open');
+}
+function closeSheet() {
+  document.getElementById('shbk').classList.remove('open');
+  document.getElementById('bsheet').classList.remove('open');
+}
+function selectSess(label, id, dates) {
+  selSess = { label, id, dates };
+  document.querySelectorAll('.sopt-radio').forEach(r => r.classList.remove('on'));
+  document.getElementById('radio-' + id).classList.add('on');
+  const sel = document.getElementById('sess-sel');
+  sel.classList.add('on');
+  sel.innerHTML = `<span class="fsel-v">${label}</span><span class="fsel-ar">▾</span>`;
+  document.getElementById('mod-sess').textContent = label + ' (' + dates + ')';
+  document.getElementById('succ-sess').textContent = label;
+  document.getElementById('succ-dates').textContent = dates.split('·')[0].trim();
+  document.getElementById('reg-btn').classList.remove('dis');
+  setTimeout(closeSheet, 320);
+}
+
+// ── Modal ─────────────────────────────────────
+function openConfirm() {
+  if (!selSess) return;
+  document.getElementById('modbk').classList.add('open');
+}
+function closeModal() { document.getElementById('modbk').classList.remove('open'); }
+function confirmReg() {
+  closeModal();
+  go('s-success');
+}
+
+// ── My Tabs ───────────────────────────────────
+function myTabSwitch(el) {
+  document.querySelectorAll('.my-tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ── QR Timer ─────────────────────────────────
+function startTimer() {
+  timerVal = 1714; stopTimer();
+  renderTimer();
+  timerIv = setInterval(() => { timerVal--; if(timerVal<=0) timerVal=1800; renderTimer(); }, 1000);
+}
+function stopTimer() { if(timerIv) { clearInterval(timerIv); timerIv=null; } }
+function renderTimer() {
+  const el = document.getElementById('qr-tc');
+  if (!el) return;
+  const m = Math.floor(timerVal/60), s = timerVal%60;
+  el.textContent = m+':'+(s<10?'0':'')+s;
+  el.classList.toggle('warn', timerVal <= 300);
+}
+
+// ── QR Scan Simulation ────────────────────────
+function simulateScan() {
+  const fx = document.getElementById('qr-fx');
+  fx.classList.add('on');
+  setTimeout(() => {
+    fx.classList.remove('on');
+    stopTimer();
+    document.getElementById('qr-succ').classList.add('on');
+  }, 1100);
+}
+function goMy() {
+  document.getElementById('qr-succ').classList.remove('on');
+  stopTimer();
+  hist = [];
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','anim-in','anim-back'));
+  document.getElementById('s-mypage').classList.add('active');
+}
+
+// ── Calendar Builder ──────────────────────────
+(function buildCal() {
+  // July 2026 starts on Wednesday (3)
+  const firstDow = 3, days = 31;
+  const dots = { 1:['b'], 5:['o'], 8:['b','o'], 12:['o'], 15:['b'], 19:['o'], 22:['b'], 26:['o'] };
+  const today = 8;
+  let html = '';
+  for (let i=0; i<firstDow; i++) html += '<div class="cday"></div>';
+  for (let d=1; d<=days; d++) {
+    const dow = (firstDow+d-1)%7;
+    let nc = 'cday-n';
+    if (dow===0) nc+=' s'; else if (dow===6) nc+=' sa';
+    if (d===today) nc+=' tod';
+    const dd = (dots[d]||[]).map(c=>`<span class="cd cd-${c}"></span>`).join('');
+    html += `<div class="cday" onclick="calClick(${d})"><span class="${nc}">${d}</span><div class="cday-dots">${dd}</div></div>`;
+  }
+  document.getElementById('cal-dg').innerHTML = html;
+})();
+
+function calClick(d) {
+  document.querySelectorAll('.cday-n').forEach(n => n.classList.remove('sel'));
+  event.currentTarget.querySelector('.cday-n').classList.add('sel');
+}
+</script>
+</body>
+</html>
