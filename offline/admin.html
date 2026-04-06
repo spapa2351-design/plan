@@ -124,11 +124,8 @@
     .btn:hover { background:var(--body-bg); border-color: rgba(34,51,84,.25); }
     .btn.pri { background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:var(--primary-shadow); }
     .btn.pri:hover { background:var(--primary-dark); }
-    .btn.ghost { background:var(--primary-lighter); color:var(--primary); border-color:transparent; }
-    .btn.ghost:hover { background:#dde1ff; }
     .btn.err { color:var(--error); border-color:rgba(255,25,67,.3); }
     .btn.err:hover { background:#fff0f3; }
-    .btn.sm { height:28px; padding:0 10px; font-size:12px; }
     .btn.xs { height:24px; padding:0 8px; font-size:11px; }
 
     /* ── Page Layout ── */
@@ -494,14 +491,14 @@
         </div>
         <div class="card-body">
           
-          <!-- 코스명 우선 배치 -->
+          <!-- 코스명 (최우선 배치) -->
           <div class="form-group full" style="margin-bottom: 16px;">
             <label class="form-label">코스명 <span class="req">*</span></label>
             <input type="text" id="courseName" placeholder="예: 2026 직무교육 — 프로젝트 관리 심화">
           </div>
 
           <!-- 상단 표시 방식 -->
-          <div class="form-group" style="margin-bottom:24px;">
+          <div class="form-group full" style="margin-bottom:20px;">
             <label class="form-label">상단 표시 방식</label>
             <div class="display-opts" style="margin-top:6px">
               <label class="display-opt active" onclick="setDisplay(this,'cover')">
@@ -538,25 +535,34 @@
               <label class="form-label">담당 강사 <span class="req">*</span></label>
               <input type="text" id="instructorName" placeholder="예: 김민준">
             </div>
+            <div class="form-group full" style="margin-top: 4px;">
+              <label class="form-label">강사 소개 / 등급 <span style="font-weight:400;color:var(--secondary)">(선택)</span></label>
+              <input type="text" id="instructorSub" placeholder="예: 프로젝트 관리 전문가 · A등급 강사">
+            </div>
+            <!-- 누락되었던 코스 소개 -->
+            <div class="form-group full" style="margin-top: 4px;">
+              <label class="form-label">코스 소개</label>
+              <textarea rows="3" placeholder="과정의 목표, 대상, 주요 특징 등 수강생에게 안내할 상세 내용을 입력하세요."></textarea>
+            </div>
           </div>
 
           <!-- 디테일한 장소 정보 -->
           <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
-            <div class="form-label" style="margin-bottom: 12px; color: var(--primary);">기본 교육 장소 설정</div>
+            <div class="form-label" style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-location-dot"></i> 오프라인 교육 장소 설정</div>
             <div class="form-row">
               <div class="form-group full">
-                <label class="form-label">장소명 <span class="req">*</span></label>
+                <label class="form-label">기본 교육 장소명 <span class="req">*</span></label>
                 <input type="text" id="venueName" placeholder="예: 한샘 HQ 대교육장 B동 3층">
               </div>
               <div class="form-group full">
-                <label class="form-label">상세 주소 (선택)</label>
+                <label class="form-label">상세 주소 (지도 연동)</label>
                 <div style="display:flex; gap:8px;">
                   <input type="text" id="addrField" placeholder="주소를 검색하세요" readonly style="flex:1;">
                   <button class="btn" style="height:38px; flex-shrink:0;" onclick="setAddr()"><i class="fa-solid fa-map-location-dot"></i> 주소 검색</button>
                 </div>
               </div>
               <div class="form-group full">
-                <label class="form-label">교통/주차 안내 (선택)</label>
+                <label class="form-label">교통 / 주차 안내</label>
                 <textarea rows="2" placeholder="예: 강남역 3번 출구 도보 5분 거리. 지하 주차장 이용 시 무료 주차권 지급."></textarea>
               </div>
             </div>
@@ -655,9 +661,27 @@
         </div>
         <div class="card-body">
           
+          <!-- 누락되었던 수강 등록 방식 제어 -->
+          <div style="margin-bottom: 24px;">
+            <div class="form-label" style="margin-bottom: 10px;">수강 등록 방식</div>
+            <div class="display-opts">
+              <label class="display-opt active">
+                <input type="radio" name="regMode" checked>
+                <span class="radio-dot-inner"></span>
+                <span class="display-opt-lbl">회원이 직접 신청</span>
+              </label>
+              <label class="display-opt">
+                <input type="radio" name="regMode">
+                <span class="radio-dot-inner"></span>
+                <span class="display-opt-lbl">관리자가 직접 등록</span>
+              </label>
+            </div>
+            <div class="form-hint" style="margin-top:8px;">'회원이 직접 신청' 선택 시 사용자 화면에 수강 신청 버튼이 활성화됩니다.</div>
+          </div>
+
           <!-- 전체 신청 기간 -->
           <div style="margin-bottom: 24px;">
-            <div class="form-label" style="margin-bottom: 10px;">수강 신청 기간</div>
+            <div class="form-label" style="margin-bottom: 10px;">코스 수강 신청 기간</div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-hint" style="color:var(--black); font-weight:600;">신청 오픈 일시</label>
@@ -710,7 +734,7 @@
       <!-- Right body -->
       <div class="right-body" id="rightBody">
         
-        <!-- 우측 상단 미니 캘린더 (복구) -->
+        <!-- 우측 상단 미니 캘린더 -->
         <div class="cal-wrap">
           <div class="cal-hdr">
             <button class="cal-nav" onclick="calPrev()"><i class="fa-solid fa-chevron-left"></i></button>
@@ -814,7 +838,7 @@ function renderCalendar() {
 
   const first = new Date(calYear, calMonth, 1);
   const last  = new Date(calYear, calMonth + 1, 0);
-  const today = new Date(); // To mock 'today', could hardcode if needed
+  const today = new Date();
   const sessDates = new Set(sessions.map(s => s.date));
 
   for (let i = 0; i < first.getDay(); i++) {
@@ -864,7 +888,7 @@ function renderSessions() {
   clearBtn.style.display = sessions.length > 0 ? '' : 'none';
   empty.style.display = sessions.length === 0 ? '' : 'none';
 
-  list.innerHTML = ''; // Clear DOM
+  list.innerHTML = ''; 
 
   sessions.forEach((s, i) => {
     const card = document.createElement('div');
@@ -942,7 +966,7 @@ function renderSessions() {
   });
 
   updateSum();
-  renderCalendar(); // Sync Calendar when sessions change
+  renderCalendar();
 }
 
 /* ── Drag & Drop Logic ── */
@@ -1025,7 +1049,7 @@ function updSess(id, field, value) {
       : `<span style="color:var(--secondary)">기본 장소 적용</span>`;
     card.querySelector('.sess-meta').innerHTML = `${ds} &nbsp;|&nbsp; ${ts} &nbsp;|&nbsp; ${vs}`;
     
-    if (field === 'date') renderCalendar(); // Re-render calendar when dates change
+    if (field === 'date') renderCalendar();
   }
   updateSum();
 }
