@@ -7,52 +7,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Chosen Palette: Slate & Indigo Harmony -->
+    <!-- Chosen Palette: Slate & Indigo Harmony with Amber Warning -->
     <!-- Application Structure Plan: 
-         This SPA is structured into a clean, modern dashboard layout designed to sequentially educate the user on the architectural paradigm shift.
-         1. Hero/Intro: Contextualizes the quote and explains the shift from "Page-embed" to "Asset-reference".
-         2. Interactive Simulator: A hands-on visualizer comparing the Legacy (Copy) model vs. Next-Gen (Reference) model. Users interactively update "assets" to see the cascading effects, demonstrating the "LEGO block" efficiency.
-         3. Analytics Dashboard: Quantitative proof. Uses Chart.js to visualize the massive reduction in update time and storage consumption.
-         4. Roadmap Alignment: Connects the architectural shift back to the 3-Phase roadmap defined in the source report.
-         This structure was chosen to move the user from abstract concept -> interactive proof -> quantitative impact -> strategic execution.
+         Updated structure based on crucial user feedback regarding operational risks of the "Reference Model".
+         1. Hero/Intro: Contextualizes the shift.
+         2. Interactive Simulator: Legacy vs Next-Gen.
+         3. NEW: Risk Management (Smart Versioning): Addresses the "side-effect" risk when modifying shared assets. Includes an interactive modal demonstrating the "Update All" vs "Save as Copy" choices.
+         4. Analytics Dashboard: Quantitative proof.
+         5. Roadmap Alignment: Strategic execution.
+         This flow ensures we pitch the efficiency (Simulator) but immediately address the inherent danger (Risk Management) before proving the data (Analytics).
     -->
     <!-- Visualization & Content Choices: 
-         - Goal: Compare architectures -> Method: Interactive HTML/CSS Diagram (Simulator) -> Interaction: Click to update nodes -> Justification: Tangibly shows the pain point of legacy vs. the magic of referencing without needing complex server setups. No SVG used.
-         - Goal: Show Efficiency Data -> Method: Bar & Line Charts (Chart.js) -> Interaction: Hover tooltips -> Justification: Best way to show exponential vs. flat growth in time and storage.
-         - Goal: Explain Roadmap -> Method: Interactive Cards -> Interaction: Click to expand details -> Justification: Keeps UI clean while providing deep dives into Phase 1, 2, and 3.
+         - Goal: Demonstrate Risk Mitigation -> Method: Interactive Modal UI Simulation -> Interaction: Click "Edit Shared Asset" to trigger a warning modal with branching choices -> Justification: Directly answers the user's concern about version control and side-effects without using complex SVG workflows. Uses native HTML/CSS modals and JS state logic.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <style>
-        /* Essential Chart Container Styles */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
-        }
-        @media (min-width: 768px) {
-            .chart-container { height: 350px; }
-        }
-        
-        /* Clean scrollbar */
+        .chart-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Custom Animations */
         @keyframes pulse-ring {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
         }
         .anim-pulse-border { animation: pulse-ring 2s infinite; }
-        
-        /* Connector Lines (Pure HTML/CSS) */
         .v-line { width: 2px; background-color: #cbd5e1; margin: 0 auto; height: 30px; }
         .h-line { height: 2px; background-color: #cbd5e1; width: 100%; position: absolute; top: 15px; z-index: 0; }
     </style>
@@ -67,14 +49,15 @@
                 <span class="font-bold text-slate-900 tracking-tight">에셋 아키텍처 비전</span>
             </div>
             <div class="hidden md:flex space-x-1">
-                <button onclick="navTo('simulator-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">아키텍처 시뮬레이터</button>
+                <button onclick="navTo('simulator-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">효율성 비교</button>
+                <button onclick="navTo('risk-section')" class="px-4 py-2 text-sm font-semibold text-amber-600 hover:bg-amber-50 rounded-md transition-colors flex items-center gap-1">⚠️ 운영 리스크 방어</button>
                 <button onclick="navTo('analytics-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">데이터 임팩트</button>
                 <button onclick="navTo('roadmap-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">실행 로드맵</button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-6 py-10 space-y-20">
+    <main class="max-w-6xl mx-auto px-6 py-10 space-y-24">
 
         <!-- Hero Section -->
         <section class="text-center max-w-3xl mx-auto pt-10">
@@ -89,23 +72,50 @@
             </p>
         </section>
 
+        <!-- NEW Section: Terminology Shift -->
+        <section class="max-w-4xl mx-auto mb-20 bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+            <div class="text-center mb-8">
+                <div class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
+                    Terminology Shift
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">명칭의 재정의: 페이지에서 아이템으로</h2>
+                <p class="text-sm text-slate-500">
+                    새로운 아키텍처를 명확히 이해하기 위해, 시스템에서 부르는 이름부터 <strong class="text-indigo-600">'학습 아이템(Asset)'</strong>으로 변경합니다.
+                </p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4 items-stretch justify-center">
+                <div class="flex-1 bg-rose-50 border border-rose-100 p-6 rounded-xl text-center w-full flex flex-col justify-center">
+                    <div class="text-xs font-bold text-rose-500 mb-2 uppercase">AS-IS (과거 레거시)</div>
+                    <div class="text-lg font-bold text-slate-400 line-through decoration-rose-400 decoration-2 mb-1">커리큘럼 - 페이지 (Page)</div>
+                    <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">이북(e-book)처럼 껍데기 안에<br/>종속되어 갇히는 개념</p>
+                </div>
+                <div class="flex items-center justify-center text-2xl text-slate-300 font-bold hidden md:flex">👉</div>
+                <div class="flex items-center justify-center text-2xl text-slate-300 font-bold md:hidden">👇</div>
+                <div class="flex-1 bg-indigo-50 border border-indigo-200 p-6 rounded-xl text-center w-full shadow-inner anim-pulse-border flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">NEW</div>
+                    <div class="text-xs font-bold text-indigo-600 mb-2 uppercase">TO-BE (차세대 아키텍처)</div>
+                    <div class="text-lg font-extrabold text-indigo-900 mb-1">커리큘럼 - 학습 아이템 (Item)</div>
+                    <p class="text-[11px] text-indigo-700/80 mt-2 leading-relaxed">스포티파이 재생목록처럼 독립된 자산을<br/>끌어와 참조(Link)하는 개념</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Section 1: Simulator -->
         <section id="simulator-section" class="scroll-mt-24">
+            <!-- ... existing simulator code ... -->
             <div class="mb-8 text-center max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold text-slate-900 mb-3">인터랙티브 시뮬레이터: 복제 vs 참조</h2>
                 <p class="text-sm text-slate-600">
-                    아래 시뮬레이터는 시스템 내부의 작동 방식을 시각화합니다. 원본 영상에 수정 사항이 생겼을 때, 과거의 방식(Legacy)과 새로운 에셋 참조 방식(Next-Gen)이 운영자의 업무량에 어떠한 차이를 가져오는지 직접 버튼을 눌러 비교해 보십시오.
+                    아래 시뮬레이터는 원본 영상에 수정 사항이 생겼을 때, 과거의 방식(Legacy)과 새로운 에셋 참조 방식(Next-Gen)이 운영자의 업무량에 어떠한 차이를 가져오는지 보여줍니다.
                 </p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8">
-                
                 <!-- Legacy Model -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">AS-IS (복제 모델)</div>
                     <h3 class="text-lg font-bold text-slate-800 mb-2">물리적 페이지 종속 구조</h3>
                     <p class="text-xs text-slate-500 mb-8 h-8">영상이 각 코스의 '페이지' 내부에 물리적으로 복사되어 갇혀 있습니다. 수정 시 모든 코스를 찾아다녀야 합니다.</p>
-                    
                     <div class="flex-1 flex flex-col items-center justify-center space-y-4">
                         <div class="flex items-center justify-between w-full max-w-sm p-3 bg-slate-50 border border-slate-200 rounded-lg">
                             <span class="font-bold text-sm">코스 A의 페이지</span>
@@ -123,11 +133,8 @@
                             <button onclick="updateLegacy(3)" class="text-xs bg-slate-800 text-white px-2 py-1 rounded hover:bg-slate-700">개별 수정</button>
                         </div>
                     </div>
-
                     <div class="mt-8 pt-4 border-t border-slate-100 text-center">
-                        <div class="text-xs text-red-500 font-bold bg-red-50 py-2 rounded-md">
-                            ⚠️ "코스가 100개면 운영자는 이 짓을 100번 반복해야 합니다."
-                        </div>
+                        <div class="text-xs text-red-500 font-bold bg-red-50 py-2 rounded-md">⚠️ "코스가 100개면 운영자는 이 짓을 100번 반복해야 합니다."</div>
                         <button onclick="resetLegacy()" class="mt-3 text-xs text-slate-400 underline">상태 초기화</button>
                     </div>
                 </div>
@@ -137,16 +144,12 @@
                     <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">TO-BE (참조 모델)</div>
                     <h3 class="text-lg font-bold text-indigo-900 mb-2">에셋(Asset) 논리적 링크 구조</h3>
                     <p class="text-xs text-slate-500 mb-8 h-8">단 하나의 마스터 에셋만 존재하며, 각 코스는 이 에셋의 ID만 참조합니다. 1회 수정으로 완벽한 동기화가 이루어집니다.</p>
-
                     <div class="flex-1 flex flex-col items-center">
-                        <!-- Central Asset -->
                         <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-center w-48 shadow-sm z-10 anim-pulse-border">
                             <div class="text-2xl mb-1">📦</div>
                             <div class="font-bold text-indigo-900 text-sm">중앙 보관함 (Library)</div>
                             <div id="ng-master" class="mt-2 inline-block px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded">구버전 원본 (v1)</div>
                         </div>
-
-                        <!-- Connector -->
                         <div class="v-line"></div>
                         <div class="relative w-full max-w-sm h-8">
                             <div class="h-line"></div>
@@ -154,8 +157,6 @@
                             <div class="absolute left-1/2 w-0.5 h-8 bg-slate-300"></div>
                             <div class="absolute right-0 w-0.5 h-8 bg-slate-300"></div>
                         </div>
-
-                        <!-- Courses -->
                         <div class="flex justify-between w-full max-w-sm mt-1">
                             <div class="bg-white border border-slate-200 px-3 py-2 rounded shadow-sm text-center">
                                 <div class="text-xs font-bold text-slate-700 mb-1">코스 A</div>
@@ -171,7 +172,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="mt-8 pt-4 border-t border-indigo-100 text-center">
                         <button onclick="updateNextGen()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
                             ⚡ 마스터 에셋 1회 업데이트
@@ -179,52 +179,115 @@
                         <button onclick="resetNextGen()" class="mt-3 text-xs text-slate-400 underline">상태 초기화</button>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        <!-- Section 2: Data Dashboard -->
+        <!-- NEW Section 3: Risk Management (Smart Versioning) -->
+        <section id="risk-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <div class="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
+                    Risk Mitigation
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">공유 에셋의 사이드 이펙트(Side-effect) 원천 차단</h2>
+                <p class="text-sm text-slate-600 leading-relaxed bg-amber-50/50 p-4 rounded-lg border border-amber-100 text-left">
+                    "참조 모델의 가장 큰 위험은 <strong class="text-slate-800">의도치 않은 다른 코스에 영향을 주는 것</strong>입니다. 예를 들어 코스 A만을 위해 영상을 수정했는데, 이를 공유 중인 코스 B와 C까지 변경되어 대형 운영 사고가 발생할 수 있습니다. 이를 방어하기 위해 시스템은 공유 중인 에셋 수정 시 <strong class="text-indigo-600">지능형 버전 관리(분기) 팝업</strong>을 강제로 띄웁니다."
+                </p>
+            </div>
+
+            <div class="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
+                    <span class="font-bold text-sm text-slate-700">관리자: 콘텐츠 편집기 시뮬레이션</span>
+                    <span class="text-[10px] text-slate-400">Course_A_Editor</span>
+                </div>
+                <div class="p-8 text-center space-y-6">
+                    <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">🎬</div>
+                    <div class="text-sm text-slate-500">현재 <strong class="text-slate-800">[신입사원 환영사.mp4]</strong> 에셋을 편집하려 합니다.</div>
+                    <button onclick="document.getElementById('version-modal').classList.remove('hidden')" class="px-6 py-3 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700 shadow-md transition-all transform hover:scale-105">
+                        ✏️ 영상 에셋 수정하기 클릭
+                    </button>
+                </div>
+            </div>
+
+            <!-- Versioning Modal (Hidden by default) -->
+            <div id="version-modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 animate-fadeIn">
+                <div class="bg-white max-w-lg w-full rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="bg-amber-50 p-6 border-b border-amber-200 flex flex-col items-center text-center">
+                        <div class="text-4xl mb-3">⚠️</div>
+                        <h3 class="text-lg font-bold text-amber-900 mb-1">영향도 경고: 공유 중인 에셋입니다.</h3>
+                        <p class="text-xs text-amber-700">현재 이 에셋은 <strong>3개의 다른 코스</strong>에서 사용 중입니다.</p>
+                    </div>
+                    
+                    <div class="p-6 space-y-6 bg-slate-50">
+                        <div class="text-xs text-slate-600 bg-white p-3 rounded border border-slate-200">
+                            <strong>사용 중인 코스 목록:</strong><br/>
+                            - 2026 상반기 영업직 온보딩<br/>
+                            - 2026 하반기 개발직 온보딩<br/>
+                            - 전사 공통 법정의무교육
+                        </div>
+
+                        <div class="space-y-3">
+                            <button onclick="closeModal('version-modal'); alert('모든 코스에 일괄 적용되었습니다. (버전업)');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-colors group">
+                                <div class="font-bold text-indigo-700 mb-1 flex justify-between">
+                                    <span>전체 코스 일괄 업데이트 (버전업)</span>
+                                    <span class="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500">선택 →</span>
+                                </div>
+                                <div class="text-xs text-slate-500">법령 개정 등 이 영상을 사용하는 모든 곳에 공통으로 변경 사항을 적용합니다.</div>
+                            </button>
+
+                            <button onclick="closeModal('version-modal'); alert('현재 코스만을 위한 복제본이 생성되었습니다.');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-colors group">
+                                <div class="font-bold text-emerald-700 mb-1 flex justify-between">
+                                    <span>이 코스만 따로 분리 (복제본 생성)</span>
+                                    <span class="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500">선택 →</span>
+                                </div>
+                                <div class="text-xs text-slate-500">다른 코스에는 영향을 주지 않고, 현재 코스만을 위한 새로운 에셋(사본)을 만들어 수정합니다. (Save as Copy)</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-white border-t border-slate-100 flex justify-end">
+                        <button onclick="closeModal('version-modal')" class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">취소</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Data Dashboard -->
         <section id="analytics-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
             <div class="mb-10 text-center max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold text-slate-900 mb-3">데이터 임팩트: 정량적 효과 분석</h2>
                 <p class="text-sm text-slate-600">
-                    '페이지' 기반에서 '에셋 참조형 플레이리스트'로 아키텍처가 전환될 때, 플랫폼 운영과 인프라 관점(유지보수 시간 및 스토리지 공간)에서 발생하게 되는 압도적인 비용 절감 효과를 정량적인 차트로 증명합니다.
+                    아키텍처가 전환될 때, 플랫폼 운영과 인프라 관점(유지보수 시간 및 스토리지 공간)에서 발생하게 되는 압도적인 비용 절감 효과를 차트로 증명합니다.
                 </p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-10">
-                <!-- Chart 1: Time Comparison -->
+                <!-- Chart 1 -->
                 <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                     <h3 class="font-bold text-slate-800 text-center mb-1">콘텐츠 유지보수 소요 시간</h3>
                     <p class="text-[11px] text-slate-500 text-center mb-4">동일 영상이 100개 코스에 포함되었을 때 업데이트 기준</p>
                     <div class="chart-container">
                         <canvas id="timeChart"></canvas>
                     </div>
-                    <div class="mt-4 p-3 bg-indigo-50 rounded-lg text-xs text-indigo-900 leading-relaxed">
-                        <strong>Insight:</strong> 기존에는 100개의 에디터를 일일이 열어 영상을 교체해야 하므로 기하급수적인 노가다 시간(약 500분)이 소요되었으나, 참조 구조에서는 중앙 에셋 1개만 수정(1분 이내)하면 수백 개의 코스에 즉시 동기화되어 공수가 99% 절감됩니다.
-                    </div>
                 </div>
 
-                <!-- Chart 2: Storage Redundancy -->
+                <!-- Chart 2 -->
                 <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                     <h3 class="font-bold text-slate-800 text-center mb-1">시스템 스토리지 누적 데이터량</h3>
                     <p class="text-[11px] text-slate-500 text-center mb-4">코스 생성 및 콘텐츠 재사용에 따른 물리적 용량 증가 추이</p>
                     <div class="chart-container">
                         <canvas id="storageChart"></canvas>
                     </div>
-                    <div class="mt-4 p-3 bg-emerald-50 rounded-lg text-xs text-emerald-900 leading-relaxed">
-                        <strong>Insight:</strong> 과거에는 코스를 복사할 때마다 내부에 임베드된 물리적 데이터(페이지 데이터)가 중복 생성되어 스토리지 낭비가 심했으나, TO-BE 모델은 메타데이터(Link ID)만 추가되므로 코스가 늘어나도 스토리지 부하가 거의 발생하지 않습니다.
-                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: Roadmap -->
+        <!-- Section 5: Roadmap -->
         <section id="roadmap-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
+            <!-- ... existing roadmap code ... -->
             <div class="mb-10 text-center max-w-2xl mx-auto">
                 <h2 class="text-2xl font-bold text-slate-900 mb-3">전략적 실행 로드맵 (Execution Plan)</h2>
                 <p class="text-sm text-slate-600">
-                    안정적인 아키텍처 전환을 위해 Canvas 문서에 정의된 3단계 타당성 검토 기반의 실행 로드맵입니다. 기존 시스템의 얽힌 레거시(Legacy)를 안전하게 회피하면서도 고객의 시급한 요구사항을 충족시키는 가장 현명한 개발 순서를 제시합니다.
+                    안정적인 아키텍처 전환을 위해 3단계 타당성 검토 기반의 실행 로드맵입니다. 기존 시스템의 얽힌 레거시(Legacy)를 안전하게 회피하면서도 고객의 시급한 요구사항을 충족시키는 개발 순서를 제시합니다.
                 </p>
             </div>
 
@@ -237,11 +300,8 @@
                         <span class="text-xl">🏢</span> 오프라인 코스 선(先) 개발
                     </h3>
                     <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                        복잡한 기존 온라인 DB를 건드리지 않고, 완전히 새로운 백지(빈 도화지) 상태에서 '쉽고 편한 현대적 UI/UX'의 뼈대와 출결 내재화 모듈을 안전하게 테스트하고 확립합니다.
+                        기존 온라인 DB를 건드리지 않고, '쉽고 편한 현대적 UI/UX'의 뼈대와 출결 내재화 모듈을 안전하게 테스트하고 확립합니다.
                     </p>
-                    <div class="text-xs bg-slate-50 p-2 rounded border border-slate-100 text-slate-600">
-                        <strong class="text-slate-800">Key Target:</strong> 리스크 최소화 및 물리적 일정 관리 UI 최적화
-                    </div>
                 </div>
 
                 <!-- Phase 2 -->
@@ -253,11 +313,8 @@
                         <span class="text-xl">💻</span> 온라인 코스 (가벼운 조립)
                     </h3>
                     <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                        무거운 페이지 저작 도구를 완전히 탈피하고, 파일(영상) 업로드 중심의 가벼운 '에셋 참조형 플레이리스트' 세팅을 구현하여 시장의 폭발적인 반응을 이끌어냅니다.
+                        무거운 저작 도구를 완전히 탈피하고, 가벼운 '에셋 참조형 플레이리스트' 세팅을 구현하여 폭발적인 반응을 이끌어냅니다.
                     </p>
-                    <div class="text-xs bg-indigo-50 p-2 rounded border border-indigo-100 text-indigo-800">
-                        <strong class="text-indigo-900">Key Target:</strong> 매출 이탈 방지 및 조립(Curation) 경험 극대화
-                    </div>
                 </div>
 
                 <!-- Phase 3 -->
@@ -268,36 +325,22 @@
                         <span class="text-xl">🔄</span> 블렌디드 코스 완성
                     </h3>
                     <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                        독립적인 모듈로 단단하게 완성된 Phase 1(오프라인 출석)과 Phase 2(온라인 콘텐츠)를 하나의 커리큘럼 UI 안에서 섞어주는(Mix) 최종 융합 단계입니다.
+                        독립적인 모듈로 단단하게 완성된 오프라인 출석과 온라인 콘텐츠를 하나의 커리큘럼 UI 안에서 섞어주는(Mix) 융합 단계입니다.
                     </p>
-                    <div class="text-xs bg-emerald-50 p-2 rounded border border-emerald-100 text-emerald-800">
-                        <strong class="text-emerald-900">Key Target:</strong> 온/오프 통합 완벽한 블렌디드 러닝 통제
-                    </div>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 py-8 mt-20">
-        <div class="max-w-6xl mx-auto px-6 text-center text-sm">
-            <p class="mb-2 font-bold text-slate-300">LMS Architecture Redesign Analytics</p>
-            <p>Based on "개편 로드맵 타당성 분석 보고서" & "터치클래스 vs 맑은소프트 비교 분석 보고서"</p>
-            <p class="mt-4 text-[11px] opacity-60">Interactive Application Designed for Internal Stakeholder Communication</p>
-        </div>
-    </footer>
-
-    <!-- JavaScript Logic -->
     <script>
-        // Functional Navigation Smooth Scroll
         function navTo(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
 
-        // --- Simulator Logic ---
-        
-        // Legacy State
         const legacyState = [false, false, false];
         function updateLegacy(index) {
             legacyState[index - 1] = true;
@@ -314,14 +357,10 @@
             }
         }
 
-        // Next-Gen State
         function updateNextGen() {
-            // Update Master
             const master = document.getElementById('ng-master');
             master.className = "mt-2 inline-block px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded transition-colors duration-300";
             master.innerText = "신버전 원본 (v2)";
-
-            // Simultaneously update all references
             for(let i=1; i<=3; i++) {
                 const node = document.getElementById(`ng-node-${i}`);
                 node.className = "text-[10px] font-bold text-emerald-600 transition-colors duration-300";
@@ -332,7 +371,6 @@
             const master = document.getElementById('ng-master');
             master.className = "mt-2 inline-block px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded transition-colors duration-300";
             master.innerText = "구버전 원본 (v1)";
-
             for(let i=1; i<=3; i++) {
                 const node = document.getElementById(`ng-node-${i}`);
                 node.className = "text-[10px] font-bold text-red-500 transition-colors duration-300";
@@ -340,126 +378,43 @@
             }
         }
 
-        // --- Chart.js Implementations ---
         document.addEventListener('DOMContentLoaded', function() {
-            
-            // Common Options for minimal, clean look
             Chart.defaults.font.family = "'Inter', 'Pretendard', sans-serif";
-            Chart.defaults.color = '#64748b'; // slate-500
+            Chart.defaults.color = '#64748b'; 
 
-            // Chart 1: Time Comparison (Bar Chart)
             const ctxTime = document.getElementById('timeChart').getContext('2d');
             new Chart(ctxTime, {
                 type: 'bar',
                 data: {
-                    labels: ['기존: 페이지 내 복사 방식 (AS-IS)', '신규: 에셋 참조 방식 (TO-BE)'],
+                    labels: ['기존: 페이지 복사', '신규: 에셋 참조'],
                     datasets: [{
                         label: '유지보수 소요 시간 (분)',
-                        data: [500, 1], // Drastic difference
-                        backgroundColor: [
-                            'rgba(244, 63, 94, 0.7)', // rose-500
-                            'rgba(79, 70, 229, 0.8)'  // indigo-600
-                        ],
-                        borderColor: [
-                            'rgba(225, 29, 72, 1)',
-                            'rgba(67, 56, 202, 1)'
-                        ],
-                        borderWidth: 1,
-                        borderRadius: 6
+                        data: [500, 1], 
+                        backgroundColor: ['rgba(244, 63, 94, 0.7)', 'rgba(79, 70, 229, 0.8)'],
+                        borderColor: ['rgba(225, 29, 72, 1)', 'rgba(67, 56, 202, 1)'],
+                        borderWidth: 1, borderRadius: 6
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Vital for specific container sizes
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            padding: 12,
-                            titleFont: { size: 13 },
-                            bodyFont: { size: 14, weight: 'bold' },
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y + ' 분 소요';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#e2e8f0' }, // slate-200
-                            title: { display: true, text: '소요 시간 (Minutes)' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                callback: function(value) {
-                                    // Wrap labels logic (roughly > 15 chars)
-                                    let label = this.getLabelForValue(value);
-                                    if(label.length > 15) {
-                                        return label.split(' ('); 
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
                 }
             });
 
-            // Chart 2: Storage Redundancy (Line Chart)
             const ctxStorage = document.getElementById('storageChart').getContext('2d');
             new Chart(ctxStorage, {
                 type: 'line',
                 data: {
-                    labels: ['10코스 생성', '50코스 생성', '100코스 생성', '500코스 생성', '1000코스 생성'],
+                    labels: ['10코스', '50코스', '100코스', '500코스', '1000코스'],
                     datasets: [
-                        {
-                            label: 'AS-IS (물리적 복사)',
-                            data: [10, 50, 100, 500, 1000], // Linear massive growth
-                            borderColor: 'rgba(244, 63, 94, 1)',
-                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4
-                        },
-                        {
-                            label: 'TO-BE (에셋 참조 링크)',
-                            data: [10, 10.5, 11, 15, 20], // Very flat growth (only metadata increases)
-                            borderColor: 'rgba(79, 70, 229, 1)',
-                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4
-                        }
+                        { label: 'AS-IS (복사)', data: [10, 50, 100, 500, 1000], borderColor: 'rgba(244, 63, 94, 1)', backgroundColor: 'rgba(244, 63, 94, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'TO-BE (참조)', data: [10, 10.5, 11, 15, 20], borderColor: 'rgba(79, 70, 229, 1)', backgroundColor: 'rgba(79, 70, 229, 0.1)', fill: true, tension: 0.4 }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            padding: 12
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#e2e8f0' },
-                            title: { display: true, text: '상대적 스토리지 부하량 (Index)' }
-                        },
-                        x: { grid: { display: false } }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
                 }
             });
         });
