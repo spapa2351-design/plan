@@ -415,6 +415,20 @@
     .sum-dot { width:8px; height:8px; border-radius:50%; }
     .sum-val { font-weight:800; color:var(--black); }
 
+    /* ── Modal (QR) ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(34,51,84,.6); z-index: 999;
+      align-items: center; justify-content: center; opacity: 0; transition: opacity .2s;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; opacity: 1; }
+    .modal {
+      background: #fff; border-radius: var(--r-lg); padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2); transform: translateY(20px); transition: transform .2s;
+      width: 100%; max-width: 340px;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
     /* ── Toast ── */
     .toast {
       position:fixed; bottom:24px; left:50%;
@@ -746,6 +760,25 @@
   </div><!-- /page-wrap -->
 </div><!-- /main-wrapper -->
 
+<!-- QR Modal -->
+<div class="modal-overlay" id="qrModal">
+  <div class="modal">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+      <div style="font-weight: 800; font-size: 16px; color: var(--black);"><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> 현장 출석 QR 코드</div>
+      <button onclick="closeQR()" style="font-size: 18px; color: var(--secondary); border: none; background: none; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="qrModalSessionName" style="font-size: 13px; color: var(--secondary); margin-bottom: 20px; text-align: center; font-weight: 600;"></div>
+    <div style="width: 200px; height: 200px; background: #fff; margin: 0 auto 24px; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">
+       <div style="width: 180px; height: 180px; background: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), repeating-linear-gradient(45deg, #000 25%, #fff 25%, #fff 75%, #000 75%, #000); background-position: 0 0, 8px 8px; background-size: 16px 16px; opacity: 0.8;"></div>
+       <div style="position: absolute; background: #fff; padding: 4px 12px; font-weight: 800; font-size: 18px; color: #000; border-radius: 4px;">QR</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn" style="flex:1; justify-content:center;" onclick="showToast('info', 'QR 코드가 다운로드되었습니다.', '<i class=\'fa-solid fa-download\'></i>')"><i class="fa-solid fa-download"></i> 다운로드</button>
+      <button class="btn pri" style="flex:1; justify-content:center;" onclick="showToast('success', '전체 화면으로 송출됩니다.', '<i class=\'fa-solid fa-expand\'></i>')"><i class="fa-solid fa-expand"></i> 화면 송출</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast">
   <span id="toastIcon">✅</span>
@@ -857,6 +890,7 @@ function renderSessions() {
           <div class="sess-meta">${ds} &nbsp;|&nbsp; ${ts} &nbsp;|&nbsp; ${vs}</div>
         </div>
         <div class="sess-actions" onclick="event.stopPropagation()">
+          <button class="btn xs" style="border-color:var(--primary); color:var(--primary); background:var(--primary-lighter);" onclick="showQR(${s.id})" title="QR 출석 코드"><i class="fa-solid fa-qrcode"></i></button>
           <button class="btn xs err" onclick="delSess(${s.id})"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="chev" id="chev-${s.id}"><i class="fa-solid fa-chevron-down"></i></div>
@@ -897,7 +931,10 @@ function renderSessions() {
             <div style="font-size:12px; font-weight:800; color:#A84300;"><i class="fa-solid fa-lock"></i> 필수 이수 회차로 지정</div>
             <div style="font-size:11px; color:#9a5e00; margin-top:2px;">이 회차를 결석할 경우 코스 전체가 미수료 처리됩니다.</div>
           </div>
-          <button class="mini-toggle ${s.required?'on':''}" id="rt-${s.id}" onclick="toggleReq(${s.id})"></button>
+          <label class="switch" style="transform: scale(0.85); transform-origin: right;">
+            <input type="checkbox" id="rt-${s.id}" ${s.required ? 'checked' : ''} onchange="toggleReq(${s.id}, this.checked)">
+            <span class="sw-slider"></span>
+          </label>
         </div>
       </div>
     `;
@@ -993,24 +1030,33 @@ function updSess(id, field, value) {
   updateSum();
 }
 
-function toggleReq(id) {
+function toggleReq(id, isChecked) {
   const s = sessions.find(x => x.id === id);
   if (!s) return;
-  s.required = !s.required;
+  s.required = isChecked !== undefined ? isChecked : !s.required;
   const card = document.getElementById('sc-'+id);
-  const btn  = document.getElementById('rt-'+id);
   const num  = card.querySelector('.sess-num');
   const badge = card.querySelector('.req-badge');
   
   card.classList.toggle('required', s.required);
   num.classList.toggle('req', s.required);
-  btn.classList.toggle('on', s.required);
   if (badge) badge.style.display = s.required ? 'inline-flex' : 'none';
   
   const reqEl = document.getElementById('reqCount');
   const rc = sessions.filter(x => x.required).length;
   reqEl.style.display = rc > 0 ? '' : 'none';
   reqEl.textContent = `필수 ${rc}개`;
+}
+
+function showQR(id) {
+  const s = sessions.find(x => x.id === id);
+  if(!s) return;
+  document.getElementById('qrModalSessionName').textContent = s.topic || `${s.id}회차 교육`;
+  document.getElementById('qrModal').classList.add('open');
+}
+
+function closeQR() {
+  document.getElementById('qrModal').classList.remove('open');
 }
 
 function delSess(id) {
