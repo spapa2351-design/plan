@@ -3,421 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LMS 차세대 아키텍처 시뮬레이터</title>
+    <title>LMS 차세대 아키텍처: 에셋 & 커리큘럼 시뮬레이터</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Chosen Palette: Slate & Indigo Harmony with Amber Warning -->
-    <!-- Application Structure Plan: 
-         Updated structure based on crucial user feedback regarding operational risks of the "Reference Model".
-         1. Hero/Intro: Contextualizes the shift.
-         2. Interactive Simulator: Legacy vs Next-Gen.
-         3. NEW: Risk Management (Smart Versioning): Addresses the "side-effect" risk when modifying shared assets. Includes an interactive modal demonstrating the "Update All" vs "Save as Copy" choices.
-         4. Analytics Dashboard: Quantitative proof.
-         5. Roadmap Alignment: Strategic execution.
-         This flow ensures we pitch the efficiency (Simulator) but immediately address the inherent danger (Risk Management) before proving the data (Analytics).
-    -->
-    <!-- Visualization & Content Choices: 
-         - Goal: Demonstrate Risk Mitigation -> Method: Interactive Modal UI Simulation -> Interaction: Click "Edit Shared Asset" to trigger a warning modal with branching choices -> Justification: Directly answers the user's concern about version control and side-effects without using complex SVG workflows. Uses native HTML/CSS modals and JS state logic.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
     <style>
-        .chart-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; height: 300px; max-height: 400px; }
-        @media (min-width: 768px) { .chart-container { height: 350px; } }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        @keyframes bounce-slow { 0%, 100% { transform: translateY(-5%); } 50% { transform: translateY(0); } }
+        .anim-bounce { animation: bounce-slow 2s infinite; }
         @keyframes pulse-ring {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
         }
         .anim-pulse-border { animation: pulse-ring 2s infinite; }
-        .v-line { width: 2px; background-color: #cbd5e1; margin: 0 auto; height: 30px; }
-        .h-line { height: 2px; background-color: #cbd5e1; width: 100%; position: absolute; top: 15px; z-index: 0; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
     <!-- Navigation -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">🧱</div>
-                <span class="font-bold text-slate-900 tracking-tight">에셋 아키텍처 비전</span>
+                <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">🚀</div>
+                <span class="font-bold text-slate-900 tracking-tight text-lg">LMS Vision 2026</span>
             </div>
             <div class="hidden md:flex space-x-1">
-                <button onclick="navTo('simulator-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">효율성 비교</button>
-                <button onclick="navTo('risk-section')" class="px-4 py-2 text-sm font-semibold text-amber-600 hover:bg-amber-50 rounded-md transition-colors flex items-center gap-1">⚠️ 운영 리스크 방어</button>
-                <button onclick="navTo('analytics-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">데이터 임팩트</button>
-                <button onclick="navTo('roadmap-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors">실행 로드맵</button>
+                <button onclick="navTo('terminology-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-md">개념 재정의</button>
+                <button onclick="navTo('indexing-section')" class="px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 rounded-md">커리큘럼-에셋 설계</button>
+                <button onclick="navTo('risk-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-md">리스크 방어</button>
+                <button onclick="navTo('roadmap-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-md">실행 로드맵</button>
             </div>
         </div>
     </nav>
 
     <main class="max-w-6xl mx-auto px-6 py-10 space-y-24">
-
+        
         <!-- Hero Section -->
         <section class="text-center max-w-3xl mx-auto pt-10">
-            <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-6 uppercase tracking-wider">
-                Core Architectural Shift
-            </div>
             <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-                페이지에 갇힌 콘텐츠를 <br/> <span class="text-indigo-600">독립된 자산(Asset)</span>으로 해방하다
+                콘텐츠를 가두는 페이지에서<br/> <span class="text-indigo-600">자유로운 에셋(Asset)</span>으로
             </h1>
             <p class="text-lg text-slate-600 mb-8 leading-relaxed">
-                기존의 '이북(e-book)' 형태의 무거운 페이지 저작 도구에서 벗어납니다. 콘텐츠는 <strong class="text-slate-900">레고 블록처럼 중앙 보관함에 단 1개만 존재</strong>하며, 수백 개의 코스에서 이를 동시 참조(Link)하여 조립하는 가장 현대적인 플레이리스트(Playlist) 아키텍처를 소개합니다.
+                원본은 단 하나만 존재합니다. 커리큘럼은 에셋을 필요한 곳에 연결(Link)하여 구성하는 플레이리스트입니다. 
+                관념을 바꾸면 운영의 속도가 바뀝니다.
             </p>
         </section>
 
-        <!-- NEW Section: Terminology Shift -->
-        <section class="max-w-4xl mx-auto mb-20 bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-            <div class="text-center mb-8">
-                <div class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
-                    Terminology Shift
-                </div>
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">명칭의 재정의: 페이지에서 아이템으로</h2>
-                <p class="text-sm text-slate-500">
-                    새로운 아키텍처를 명확히 이해하기 위해, 시스템에서 부르는 이름부터 <strong class="text-indigo-600">'학습 아이템(Asset)'</strong>으로 변경합니다.
-                </p>
+        <!-- Section: Terminology Shift -->
+        <section id="terminology-section" class="max-w-5xl mx-auto mb-20 bg-white border border-slate-200 rounded-3xl p-10 shadow-sm relative overflow-hidden">
+            <div class="text-center mb-10">
+                <div class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full mb-3 uppercase tracking-widest">Terminology Shift</div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">명칭의 재정의: 페이지에서 아이템으로</h2>
+                <p class="text-sm text-slate-500">새로운 아키텍처를 명확히 이해하기 위해, 시스템에서 부르는 이름부터 <strong class="text-indigo-600">'학습 아이템(Asset)'</strong>으로 변경합니다.</p>
             </div>
-            <div class="flex flex-col md:flex-row gap-4 items-stretch justify-center">
-                <div class="flex-1 bg-rose-50 border border-rose-100 p-6 rounded-xl text-center w-full flex flex-col justify-center">
-                    <div class="text-xs font-bold text-rose-500 mb-2 uppercase">AS-IS (과거 레거시)</div>
-                    <div class="text-lg font-bold text-slate-400 line-through decoration-rose-400 decoration-2 mb-1">커리큘럼 - 페이지 (Page)</div>
-                    <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">이북(e-book)처럼 껍데기 안에<br/>종속되어 갇히는 개념</p>
-                </div>
-                <div class="flex items-center justify-center text-2xl text-slate-300 font-bold hidden md:flex">👉</div>
-                <div class="flex items-center justify-center text-2xl text-slate-300 font-bold md:hidden">👇</div>
-                <div class="flex-1 bg-indigo-50 border border-indigo-200 p-6 rounded-xl text-center w-full shadow-inner anim-pulse-border flex flex-col justify-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">NEW</div>
-                    <div class="text-xs font-bold text-indigo-600 mb-2 uppercase">TO-BE (차세대 아키텍처)</div>
-                    <div class="text-lg font-extrabold text-indigo-900 mb-1">커리큘럼 - 학습 아이템 (Item)</div>
-                    <p class="text-[11px] text-indigo-700/80 mt-2 leading-relaxed">스포티파이 재생목록처럼 독립된 자산을<br/>끌어와 참조(Link)하는 개념</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 1: Simulator -->
-        <section id="simulator-section" class="scroll-mt-24">
-            <!-- ... existing simulator code ... -->
-            <div class="mb-8 text-center max-w-2xl mx-auto">
-                <h2 class="text-2xl font-bold text-slate-900 mb-3">인터랙티브 시뮬레이터: 복제 vs 참조</h2>
-                <p class="text-sm text-slate-600">
-                    아래 시뮬레이터는 원본 영상에 수정 사항이 생겼을 때, 과거의 방식(Legacy)과 새로운 에셋 참조 방식(Next-Gen)이 운영자의 업무량에 어떠한 차이를 가져오는지 보여줍니다.
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Legacy Model -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-full relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">AS-IS (복제 모델)</div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">물리적 페이지 종속 구조</h3>
-                    <p class="text-xs text-slate-500 mb-8 h-8">영상이 각 코스의 '페이지' 내부에 물리적으로 복사되어 갇혀 있습니다. 수정 시 모든 코스를 찾아다녀야 합니다.</p>
-                    <div class="flex-1 flex flex-col items-center justify-center space-y-4">
-                        <div class="flex items-center justify-between w-full max-w-sm p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                            <span class="font-bold text-sm">코스 A의 페이지</span>
-                            <div id="leg-node-1" class="px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded">구버전 영상 (v1)</div>
-                            <button onclick="updateLegacy(1)" class="text-xs bg-slate-800 text-white px-2 py-1 rounded hover:bg-slate-700">개별 수정</button>
-                        </div>
-                        <div class="flex items-center justify-between w-full max-w-sm p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                            <span class="font-bold text-sm">코스 B의 페이지</span>
-                            <div id="leg-node-2" class="px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded">구버전 영상 (v1)</div>
-                            <button onclick="updateLegacy(2)" class="text-xs bg-slate-800 text-white px-2 py-1 rounded hover:bg-slate-700">개별 수정</button>
-                        </div>
-                        <div class="flex items-center justify-between w-full max-w-sm p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                            <span class="font-bold text-sm">코스 C의 페이지</span>
-                            <div id="leg-node-3" class="px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded">구버전 영상 (v1)</div>
-                            <button onclick="updateLegacy(3)" class="text-xs bg-slate-800 text-white px-2 py-1 rounded hover:bg-slate-700">개별 수정</button>
-                        </div>
-                    </div>
-                    <div class="mt-8 pt-4 border-t border-slate-100 text-center">
-                        <div class="text-xs text-red-500 font-bold bg-red-50 py-2 rounded-md">⚠️ "코스가 100개면 운영자는 이 짓을 100번 반복해야 합니다."</div>
-                        <button onclick="resetLegacy()" class="mt-3 text-xs text-slate-400 underline">상태 초기화</button>
-                    </div>
+            
+            <div class="flex flex-col md:flex-row gap-6 items-center justify-center relative">
+                <!-- AS-IS -->
+                <div class="flex-1 bg-rose-50 border border-rose-100 p-8 rounded-2xl text-center w-full">
+                    <div class="text-[11px] font-bold text-rose-500 mb-3 uppercase tracking-tighter">AS-IS (과거 레거시)</div>
+                    <div class="text-xl font-bold text-slate-400 line-through decoration-rose-400 decoration-2 mb-2">커리큘럼 - 페이지 (Page)</div>
+                    <p class="text-xs text-slate-500 leading-relaxed">이북(e-book)처럼 껍데기 안에<br/>종속되어 갇히는 개념</p>
                 </div>
 
-                <!-- Next-Gen Model -->
-                <div class="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-xl flex flex-col h-full relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">TO-BE (참조 모델)</div>
-                    <h3 class="text-lg font-bold text-indigo-900 mb-2">에셋(Asset) 논리적 링크 구조</h3>
-                    <p class="text-xs text-slate-500 mb-8 h-8">단 하나의 마스터 에셋만 존재하며, 각 코스는 이 에셋의 ID만 참조합니다. 1회 수정으로 완벽한 동기화가 이루어집니다.</p>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-center w-48 shadow-sm z-10 anim-pulse-border">
-                            <div class="text-2xl mb-1">📦</div>
-                            <div class="font-bold text-indigo-900 text-sm">중앙 보관함 (Library)</div>
-                            <div id="ng-master" class="mt-2 inline-block px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded">구버전 원본 (v1)</div>
-                        </div>
-                        <div class="v-line"></div>
-                        <div class="relative w-full max-w-sm h-8">
-                            <div class="h-line"></div>
-                            <div class="absolute left-0 w-0.5 h-8 bg-slate-300"></div>
-                            <div class="absolute left-1/2 w-0.5 h-8 bg-slate-300"></div>
-                            <div class="absolute right-0 w-0.5 h-8 bg-slate-300"></div>
-                        </div>
-                        <div class="flex justify-between w-full max-w-sm mt-1">
-                            <div class="bg-white border border-slate-200 px-3 py-2 rounded shadow-sm text-center">
-                                <div class="text-xs font-bold text-slate-700 mb-1">코스 A</div>
-                                <div id="ng-node-1" class="text-[10px] font-bold text-red-500">v1 참조중</div>
-                            </div>
-                            <div class="bg-white border border-slate-200 px-3 py-2 rounded shadow-sm text-center">
-                                <div class="text-xs font-bold text-slate-700 mb-1">코스 B</div>
-                                <div id="ng-node-2" class="text-[10px] font-bold text-red-500">v1 참조중</div>
-                            </div>
-                            <div class="bg-white border border-slate-200 px-3 py-2 rounded shadow-sm text-center">
-                                <div class="text-xs font-bold text-slate-700 mb-1">코스 C</div>
-                                <div id="ng-node-3" class="text-[10px] font-bold text-red-500">v1 참조중</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-8 pt-4 border-t border-indigo-100 text-center">
-                        <button onclick="updateNextGen()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
-                            ⚡ 마스터 에셋 1회 업데이트
-                        </button>
-                        <button onclick="resetNextGen()" class="mt-3 text-xs text-slate-400 underline">상태 초기화</button>
-                    </div>
+                <!-- Arrow -->
+                <div class="text-3xl text-slate-300 font-bold hidden md:block">👉</div>
+                <div class="text-3xl text-slate-300 font-bold md:hidden">👇</div>
+
+                <!-- TO-BE -->
+                <div class="flex-1 bg-indigo-50 border border-indigo-200 p-8 rounded-2xl text-center w-full shadow-inner anim-pulse-border relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-3 py-1 rounded-bl-lg shadow-sm">NEW</div>
+                    <div class="text-[11px] font-bold text-indigo-600 mb-3 uppercase tracking-tighter">TO-BE (차세대 아키텍처)</div>
+                    <div class="text-xl font-extrabold text-indigo-900 mb-2">커리큘럼 - 학습 아이템 (Asset)</div>
+                    <p class="text-xs text-indigo-700/80 leading-relaxed font-medium">스포티파이 재생목록처럼 독립된 자산을<br/>끌어와 참조(Link)하는 개념</p>
                 </div>
             </div>
         </section>
 
-        <!-- NEW Section 3: Risk Management (Smart Versioning) -->
+        <!-- Section: Curriculum & Asset Indexing -->
+        <section id="indexing-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
+            <div class="mb-10 text-center">
+                <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Operational Workflow</div>
+                <h2 class="text-2xl font-bold text-slate-900">커리큘럼-에셋 인덱싱 시뮬레이션</h2>
+                <p class="text-sm text-slate-500 mt-2">커리큘럼의 뼈대를 먼저 잡고, 에셋 라이브러리에서 필요한 아이템을 꽂아 넣습니다.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                <!-- Step 1: Curriculum Structure -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm">
+                            <span class="w-5 h-5 bg-slate-800 text-white rounded-full flex items-center justify-center text-[9px]">1</span>
+                            커리큘럼 인덱싱 (목차 설계)
+                        </h3>
+                        <button onclick="addIndexNode()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">+ 목차 추가</button>
+                    </div>
+                    
+                    <div id="index-builder" class="space-y-3 min-h-[220px]">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                            <span class="text-slate-400 font-mono text-[10px]">01</span>
+                            <input type="text" value="[필수] 프로젝트의 정의" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">
+                        </div>
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                            <span class="text-slate-400 font-mono text-[10px]">02</span>
+                            <input type="text" value="애자일 실무 베스트 프랙티스" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Asset Mapping -->
+                <div class="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-md relative">
+                    <div class="absolute -top-3 left-6 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">ASSET MAPPING</div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-bold text-indigo-900 flex items-center gap-2 text-sm">
+                            <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[9px]">2</span>
+                            에셋 참조(Reference) 연결
+                        </h3>
+                        <button onclick="linkAllAssets()" class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded shadow-sm hover:bg-indigo-700">⚡ 에셋 매핑 시작</button>
+                    </div>
+
+                    <div id="mapping-viewer" class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-500 font-medium">프로젝트의 정의</div>
+                            <div class="text-indigo-300">───</div>
+                            <div id="slot-1" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">
+                                [에셋 라이브러리 대기]
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-500 font-medium">애자일 실무...</div>
+                            <div class="text-indigo-300">───</div>
+                            <div id="slot-2" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">
+                                [에셋 라이브러리 대기]
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Library Preview -->
+                    <div class="mt-10 pt-6 border-t border-slate-100">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-widest">Asset Library</div>
+                        <div class="flex gap-2 overflow-x-auto pb-2">
+                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
+                                <span class="text-lg">📹</span><span class="text-[9px] font-bold">Intro</span>
+                            </div>
+                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
+                                <span class="text-lg">📄</span><span class="text-[9px] font-bold">Guide</span>
+                            </div>
+                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
+                                <span class="text-lg">📹</span><span class="text-[9px] font-bold">Agile</span>
+                            </div>
+                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
+                                <span class="text-lg">❓</span><span class="text-[9px] font-bold">Quiz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Risk Management -->
         <section id="risk-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
             <div class="mb-10 text-center max-w-3xl mx-auto">
-                <div class="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
-                    Risk Mitigation
-                </div>
-                <h2 class="text-2xl font-bold text-slate-900 mb-4">공유 에셋의 사이드 이펙트(Side-effect) 원천 차단</h2>
-                <p class="text-sm text-slate-600 leading-relaxed bg-amber-50/50 p-4 rounded-lg border border-amber-100 text-left">
-                    "참조 모델의 가장 큰 위험은 <strong class="text-slate-800">의도치 않은 다른 코스에 영향을 주는 것</strong>입니다. 예를 들어 코스 A만을 위해 영상을 수정했는데, 이를 공유 중인 코스 B와 C까지 변경되어 대형 운영 사고가 발생할 수 있습니다. 이를 방어하기 위해 시스템은 공유 중인 에셋 수정 시 <strong class="text-indigo-600">지능형 버전 관리(분기) 팝업</strong>을 강제로 띄웁니다."
+                <div class="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Side-effect Protection</div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">참조 모델의 리스크 방어 로직</h2>
+                <p class="text-sm text-slate-600 leading-relaxed bg-amber-50/50 p-4 rounded-xl border border-amber-100 text-left">
+                    에셋 하나를 고쳤는데 다른 코스까지 바뀌면 위험하지 않을까? 시스템은 공유 중인 에셋 수정 시 <strong class="text-indigo-600">지능형 버전 분기(Save as New Asset)</strong> 옵션을 제공하여 예기치 못한 사고를 방지합니다.
                 </p>
             </div>
 
-            <div class="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div class="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between">
-                    <span class="font-bold text-sm text-slate-700">관리자: 콘텐츠 편집기 시뮬레이션</span>
-                    <span class="text-[10px] text-slate-400">Course_A_Editor</span>
-                </div>
-                <div class="p-8 text-center space-y-6">
-                    <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto text-3xl mb-4">🎬</div>
-                    <div class="text-sm text-slate-500">현재 <strong class="text-slate-800">[신입사원 환영사.mp4]</strong> 에셋을 편집하려 합니다.</div>
-                    <button onclick="document.getElementById('version-modal').classList.remove('hidden')" class="px-6 py-3 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700 shadow-md transition-all transform hover:scale-105">
-                        ✏️ 영상 에셋 수정하기 클릭
-                    </button>
-                </div>
-            </div>
-
-            <!-- Versioning Modal (Hidden by default) -->
-            <div id="version-modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 animate-fadeIn">
-                <div class="bg-white max-w-lg w-full rounded-2xl shadow-2xl overflow-hidden">
-                    <div class="bg-amber-50 p-6 border-b border-amber-200 flex flex-col items-center text-center">
-                        <div class="text-4xl mb-3">⚠️</div>
-                        <h3 class="text-lg font-bold text-amber-900 mb-1">영향도 경고: 공유 중인 에셋입니다.</h3>
-                        <p class="text-xs text-amber-700">현재 이 에셋은 <strong>3개의 다른 코스</strong>에서 사용 중입니다.</p>
-                    </div>
-                    
-                    <div class="p-6 space-y-6 bg-slate-50">
-                        <div class="text-xs text-slate-600 bg-white p-3 rounded border border-slate-200">
-                            <strong>사용 중인 코스 목록:</strong><br/>
-                            - 2026 상반기 영업직 온보딩<br/>
-                            - 2026 하반기 개발직 온보딩<br/>
-                            - 전사 공통 법정의무교육
-                        </div>
-
-                        <div class="space-y-3">
-                            <button onclick="closeModal('version-modal'); alert('모든 코스에 일괄 적용되었습니다. (버전업)');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-colors group">
-                                <div class="font-bold text-indigo-700 mb-1 flex justify-between">
-                                    <span>전체 코스 일괄 업데이트 (버전업)</span>
-                                    <span class="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500">선택 →</span>
-                                </div>
-                                <div class="text-xs text-slate-500">법령 개정 등 이 영상을 사용하는 모든 곳에 공통으로 변경 사항을 적용합니다.</div>
-                            </button>
-
-                            <button onclick="closeModal('version-modal'); alert('현재 코스만을 위한 복제본이 생성되었습니다.');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-colors group">
-                                <div class="font-bold text-emerald-700 mb-1 flex justify-between">
-                                    <span>이 코스만 따로 분리 (복제본 생성)</span>
-                                    <span class="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-500">선택 →</span>
-                                </div>
-                                <div class="text-xs text-slate-500">다른 코스에는 영향을 주지 않고, 현재 코스만을 위한 새로운 에셋(사본)을 만들어 수정합니다. (Save as Copy)</div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="p-4 bg-white border-t border-slate-100 flex justify-end">
-                        <button onclick="closeModal('version-modal')" class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-800">취소</button>
-                    </div>
-                </div>
+            <div class="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-center p-8 space-y-6">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">✏️</div>
+                <div class="text-sm text-slate-600">현재 <strong class="text-slate-800">[임직원 환영사.mp4]</strong>를 편집하려 합니다.</div>
+                <button onclick="openModal()" class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-xl">에셋 편집 도구 실행</button>
             </div>
         </section>
 
-        <!-- Section 4: Data Dashboard -->
-        <section id="analytics-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
-            <div class="mb-10 text-center max-w-2xl mx-auto">
-                <h2 class="text-2xl font-bold text-slate-900 mb-3">데이터 임팩트: 정량적 효과 분석</h2>
-                <p class="text-sm text-slate-600">
-                    아키텍처가 전환될 때, 플랫폼 운영과 인프라 관점(유지보수 시간 및 스토리지 공간)에서 발생하게 되는 압도적인 비용 절감 효과를 차트로 증명합니다.
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-10">
-                <!-- Chart 1 -->
-                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-                    <h3 class="font-bold text-slate-800 text-center mb-1">콘텐츠 유지보수 소요 시간</h3>
-                    <p class="text-[11px] text-slate-500 text-center mb-4">동일 영상이 100개 코스에 포함되었을 때 업데이트 기준</p>
-                    <div class="chart-container">
-                        <canvas id="timeChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Chart 2 -->
-                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-                    <h3 class="font-bold text-slate-800 text-center mb-1">시스템 스토리지 누적 데이터량</h3>
-                    <p class="text-[11px] text-slate-500 text-center mb-4">코스 생성 및 콘텐츠 재사용에 따른 물리적 용량 증가 추이</p>
-                    <div class="chart-container">
-                        <canvas id="storageChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: Roadmap -->
+        <!-- Section 5: Strategic Roadmap (전략적 실행 로드맵) -->
         <section id="roadmap-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
-            <!-- ... existing roadmap code ... -->
-            <div class="mb-10 text-center max-w-2xl mx-auto">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
                 <h2 class="text-2xl font-bold text-slate-900 mb-3">전략적 실행 로드맵 (Execution Plan)</h2>
-                <p class="text-sm text-slate-600">
-                    안정적인 아키텍처 전환을 위해 3단계 타당성 검토 기반의 실행 로드맵입니다. 기존 시스템의 얽힌 레거시(Legacy)를 안전하게 회피하면서도 고객의 시급한 요구사항을 충족시키는 개발 순서를 제시합니다.
-                </p>
+                <p class="text-sm text-slate-600">안정적인 아키텍처 전환을 위해 3단계 타당성 검토 기반의 실행 로드맵입니다. 기존 시스템의 얽힌 레거시(Legacy)를 안전하게 회피하면서도 고객의 시급한 요구사항을 충족시키는 개발 순서를 제시합니다.</p>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-6">
+            <div class="grid md:grid-cols-3 gap-6">
                 <!-- Phase 1 -->
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                     <div class="w-1 absolute left-0 top-0 bottom-0 bg-slate-400"></div>
-                    <div class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Phase 1</div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        <span class="text-xl">🏢</span> 오프라인 코스 선(先) 개발
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phase 1</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        🏢 오프라인 코스 선(先) 개발
                     </h3>
-                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                        기존 온라인 DB를 건드리지 않고, '쉽고 편한 현대적 UI/UX'의 뼈대와 출결 내재화 모듈을 안전하게 테스트하고 확립합니다.
-                    </p>
+                    <p class="text-[13px] text-slate-500 leading-relaxed">기존 온라인 DB를 건드리지 않고, '쉽고 편한 현대적 UI/UX'의 뼈대와 출결 내재화 모듈을 안전하게 테스트하고 확립합니다.</p>
                 </div>
 
                 <!-- Phase 2 -->
-                <div class="flex-1 bg-white border-2 border-indigo-500 rounded-xl p-6 shadow-lg relative overflow-hidden transform md:-translate-y-2">
+                <div class="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-xl relative overflow-hidden group transform hover:-translate-y-1 transition-transform">
                     <div class="w-1 absolute left-0 top-0 bottom-0 bg-indigo-500"></div>
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl">GAME CHANGER</div>
-                    <div class="text-xs font-bold text-indigo-500 mb-2 uppercase tracking-wide">Phase 2</div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        <span class="text-xl">💻</span> 온라인 코스 (가벼운 조립)
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg uppercase">Game Changer</div>
+                    <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Phase 2</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        💻 온라인 코스 (가벼운 조립)
                     </h3>
-                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                        무거운 저작 도구를 완전히 탈피하고, 가벼운 '에셋 참조형 플레이리스트' 세팅을 구현하여 폭발적인 반응을 이끌어냅니다.
-                    </p>
+                    <p class="text-[13px] text-slate-500 leading-relaxed">무거운 저작 도구를 완전히 탈피하고, 가벼운 '에셋 참조형 플레이리스트' 세팅을 구현하여 폭발적인 반응을 이끌어냅니다.</p>
                 </div>
 
                 <!-- Phase 3 -->
-                <div class="flex-1 bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                    <div class="w-1 absolute left-0 top-0 bottom-0 bg-emerald-400"></div>
-                    <div class="text-xs font-bold text-emerald-600 mb-2 uppercase tracking-wide">Phase 3</div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        <span class="text-xl">🔄</span> 블렌디드 코스 완성
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div class="w-1 absolute left-0 top-0 bottom-0 bg-emerald-500"></div>
+                    <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Phase 3</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        🔄 블렌디드 코스 완성
                     </h3>
-                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                        독립적인 모듈로 단단하게 완성된 오프라인 출석과 온라인 콘텐츠를 하나의 커리큘럼 UI 안에서 섞어주는(Mix) 융합 단계입니다.
-                    </p>
+                    <p class="text-[13px] text-slate-500 leading-relaxed">독립적인 모듈로 단단하게 완성된 오프라인 출석과 온라인 콘텐츠를 하나의 커리큘럼 UI 안에서 섞어주는(Mix) 융합 단계입니다.</p>
                 </div>
             </div>
         </section>
 
     </main>
 
+    <!-- Modal Simulation -->
+    <div id="modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white max-w-lg w-full rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-amber-50 p-6 border-b border-amber-200 flex flex-col items-center">
+                <div class="text-3xl mb-2">⚠️</div>
+                <h3 class="text-lg font-bold text-amber-900">영향도 경고: 공유 중인 에셋입니다.</h3>
+                <p class="text-xs text-amber-700 mt-1">이 에셋은 현재 <strong>12개의 다른 코스</strong>에서 참조 중입니다.</p>
+            </div>
+            <div class="p-6 space-y-4 bg-slate-50/50">
+                <button onclick="closeModal('전체 업데이트');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
+                    <div class="font-bold text-indigo-700 mb-1 flex justify-between items-center">
+                        <span class="text-sm">전체 코스 일괄 적용 (v2.0)</span>
+                        <span class="text-xs bg-indigo-100 px-1.5 py-0.5 rounded">권장</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 italic leading-relaxed">법령 개정, 사명 변경 등 모든 코스에 공통으로 변경 사항을 적용해야 할 때 사용합니다.</p>
+                </button>
+                <button onclick="closeModal('개별 복제');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group">
+                    <div class="font-bold text-emerald-700 mb-1 flex justify-between items-center">
+                        <span class="text-sm">현재 코스만 별도로 분리 (복제본 생성)</span>
+                        <span class="text-xs bg-emerald-100 px-1.5 py-0.5 rounded">안전</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 italic leading-relaxed">다른 코스에는 영향을 주지 않고, 현재 코스의 특수 상황에 맞춰 에셋을 수정할 때 사용합니다.</p>
+                </button>
+            </div>
+            <div class="p-4 bg-white border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal('cancel')" class="px-4 py-2 text-sm font-bold text-slate-400 hover:text-slate-600">취소</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function navTo(id) {
-            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        const legacyState = [false, false, false];
-        function updateLegacy(index) {
-            legacyState[index - 1] = true;
-            const el = document.getElementById(`leg-node-${index}`);
-            el.className = "px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded transition-colors duration-300";
-            el.innerText = "신버전 영상 (v2)";
-        }
-        function resetLegacy() {
-            for(let i=1; i<=3; i++) {
-                legacyState[i-1] = false;
-                const el = document.getElementById(`leg-node-${i}`);
-                el.className = "px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded transition-colors duration-300";
-                el.innerText = "구버전 영상 (v1)";
-            }
+        function navTo(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
+        function openModal() { document.getElementById('modal').classList.remove('hidden'); }
+        function closeModal(type) { 
+            if(type !== 'cancel') alert(`[${type}] 방식으로 에셋 수정이 안전하게 완료되었습니다.`);
+            document.getElementById('modal').classList.add('hidden'); 
         }
 
-        function updateNextGen() {
-            const master = document.getElementById('ng-master');
-            master.className = "mt-2 inline-block px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded transition-colors duration-300";
-            master.innerText = "신버전 원본 (v2)";
-            for(let i=1; i<=3; i++) {
-                const node = document.getElementById(`ng-node-${i}`);
-                node.className = "text-[10px] font-bold text-emerald-600 transition-colors duration-300";
-                node.innerText = "v2 동기화됨";
-            }
-        }
-        function resetNextGen() {
-            const master = document.getElementById('ng-master');
-            master.className = "mt-2 inline-block px-3 py-1 bg-rose-100 text-red-700 text-xs font-bold rounded transition-colors duration-300";
-            master.innerText = "구버전 원본 (v1)";
-            for(let i=1; i<=3; i++) {
-                const node = document.getElementById(`ng-node-${i}`);
-                node.className = "text-[10px] font-bold text-red-500 transition-colors duration-300";
-                node.innerText = "v1 참조중";
-            }
+        // --- Indexing & Asset Connection Logic ---
+        let indexCount = 2;
+        function addIndexNode() {
+            indexCount++;
+            const builder = document.getElementById('index-builder');
+            const viewer = document.getElementById('mapping-viewer');
+            
+            // Add Index Item
+            const div = document.createElement('div');
+            div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3 animate-pulse";
+            div.innerHTML = `<span class="text-slate-400 font-mono text-[10px]">${String(indexCount).padStart(2, '0')}</span><input type="text" placeholder="새로운 챕터 제목" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">`;
+            builder.appendChild(div);
+            setTimeout(() => div.classList.remove('animate-pulse'), 1000);
+
+            // Add Viewer Slot
+            const vDiv = document.createElement('div');
+            vDiv.className = "flex items-center gap-2";
+            vDiv.innerHTML = `<div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-400 line-clamp-1">새로운 챕터</div><div class="text-indigo-300">───</div><div id="slot-${indexCount}" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">[에셋 라이브러리 대기]</div>`;
+            viewer.appendChild(vDiv);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            Chart.defaults.font.family = "'Inter', 'Pretendard', sans-serif";
-            Chart.defaults.color = '#64748b'; 
-
-            const ctxTime = document.getElementById('timeChart').getContext('2d');
-            new Chart(ctxTime, {
-                type: 'bar',
-                data: {
-                    labels: ['기존: 페이지 복사', '신규: 에셋 참조'],
-                    datasets: [{
-                        label: '유지보수 소요 시간 (분)',
-                        data: [500, 1], 
-                        backgroundColor: ['rgba(244, 63, 94, 0.7)', 'rgba(79, 70, 229, 0.8)'],
-                        borderColor: ['rgba(225, 29, 72, 1)', 'rgba(67, 56, 202, 1)'],
-                        borderWidth: 1, borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
+        function linkAllAssets() {
+            const assets = ['📹 [영상] 프로젝트 정의 v2', '📹 [영상] 애자일 실습', '📄 [가이드] 협업 툴킷', '❓ [퀴즈] 기초 역량 평가'];
+            for(let i=1; i<=indexCount; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if(slot) {
+                    slot.innerText = assets[i-1] || '📹 기본 에셋 참조 연결';
+                    slot.className = "flex-1 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-[10px] text-emerald-700 font-bold text-center transition-all duration-500 transform scale-105";
+                    setTimeout(() => slot.classList.remove('scale-105'), 500);
                 }
-            });
-
-            const ctxStorage = document.getElementById('storageChart').getContext('2d');
-            new Chart(ctxStorage, {
-                type: 'line',
-                data: {
-                    labels: ['10코스', '50코스', '100코스', '500코스', '1000코스'],
-                    datasets: [
-                        { label: 'AS-IS (복사)', data: [10, 50, 100, 500, 1000], borderColor: 'rgba(244, 63, 94, 1)', backgroundColor: 'rgba(244, 63, 94, 0.1)', fill: true, tension: 0.4 },
-                        { label: 'TO-BE (참조)', data: [10, 10.5, 11, 15, 20], borderColor: 'rgba(79, 70, 229, 1)', backgroundColor: 'rgba(79, 70, 229, 0.1)', fill: true, tension: 0.4 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } }
-                }
-            });
-        });
+            }
+        }
     </script>
 </body>
 </html>
