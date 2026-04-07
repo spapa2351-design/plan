@@ -172,6 +172,7 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
+    .sess-date-box.req { background: #FFF0E6; color: #A84300; }
     .sess-date-box .month { font-size: 10px; font-weight: 700; }
     .sess-date-box .day { font-size: 18px; font-weight: 800; line-height: 1; }
     .sess-item-info { flex: 1; min-width: 0; }
@@ -186,13 +187,18 @@
       font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
       background: rgba(34,51,84,.08); color: var(--secondary);
     }
+    .cohort-header {
+      font-size: 14px; font-weight: 800; color: var(--primary); 
+      margin: 16px 0 8px; padding-bottom: 6px; border-bottom: 1.5px solid var(--primary-lighter);
+      display: flex; justify-content: space-between; align-items: center;
+    }
 
     /* ── Bottom CTA ── */
     .bottom-cta {
       padding: 12px 16px 24px;
       background: var(--white);
       border-top: 1px solid var(--border);
-      position: sticky; bottom: 0;
+      position: sticky; bottom: 0; z-index: 10;
     }
     .btn-primary {
       width: 100%; height: 52px; border-radius: var(--r);
@@ -211,13 +217,6 @@
       display: flex; align-items: center; justify-content: center; gap: 6px;
     }
     .btn-secondary:hover { background: var(--body-bg); }
-    .btn-danger {
-      width: 100%; height: 48px; border-radius: var(--r);
-      background: var(--white); color: var(--error); border: 1px solid rgba(255,25,67,.3);
-      font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn-danger:hover { background: #fff0f3; }
 
     /* ── Sheet overlay ── */
     .sheet-overlay {
@@ -260,25 +259,37 @@
 
     /* ── Select session in sheet ── */
     .sel-sess {
-      display: flex; gap: 10px; align-items: center;
+      display: flex; gap: 10px; align-items: flex-start;
       padding: 12px 14px; border: 1.5px solid var(--border);
       border-radius: var(--r); margin-bottom: 8px; cursor: pointer; transition: all .15s;
     }
     .sel-sess:hover:not(.full) { border-color: var(--primary); }
-    .sel-sess.selected { border-color: var(--primary); background: var(--primary-lighter); }
+    .sel-sess.selected { border-color: var(--primary); background: var(--primary-lighter); box-shadow: inset 0 0 0 1px var(--primary); }
     .sel-sess.full { opacity: .55; pointer-events: none; }
+    
+    /* Radio */
     .radio-circle {
       width: 20px; height: 20px; border-radius: 50%;
       border: 2px solid rgba(34,51,84,.25); flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; transition: all .15s; margin-top: 2px;
     }
     .sel-sess.selected .radio-circle { border-color: var(--primary); background: var(--primary); }
     .sel-sess.selected .radio-circle::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+    
+    /* Checkbox (Multi) */
+    .check-square {
+      width: 20px; height: 20px; border-radius: 4px;
+      border: 2px solid rgba(34,51,84,.25); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; transition: all .15s; margin-top: 2px;
+    }
+    .sel-sess.selected .check-square { border-color: var(--primary); background: var(--primary); }
+    .sel-sess.selected .check-square::after { content: '✓'; color: #fff; font-size: 13px; font-weight: 800; }
+
     .sel-info { flex: 1; }
-    .sel-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
-    .sel-sub { font-size: 11px; color: var(--secondary); line-height: 1.4; }
+    .sel-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; color: var(--black); }
+    .sel-sub { font-size: 12px; color: var(--secondary); line-height: 1.4; }
     .sel-loc { font-size: 11px; color: var(--secondary); margin-top: 4px; display: flex; gap: 4px; align-items: flex-start; }
-    .sel-seats { font-size: 12px; font-weight: 700; }
+    .sel-seats { font-size: 12px; font-weight: 700; margin-top: 2px;}
 
     /* ── User Calendar (Sheet) ── */
     .ucal-wrap {
@@ -310,13 +321,13 @@
       transition: all 0.2s; color: var(--black);
     }
     .ucal-day.other { color: rgba(34,51,84,.25); }
-    .ucal-day.has-sess { cursor: pointer; }
-    /* 회차가 있는 날짜 아래 파란색 닷(Dot) 표시 */
+    .ucal-day.has-sess { cursor: pointer; font-weight: 800; }
+    /* 회차가 있는 날짜 하단에 파란색 닷(Dot) 표시 */
     .ucal-day.has-sess::after {
       content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px; 
       border-radius: 50%; background: var(--primary);
     }
-    /* 회차 선택 시 파란색 배경 하이라이트 */
+    /* 선택된 일자 하이라이트 */
     .ucal-day.selected { background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(85,105,255,.3); }
     .ucal-day.selected::after { background: #fff; }
 
@@ -431,56 +442,20 @@
       font-size: 36px; margin-bottom: 20px;
     }
 
-    /* ── Proto nav chips (Side Menu Layout) ── */
-    .proto-bar {
-      position: fixed;
-      top: 50%;
-      left: 32px;
-      transform: translateY(-50%);
-      z-index: 500;
+    /* ── Proto Switcher (Left Side Menu) ── */
+    .proto-mode-switch {
+      position: fixed; top: 20px; left: 20px; z-index: 9999;
+      background: #fff; padding: 16px; border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--primary);
     }
-    .proto-title {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--secondary);
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .proto-chips {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .proto-chip {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      border: 1px solid rgba(34,51,84,.1);
-      background: var(--white);
-      color: var(--secondary);
-      box-shadow: 0 4px 12px rgba(34,51,84,.05);
-      transition: all .2s ease;
-      text-align: left;
-      min-width: 140px;
-    }
-    .proto-chip:hover {
-      background: var(--body-bg);
-      color: var(--black);
-      transform: translateX(4px);
-    }
-    .proto-chip.active {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-    @media (max-width: 860px) {
-      .proto-bar {
-        display: none; /* 모바일/작은 화면에서는 겹치지 않도록 숨김 */
-      }
-    }
+    .proto-mode-switch h3 { font-size: 12px; font-weight: 800; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; }
+    .proto-mode-switch label { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 8px; cursor: pointer; color: var(--black); }
+    
+    .proto-bar { position: fixed; top: 50%; left: 20px; transform: translateY(-50%); z-index: 500; }
+    .proto-chips { display: flex; flex-direction: column; gap: 8px; }
+    .proto-chip { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid rgba(34,51,84,.1); background: var(--white); color: var(--secondary); transition: all .2s ease; text-align: left; min-width: 130px; }
+    .proto-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    @media (max-width: 860px) { .proto-bar, .proto-mode-switch { display: none; } }
 
     /* ── Scrollable content area ── */
     .scroll-area { flex: 1; overflow-y: auto; }
@@ -488,15 +463,22 @@
 </head>
 <body>
 
+<!-- ── [테스트용] 운영 방식 변경 컨트롤러 ── -->
+<div class="proto-mode-switch">
+  <h3>운영 방식 (Admin 연동)</h3>
+  <label><input type="radio" name="om" checked onclick="switchMode('single')"> 1. 단일 선택형 (1개 선택)</label>
+  <label><input type="radio" name="om" onclick="switchMode('cohort')"> 2. 기수 단위 (일괄 신청)</label>
+  <label><input type="radio" name="om" onclick="switchMode('multi')"> 3. 다중 선택형 (N개 조합)</label>
+</div>
+
 <!-- ── 프로토타입 네비게이션 바 (좌측 사이드 스텝) ── -->
-<div class="proto-bar">
-  <div class="proto-title">시뮬레이션 스텝</div>
+<div class="proto-bar" style="top: 60%;">
   <div class="proto-chips">
     <button class="proto-chip active" id="chip-detail" onclick="goScreen('screen-detail')">① 코스 상세</button>
-    <button class="proto-chip" id="chip-select" onclick="openSelect()">② 회차 선택</button>
-    <button class="proto-chip" id="chip-confirm" onclick="goConfirm()">③ 신청 확인</button>
+    <button class="proto-chip" id="chip-select" onclick="openSelect()">② 수강 일정 선택</button>
+    <button class="proto-chip" id="chip-confirm" onclick="goConfirm()" disabled>③ 신청 확인</button>
     <button class="proto-chip" id="chip-done" onclick="goScreen('screen-done')">④ 신청 완료</button>
-    <button class="proto-chip" id="chip-my" onclick="goScreen('screen-my')">⑤ 내 수강</button>
+    <button class="proto-chip" id="chip-my" onclick="goScreen('screen-my')">⑤ 내 수강 내역</button>
     <button class="proto-chip" id="chip-cancel" onclick="openCancelModal()">⑥ 취소 모달</button>
   </div>
 </div>
@@ -528,7 +510,6 @@
         <div class="course-meta">
           <span class="chip chip-blue">직무교육</span>
           <span class="chip chip-green">신청 중</span>
-          <span class="chip chip-orange">필수 2회차</span>
         </div>
         <div class="course-title">2026 직무교육 —<br>프로젝트 관리 심화</div>
         <div style="font-size:13px; color:var(--secondary); line-height:1.7; margin-bottom:14px">
@@ -550,23 +531,7 @@
           <div class="info-icon">📅</div>
           <div>
             <div class="info-label">교육 기간</div>
-            <div class="info-val">2026.05.08 (금) — 2026.05.22 (금) · 3회차</div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon">⏰</div>
-          <div>
-            <div class="info-label">교육 시간</div>
-            <div class="info-val">매 회차 09:00 — 17:00 · 총 24시간</div>
-          </div>
-        </div>
-        <div class="info-row">
-          <div class="info-icon">👥</div>
-          <div>
-            <div class="info-label">정원 / 잔여석</div>
-            <div class="info-val">
-              총 정원 30명 · <span style="color:var(--success);font-weight:700">잔여 14석</span>
-            </div>
+            <div class="info-val">2026.05.01 — 2026.05.31</div>
           </div>
         </div>
         <div class="info-row">
@@ -580,11 +545,11 @@
 
       <!-- 장소 정보 -->
       <div class="section">
-        <div class="section-title">장소 정보</div>
+        <div class="section-title">기본 장소 정보</div>
         <div class="info-row">
           <div class="info-icon">🏢</div>
           <div>
-            <div class="info-label">기본 교육 장소</div>
+            <div class="info-label">장소명</div>
             <div class="info-val">한샘 HQ 대교육장 B동 3층</div>
           </div>
         </div>
@@ -595,82 +560,13 @@
             <div class="info-val">서울특별시 강남구 테헤란로 521, 한르빌딩</div>
           </div>
         </div>
-        <div class="info-row">
-          <div class="info-icon">🚇</div>
-          <div>
-            <div class="info-label">교통 안내</div>
-            <div class="info-val">지하철 2호선 강남역 3번 출구에서 도보 5분 · 주차 가능</div>
-          </div>
-        </div>
-        <div style="font-size:12px; color:#A84300; background:#FFF0E6; padding:8px 12px; border-radius:6px; margin-top:12px; font-weight:600;">
-          💡 회차(세션)별로 실제 진행 장소가 다를 수 있으니 하단 커리큘럼을 꼭 확인해 주세요.
-        </div>
-        <div class="map-ph" onclick="alert('지도 앱 연동 (구현 예정)')">
-          <div class="map-pin">📍</div>
-          <div class="map-label">지도 보기</div>
-          <div style="font-size:11px;color:var(--secondary);position:relative;z-index:1">탭하면 지도를 확인할 수 있습니다</div>
-        </div>
       </div>
 
-      <!-- 커리큘럼 -->
+      <!-- 커리큘럼 (동적 생성 영역) -->
       <div class="section">
         <div class="section-title">커리큘럼</div>
-        
-        <div class="sess-item" style="cursor:default">
-          <div class="sess-date-box">
-            <div class="month">5월</div>
-            <div class="day">8</div>
-          </div>
-          <div class="sess-item-info">
-            <div class="sess-item-title">1회차 — 과정 소개 및 OT</div>
-            <div class="sess-item-sub">
-              5.8(금) 09:00–17:00
-              <div class="sess-item-loc"><span>📍</span> 한샘 HQ 대교육장 B동 3층</div>
-            </div>
-          </div>
-          <div class="sess-item-right">
-            <span class="chip chip-primary" style="font-size:10px">잔여 14석</span>
-          </div>
-        </div>
-
-        <div class="sess-item" style="cursor:default">
-          <div class="sess-date-box" style="background:#FFF0E6;color:#A84300">
-            <div class="month">5월</div>
-            <div class="day">15</div>
-          </div>
-          <div class="sess-item-info">
-            <div class="sess-item-title">2회차 — 핵심 개념 학습</div>
-            <div class="sess-item-sub">
-              5.15(금) 09:00–17:00
-              <div class="sess-item-loc"><span>📍</span> 한샘 HQ 대교육장 B동 3층</div>
-            </div>
-          </div>
-          <div class="sess-item-right">
-            <span class="chip chip-orange" style="font-size:10px">필수</span>
-            <span class="chip chip-primary" style="font-size:10px">잔여 14석</span>
-          </div>
-        </div>
-
-        <div class="sess-item" style="cursor:default">
-          <div class="sess-date-box">
-            <div class="month">5월</div>
-            <div class="day">22</div>
-          </div>
-          <div class="sess-item-info">
-            <div class="sess-item-title">3회차 — 실습 및 케이스</div>
-            <div class="sess-item-sub">
-              5.22(금) 09:00–17:00
-              <div class="sess-item-loc"><span>📍</span> 방배 직영점 2층 실습장</div>
-            </div>
-          </div>
-          <div class="sess-item-right">
-            <span class="chip chip-primary" style="font-size:10px">잔여 3석</span>
-          </div>
-        </div>
-
-        <div style="padding:10px 12px; background:var(--primary-lighter); border-radius:var(--r-sm); font-size:12px; color:#3344AA; line-height:1.7; margin-top:4px">
-          💡 수료 기준: 전체 회차 <strong>80% 이상 출석</strong> 시 수료증 발급 · 2회차는 필수 이수
-        </div>
+        <div id="curriculum-notice"></div>
+        <div id="curriculum-list"></div>
       </div>
 
       <div style="height:80px"></div>
@@ -678,7 +574,7 @@
 
     <div class="bottom-cta">
       <button class="btn-primary" onclick="openSelect()">
-        신청하기 →
+        수강 일정 선택하기 →
       </button>
     </div>
   </div>
@@ -702,20 +598,16 @@
           <div class="confirm-value">2026 직무교육 — 프로젝트 관리 심화</div>
         </div>
         <div class="confirm-row">
-          <div class="confirm-label">선택 회차</div>
-          <div class="confirm-value" id="confirm-sess-name">1회차 — 과정 소개 및 OT</div>
+          <div class="confirm-label">선택 내역</div>
+          <div class="confirm-value" id="confirm-sess-name" style="color:var(--primary);"></div>
         </div>
         <div class="confirm-row">
           <div class="confirm-label">교육 일시</div>
-          <div class="confirm-value" id="confirm-sess-date">2026.05.08 (금) 09:00–17:00</div>
+          <div class="confirm-value" id="confirm-sess-date"></div>
         </div>
         <div class="confirm-row">
           <div class="confirm-label">교육 장소</div>
-          <div class="confirm-value" id="confirm-sess-loc">한샘 HQ 대교육장 B동 3층</div>
-        </div>
-        <div class="confirm-row">
-          <div class="confirm-label">강사</div>
-          <div class="confirm-value">김민준</div>
+          <div class="confirm-value" id="confirm-sess-loc"></div>
         </div>
         <div class="confirm-row">
           <div class="confirm-label">신청자</div>
@@ -755,20 +647,21 @@
 
         <div class="success-card">
           <div class="success-card-row">
-            <div class="success-card-label">코스</div>
-            <div class="success-card-val">프로젝트 관리 심화</div>
+            <div class="success-card-label">코스명</div>
+            <div class="success-card-val truncate">2026 직무교육 — 프로젝트 관리 심화</div>
           </div>
           <div class="success-card-row">
-            <div class="success-card-label">회차</div>
-            <div class="success-card-val" id="done-sess-name">1회차</div>
+            <div class="success-card-label">신청 내역</div>
+            <div class="success-card-val" id="done-sess-name" style="color:var(--primary);"></div>
           </div>
           <div class="success-card-row">
             <div class="success-card-label">일시</div>
-            <div class="success-card-val" id="done-sess-date">2026.05.08 (금) 09:00</div>
+            <div class="success-card-val" id="done-sess-date"></div>
           </div>
+          <!-- 장소 정보 표출 영역 추가 -->
           <div class="success-card-row">
             <div class="success-card-label">장소</div>
-            <div class="success-card-val" id="done-sess-loc">한샘 HQ B동 3층</div>
+            <div class="success-card-val" id="done-sess-loc"></div>
           </div>
         </div>
 
@@ -798,7 +691,7 @@
         <div class="my-course-hdr">
           <div class="my-course-thumb">📋</div>
           <div>
-            <div class="my-course-name">2026 직무교육 — 프로젝트 관리 심화</div>
+            <div class="my-course-name truncate pr-2">2026 직무교육 — 프로젝트 관리 심화</div>
             <div class="my-course-sub">강사: 김민준 · 직무교육</div>
           </div>
         </div>
@@ -806,21 +699,21 @@
         <div class="my-status-bar">
           <div class="my-status-dot"></div>
           <span style="font-size:12px; color:var(--primary); font-weight:700" id="my-status-text">신청 완료</span>
-          <span style="font-size:11px; color:var(--secondary); margin-left:4px" id="my-status-sub">· 1회차 선택</span>
+          <span style="font-size:11px; color:var(--secondary); margin-left:4px" id="my-status-sub"></span>
         </div>
 
         <div class="my-info-grid">
           <div class="my-info-cell">
             <div class="my-info-lbl">교육 일시</div>
-            <div class="my-info-val" id="my-info-date">5.8(금) 09:00</div>
+            <div class="my-info-val" id="my-info-date"></div>
           </div>
           <div class="my-info-cell">
             <div class="my-info-lbl">장소</div>
-            <div class="my-info-val" id="my-info-loc">B동 3층</div>
+            <div class="my-info-val" id="my-info-loc"></div>
           </div>
           <div class="my-info-cell">
             <div class="my-info-lbl">신청일</div>
-            <div class="my-info-val">2026.04.06</div>
+            <div class="my-info-val">2026.04.10</div>
           </div>
           <div class="my-info-cell">
             <div class="my-info-lbl">출석 현황</div>
@@ -829,7 +722,7 @@
         </div>
 
         <div class="my-actions">
-          <button class="my-btn" onclick="alert('일정 변경 기능 — 동일 코스 내 다른 회차로 변경 가능')">
+          <button class="my-btn" onclick="alert('일정 변경 기능 — 동일 코스 내 다른 일정으로 변경 가능')">
             🔄 일정 변경
           </button>
           <button class="my-btn danger" onclick="openCancelModal()">
@@ -839,7 +732,7 @@
       </div>
 
       <div style="margin:0 16px; padding:12px 14px; background:var(--primary-lighter); border-radius:var(--r-sm); font-size:12px; color:#3344AA; line-height:1.7">
-        📌 교육 당일 <strong>QR 출석 체크</strong>를 완료해 주세요. 수료 기준: 전체 80% 이상 출석
+        📌 교육 당일 <strong>QR 출석 체크</strong>를 완료해 주세요. 수료 기준은 상세 페이지를 참고하세요.
       </div>
     </div>
 
@@ -881,7 +774,7 @@
       <div class="modal-icon">⚠️</div>
       <div class="modal-title">수강을 취소하시겠습니까?</div>
       <div class="modal-desc">
-        아래 수강 신청 내역이 취소됩니다.<br>
+        아래 수강 신청 내역이 전체 취소됩니다.<br>
         <strong>2026 직무교육 — 프로젝트 관리 심화</strong>
       </div>
       <div class="modal-warn">
@@ -896,128 +789,243 @@
 
 </div><!-- /app -->
 
-<!-- ── Sheet: .app 바깥 (position:fixed가 올바르게 동작) ── -->
+<!-- ── Sheet: 수강 일정/기수 선택 모달 ── -->
 <div class="sheet-overlay" id="overlay-select" onclick="closeSelect()"></div>
 <div class="sheet" id="sheet-select">
   <div class="sheet-handle"></div>
   <div class="sheet-hdr">
     <div class="sheet-title">수강 일정 선택</div>
-    <div class="sheet-sub">원하는 회차를 선택해 주세요 · 정원 초과 시 신청 불가</div>
+    <div class="sheet-sub" id="sheet-sub-text">원하시는 일정을 선택해주세요</div>
   </div>
   <div class="sheet-body">
     
     <!-- User Calendar inside Sheet -->
     <div class="ucal-wrap">
       <div class="ucal-hdr">
-        <button class="ucal-nav" onclick="ucalPrev()">&#10094;</button>
+        <button class="ucal-nav" onclick="ucalPrev()"><i class="fa-solid fa-chevron-left text-sm"></i></button>
         <div class="ucal-title" id="userCalTitle">2026년 5월</div>
-        <button class="ucal-nav" onclick="ucalNext()">&#10095;</button>
+        <button class="ucal-nav" onclick="ucalNext()"><i class="fa-solid fa-chevron-right text-sm"></i></button>
       </div>
       <div class="ucal-grid" id="userCalGrid"></div>
     </div>
 
-    <!-- Session List -->
-    <div class="sel-sess selected" id="sel-1" onclick="selectSess(1)">
-      <div class="radio-circle"></div>
-      <div class="sel-info">
-        <div class="sel-title">1회차 — 과정 소개 및 OT</div>
-        <div class="sel-sub">2026.05.08 (금) 09:00–17:00</div>
-        <div class="sel-loc"><span>📍</span> 한샘 HQ 대교육장 B동 3층</div>
-      </div>
-      <div class="sel-seats seats-left">14석</div>
-    </div>
+    <!-- Session List (Dynamic) -->
+    <div id="sheet-list"></div>
     
-    <div class="sel-sess" id="sel-2" onclick="selectSess(2)">
-      <div class="radio-circle"></div>
-      <div class="sel-info">
-        <div class="sel-title">2회차 — 핵심 개념 학습 <span style="font-size:10px;color:#A84300;font-weight:700">필수</span></div>
-        <div class="sel-sub">2026.05.15 (금) 09:00–17:00</div>
-        <div class="sel-loc"><span>📍</span> 한샘 HQ 대교육장 B동 3층</div>
-      </div>
-      <div class="sel-seats seats-left">14석</div>
-    </div>
-    
-    <div class="sel-sess" id="sel-3" onclick="selectSess(3)">
-      <div class="radio-circle"></div>
-      <div class="sel-info">
-        <div class="sel-title">3회차 — 실습 및 케이스</div>
-        <div class="sel-sub">2026.05.22 (금) 09:00–17:00</div>
-        <div class="sel-loc"><span>📍</span> 방배 직영점 2층 실습장</div>
-      </div>
-      <div class="sel-seats seats-few">3석</div>
-    </div>
-    
-    <div class="sel-sess full" id="sel-4">
-      <div class="radio-circle"></div>
-      <div class="sel-info">
-        <div class="sel-title">별도 회차 (시범)</div>
-        <div class="sel-sub">2026.05.29 (금) 09:00–17:00</div>
-        <div class="sel-loc"><span>📍</span> 상암사옥 2층 회의실</div>
-      </div>
-      <div class="sel-seats seats-none"><span class="full-badge">마감</span></div>
-    </div>
-    
-    <div style="margin-top:8px; padding:10px 12px; background:rgba(34,51,84,.04); border-radius:var(--r-sm); font-size:12px; color:var(--secondary); line-height:1.6">
-      ℹ️ 신청 후 마이페이지에서 일정 변경이 가능합니다 (마감 3일 전까지)
-    </div>
     <div style="margin-top:16px">
-      <button class="btn-primary" onclick="goConfirm()">다음 — 신청 확인 →</button>
+      <button id="btn-sheet-next" class="btn-primary" onclick="goConfirm()" disabled>다음 — 신청 확인 →</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ── State ── */
-let selectedSess = 1;
-const sessData = {
-  1: { 
-    name: '1회차 — 과정 소개 및 OT', 
-    date: '2026.05.08 (금) 09:00–17:00', 
-    isoDate: '2026-05-08',
-    short: '5.8(금) 09:00',
-    loc: '한샘 HQ 대교육장 B동 3층',
-    shortLoc: 'B동 3층'
-  },
-  2: { 
-    name: '2회차 — 핵심 개념 학습',   
-    date: '2026.05.15 (금) 09:00–17:00', 
-    isoDate: '2026-05-15',
-    short: '5.15(금) 09:00',
-    loc: '한샘 HQ 대교육장 B동 3층',
-    shortLoc: 'B동 3층'
-  },
-  3: { 
-    name: '3회차 — 실습 및 케이스',   
-    date: '2026.05.22 (금) 09:00–17:00', 
-    isoDate: '2026-05-22',
-    short: '5.22(금) 09:00',
-    loc: '방배 직영점 2층 실습장',
-    shortLoc: '방배 직영점'
-  },
-  4: { 
-    name: '별도 회차 (시범)',   
-    date: '2026.05.29 (금) 09:00–17:00', 
-    isoDate: '2026-05-29',
-    short: '5.29(금) 09:00',
-    loc: '상암사옥 2층 회의실',
-    shortLoc: '상암사옥'
-  },
+/* ── Mock Data for the 3 Modes ── */
+const courseData = {
+  single: [
+    { id: 1, name: '1차 — 프로젝트 방법론 기초', date: '2026.05.08 (금) 09:00–17:00', isoDate: '2026-05-08', short: '5.8(금) 09:00', loc: '한샘 HQ 대교육장 B동 3층', shortLoc: 'B동 3층', seats: 14, req: false },
+    { id: 2, name: '2차 — 프로젝트 방법론 기초', date: '2026.05.15 (금) 09:00–17:00', isoDate: '2026-05-15', short: '5.15(금) 09:00', loc: '한샘 HQ 대교육장 B동 3층', shortLoc: 'B동 3층', seats: 14, req: false },
+    { id: 3, name: '3차 — 프로젝트 방법론 기초', date: '2026.05.22 (금) 09:00–17:00', isoDate: '2026-05-22', short: '5.22(금) 09:00', loc: '방배 직영점 2층 실습장', shortLoc: '방배 직영점', seats: 3, req: false },
+    { id: 4, name: '4차 — 프로젝트 방법론 기초', date: '2026.05.29 (금) 09:00–17:00', isoDate: '2026-05-29', short: '5.29(금) 09:00', loc: '방배 직영점 2층 실습장', shortLoc: '방배 직영점', seats: 0, req: false } // Full
+  ],
+  multi: [
+    { id: 1, name: '[특강] 리더십의 이해', date: '2026.05.08 (금) 13:00–17:00', isoDate: '2026-05-08', short: '5.8(금) 13:00', loc: '본사 대교육장', shortLoc: '본사', seats: 20, req: true },
+    { id: 2, name: '[특강] 소통과 갈등 관리', date: '2026.05.15 (금) 13:00–17:00', isoDate: '2026-05-15', short: '5.15(금) 13:00', loc: '본사 대교육장', shortLoc: '본사', seats: 15, req: false },
+    { id: 3, name: '[특강] 성과 창출 코칭', date: '2026.05.22 (금) 13:00–17:00', isoDate: '2026-05-22', short: '5.22(금) 13:00', loc: '본사 대교육장', shortLoc: '본사', seats: 10, req: false },
+    { id: 4, name: '[특강] 팀 빌딩 액티비티', date: '2026.05.29 (금) 13:00–17:00', isoDate: '2026-05-29', short: '5.29(금) 13:00', loc: '외부 연수원', shortLoc: '외부 연수원', seats: 5, req: false }
+  ],
+  cohort: [
+    {
+      id: 'c1', name: '1기 (5월 평일반)', seats: 20,
+      sessions: [
+        { id: 11, name: '1기 1회차 (OT)', date: '2026.05.06 (수) 09:00–18:00', isoDate: '2026-05-06', short: '5.6(수)', loc: '본사 대교육장', shortLoc: '본사', req: true },
+        { id: 12, name: '1기 2회차 (실무)', date: '2026.05.13 (수) 09:00–18:00', isoDate: '2026-05-13', short: '5.13(수)', loc: '본사 대교육장', shortLoc: '본사', req: true }
+      ]
+    },
+    {
+      id: 'c2', name: '2기 (5월 주말반)', seats: 5,
+      sessions: [
+        { id: 21, name: '2기 1회차 (OT)', date: '2026.05.09 (토) 09:00–18:00', isoDate: '2026-05-09', short: '5.9(토)', loc: '방배 직영점', shortLoc: '방배 직영점', req: true },
+        { id: 22, name: '2기 2회차 (실무)', date: '2026.05.16 (토) 09:00–18:00', isoDate: '2026-05-16', short: '5.16(토)', loc: '방배 직영점', shortLoc: '방배 직영점', req: true }
+      ]
+    }
+  ]
 };
 
-/* ── Screen routing ── */
-function goScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  closeSelect();
-  closeCancelModal();
-  // update proto chips
-  const map = { 'screen-detail':'chip-detail','screen-confirm':'chip-confirm','screen-done':'chip-done','screen-my':'chip-my','screen-cancelled':'chip-cancel' };
-  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
-  if (map[id]) document.getElementById(map[id])?.classList.add('active');
-  // scroll to top
-  const scr = document.getElementById(id);
-  const sa = scr.querySelector('.scroll-area');
-  if (sa) sa.scrollTop = 0;
+/* ── State ── */
+let currentMode = 'single'; // 'single', 'multi', 'cohort'
+const multiLimit = 2; // For multi mode, select exactly N
+let selectedIds = [];
+
+function initData() {
+  renderCurriculum();
+  renderSheetList();
+  renderUserCalendar();
+  updateNextButton();
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  selectedIds = [];
+  initData();
+}
+
+/* ── DOM Renderers ── */
+function renderCurriculum() {
+  const list = document.getElementById('curriculum-list');
+  const notice = document.getElementById('curriculum-notice');
+  list.innerHTML = '';
+  
+  if (currentMode === 'single') {
+     notice.innerHTML = `<div style="font-size:12px; color:var(--secondary); background:rgba(34,51,84,.04); padding:8px 12px; border-radius:6px; margin-bottom:12px;">💡 동일한 내용의 과정입니다. 아래 일정 중 1개를 선택해 수강합니다.</div>`;
+     courseData.single.forEach(s => { list.innerHTML += createSessItemHTML(s); });
+  } else if (currentMode === 'multi') {
+     notice.innerHTML = `<div style="font-size:12px; color:#A84300; background:#FFF0E6; padding:8px 12px; border-radius:6px; margin-bottom:12px; font-weight:600;">💡 다중 자율 선택형: 총 ${multiLimit}개의 회차를 조합하여 수강해야 합니다.</div>`;
+     courseData.multi.forEach(s => { list.innerHTML += createSessItemHTML(s); });
+  } else if (currentMode === 'cohort') {
+     notice.innerHTML = `<div style="font-size:12px; color:var(--primary); background:var(--primary-lighter); padding:8px 12px; border-radius:6px; margin-bottom:12px; font-weight:600;">💡 기수제 운영: 수강할 기수를 선택하면 해당 기수의 전체 회차 일정이 조회됩니다.</div>`;
+     
+     // 기수 선택 셀렉트박스 추가
+     let selectHTML = `
+       <select id="detail-cohort-select" onchange="renderCohortSessions(this.value)" style="width: 100%; height: 48px; border: 1.5px solid var(--primary); border-radius: var(--r-sm); padding: 0 12px; font-size: 15px; font-family: inherit; font-weight:700; color: var(--primary); outline: none; background-color: #fff; margin-bottom: 16px; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=%22%235569ff%22 height=%2224%22 viewBox=%220 0 24 24%22 width=%2224%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M7 10l5 5 5-5z%22/></svg>'); background-repeat: no-repeat; background-position: right 12px center;">
+     `;
+     courseData.cohort.forEach(c => {
+       selectHTML += `<option value="${c.id}">${c.name}</option>`;
+     });
+     selectHTML += `</select><div id="detail-cohort-sessions"></div>`;
+     
+     list.innerHTML += selectHTML;
+     
+     // 초기 렌더링 (첫번째 기수)
+     renderCohortSessions(courseData.cohort[0].id);
+  }
+}
+
+// 기수 세션만 동적으로 그리는 함수
+function renderCohortSessions(cohortId) {
+  const container = document.getElementById('detail-cohort-sessions');
+  if(!container) return;
+  const c = courseData.cohort.find(x => x.id === cohortId);
+  if(!c) return;
+  
+  let html = `<div class="cohort-header" style="margin-top:0;"><span><i class="fa-solid fa-layer-group"></i> ${c.name} 상세 일정</span><span style="color:var(--secondary);font-size:11px;font-weight:600">정원 ${c.seats}명</span></div>`;
+  c.sessions.forEach(s => { 
+    html += createSessItemHTML(s, true); // true = hideSeats
+  });
+  
+  container.innerHTML = html;
+}
+
+function createSessItemHTML(s, hideSeats=false) {
+  let badge = s.req ? `<span class="chip chip-orange" style="font-size:10px">필수</span>` : '';
+  let seatsStr = `<span class="chip chip-primary" style="font-size:10px">잔여 ${s.seats}석</span>`;
+  if (s.seats === 0) seatsStr = `<span class="full-badge">마감</span>`;
+  else if (s.seats < 5) seatsStr = `<span class="chip chip-primary" style="font-size:10px; background:#FEF2F2; color:#DC2626">잔여 ${s.seats}석</span>`;
+  
+  if (hideSeats) seatsStr = '';
+  const [y, m, d] = s.isoDate.split('-');
+  
+  return `
+    <div class="sess-item" style="cursor:default">
+      <div class="sess-date-box ${s.req ? 'req' : ''}">
+        <div class="month">${parseInt(m)}월</div>
+        <div class="day">${parseInt(d)}</div>
+      </div>
+      <div class="sess-item-info">
+        <div class="sess-item-title">${s.name}</div>
+        <div class="sess-item-sub">
+          ${s.date.split(')')[0]}) ${s.date.split(' ')[2]}
+          <div class="sess-item-loc"><span>📍</span> ${s.loc}</div>
+        </div>
+      </div>
+      <div class="sess-item-right">
+        ${badge}
+        ${seatsStr}
+      </div>
+    </div>
+  `;
+}
+
+function renderSheetList() {
+  const list = document.getElementById('sheet-list');
+  const sub = document.getElementById('sheet-sub-text');
+  list.innerHTML = '';
+  
+  if (currentMode === 'single') {
+    sub.textContent = '원하는 회차를 1개 선택해 주세요';
+    courseData.single.forEach(s => {
+      list.innerHTML += createSheetItem(s.id, s.name, s.date, s.loc, s.seats, 'radio');
+    });
+  } else if (currentMode === 'multi') {
+    sub.innerHTML = `원하는 회차를 <strong style="color:var(--primary);">${multiLimit}개</strong> 선택해 주세요`;
+    courseData.multi.forEach(s => {
+      list.innerHTML += createSheetItem(s.id, s.name, s.date, s.loc, s.seats, 'checkbox', s.req);
+    });
+  } else if (currentMode === 'cohort') {
+    sub.textContent = '수강할 기수/반을 선택해 주세요 (전체 회차 일괄 신청)';
+    courseData.cohort.forEach(c => {
+      const dates = c.sessions.map(x => x.short).join(', ');
+      list.innerHTML += createSheetItem(c.id, c.name, `일정: ${dates} (총 ${c.sessions.length}회)`, c.sessions[0].loc, c.seats, 'radio');
+    });
+  }
+  
+  updateVisualSelection();
+}
+
+function createSheetItem(id, title, sub, loc, seats, type, isReq=false) {
+  const selectorHTML = type === 'radio' ? `<div class="radio-circle"></div>` : `<div class="check-square"></div>`;
+  let seatsCls = 'seats-left';
+  if(seats === 0) seatsCls = 'seats-none';
+  else if(seats < 10) seatsCls = 'seats-few';
+  
+  const reqBadge = isReq ? `<span style="font-size:10px;color:#A84300;font-weight:700;margin-left:4px;">필수</span>` : '';
+  const isFull = seats === 0 ? 'full' : '';
+
+  return `
+    <div class="sel-sess ${isFull}" data-id="${id}" id="sel-${id}" onclick="if(!this.classList.contains('full')) handleSelect('${id}')">
+      ${selectorHTML}
+      <div class="sel-info">
+        <div class="sel-title">${title} ${reqBadge}</div>
+        <div class="sel-sub">${sub}</div>
+        <div class="sel-loc"><span>📍</span> ${loc}</div>
+      </div>
+      <div class="sel-seats ${seatsCls}">${seats === 0 ? '<span class="full-badge">마감</span>' : '잔여 '+seats+'석'}</div>
+    </div>
+  `;
+}
+
+function handleSelect(idStr) {
+  const id = isNaN(idStr) ? idStr : parseInt(idStr); // cohort uses string 'c1'
+
+  if (currentMode === 'single' || currentMode === 'cohort') {
+    selectedIds = [id];
+  } else if (currentMode === 'multi') {
+    if (selectedIds.includes(id)) {
+       selectedIds = selectedIds.filter(x => x !== id);
+    } else {
+       if (selectedIds.length < multiLimit) selectedIds.push(id);
+       else alert(`최대 ${multiLimit}개까지만 선택할 수 있습니다.`);
+    }
+  }
+  updateVisualSelection();
+  renderUserCalendar();
+}
+
+function updateVisualSelection() {
+  document.querySelectorAll('.sel-sess').forEach(el => el.classList.remove('selected'));
+  selectedIds.forEach(id => {
+    const el = document.getElementById('sel-'+id);
+    if(el) el.classList.add('selected');
+  });
+  updateNextButton();
+}
+
+function updateNextButton() {
+  const btn = document.getElementById('btn-sheet-next');
+  if (currentMode === 'single' || currentMode === 'cohort') {
+    btn.disabled = selectedIds.length === 0;
+  } else if (currentMode === 'multi') {
+    btn.disabled = selectedIds.length !== multiLimit;
+  }
 }
 
 /* ── User Calendar Logic ── */
@@ -1041,10 +1049,21 @@ function renderUserCalendar() {
   const first = new Date(ucalYear, ucalMonth, 1);
   const last = new Date(ucalYear, ucalMonth + 1, 0);
   
-  const sessMap = {};
-  Object.keys(sessData).forEach(k => {
-    sessMap[sessData[k].isoDate] = k;
-  });
+  // Mapping isoDate to IDs
+  const sessMap = {}; 
+  if (currentMode === 'single' || currentMode === 'multi') {
+     courseData[currentMode].forEach(s => {
+       if(!sessMap[s.isoDate]) sessMap[s.isoDate] = [];
+       sessMap[s.isoDate].push({ id: s.id, seats: s.seats });
+     });
+  } else if (currentMode === 'cohort') {
+     courseData.cohort.forEach(c => {
+       c.sessions.forEach(s => {
+         if(!sessMap[s.isoDate]) sessMap[s.isoDate] = [];
+         sessMap[s.isoDate].push({ id: c.id, seats: c.seats });
+       });
+     });
+  }
   
   for (let i = 0; i < first.getDay(); i++) {
     const d = new Date(ucalYear, ucalMonth, 1 - (first.getDay() - i)).getDate();
@@ -1056,19 +1075,25 @@ function renderUserCalendar() {
   
   for (let d = 1; d <= last.getDate(); d++) {
     const iso = `${ucalYear}-${String(ucalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const sessId = sessMap[iso];
-    const isSelected = selectedSess == sessId;
+    const itemsOnThisDay = sessMap[iso] || [];
+    const hasSess = itemsOnThisDay.length > 0;
+    
+    // Selected Logic: If any item matching this day is in selectedIds
+    const isSelected = selectedIds.some(id => itemsOnThisDay.map(x=>x.id).includes(id));
     
     const el = document.createElement('div');
-    el.className = 'ucal-day' + (sessId ? ' has-sess' : '') + (isSelected ? ' selected' : '');
+    el.className = 'ucal-day' + (hasSess ? ' has-sess' : '') + (isSelected ? ' selected' : '');
     el.textContent = d;
     
-    if (sessId) {
+    if (hasSess) {
       el.onclick = () => {
-        const sessEl = document.getElementById('sel-'+sessId);
-        // Prevent selecting full session via calendar
-        if(sessEl && !sessEl.classList.contains('full')) {
-          selectSess(sessId);
+        // Find the first item on this day that is not full
+        const target = itemsOnThisDay.find(x => x.seats > 0);
+        if (target) {
+          handleSelect(target.id);
+        } else {
+          // If all full, pass the first one to trigger normal visual behavior (won't select)
+          handleSelect(itemsOnThisDay[0].id);
         }
       };
     }
@@ -1079,40 +1104,84 @@ function renderUserCalendar() {
 function ucalPrev() { ucalMonth--; if(ucalMonth<0){ucalMonth=11;ucalYear--;} renderUserCalendar(); }
 function ucalNext() { ucalMonth++; if(ucalMonth>11){ucalMonth=0;ucalYear++;} renderUserCalendar(); }
 
-/* ── Session select ── */
+/* ── Screen routing & App Flow ── */
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  closeSelect();
+  closeCancelModal();
+  const map = { 'screen-detail':'chip-detail','screen-confirm':'chip-confirm','screen-done':'chip-done','screen-my':'chip-my','screen-cancelled':'chip-cancel' };
+  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+  if (map[id]) document.getElementById(map[id])?.classList.add('active');
+  const scr = document.getElementById(id);
+  const sa = scr.querySelector('.scroll-area');
+  if (sa) sa.scrollTop = 0;
+}
+
 function openSelect() {
   document.getElementById('screen-detail').classList.add('active');
   document.getElementById('overlay-select').classList.add('open');
   document.getElementById('sheet-select').classList.add('open');
-  document.getElementById('chip-select').classList.add('active');
-  renderUserCalendar();
+  
+  // Cohort 모드일 때, 상세 페이지에서 선택한 기수값을 모달에 미리 세팅해주기
+  if (currentMode === 'cohort') {
+    const detailSelect = document.getElementById('detail-cohort-select');
+    if (detailSelect) {
+      handleSelect(detailSelect.value);
+    }
+  }
 }
+
 function closeSelect() {
   document.getElementById('overlay-select').classList.remove('open');
   document.getElementById('sheet-select').classList.remove('open');
 }
-function selectSess(n) {
-  selectedSess = n;
-  document.querySelectorAll('.sel-sess:not(.full)').forEach(el => el.classList.remove('selected'));
-  const selectedEl = document.getElementById('sel-'+n);
-  if(selectedEl) selectedEl.classList.add('selected');
-  renderUserCalendar(); // Re-render calendar to highlight new selection
-}
 
 function goConfirm() {
   closeSelect();
-  const s = sessData[selectedSess];
-  document.getElementById('confirm-sess-name').textContent = s.name;
-  document.getElementById('confirm-sess-date').textContent = s.date;
-  document.getElementById('confirm-sess-loc').textContent = s.loc;
-  
-  document.getElementById('done-sess-name').textContent = s.name.split(' — ')[0];
-  document.getElementById('done-sess-date').textContent = s.date;
-  document.getElementById('done-sess-loc').textContent = s.shortLoc;
+  const cName = document.getElementById('confirm-sess-name');
+  const cDate = document.getElementById('confirm-sess-date');
+  const cLoc = document.getElementById('confirm-sess-loc');
+  const dName = document.getElementById('done-sess-name');
+  const dDate = document.getElementById('done-sess-date');
+  const dLoc = document.getElementById('done-sess-loc');
+  const mSub = document.getElementById('my-status-sub');
+  const mDate = document.getElementById('my-info-date');
+  const mLoc = document.getElementById('my-info-loc');
 
-  document.getElementById('my-status-sub').textContent = `· ${s.name.split(' — ')[0]} 선택`;
-  document.getElementById('my-info-date').textContent = s.short;
-  document.getElementById('my-info-loc').textContent = s.shortLoc;
+  if (currentMode === 'single') {
+    const s = courseData.single.find(x => x.id === selectedIds[0]);
+    cName.textContent = s.name; cDate.textContent = s.date; cLoc.textContent = s.loc;
+    dName.textContent = s.name.split(' — ')[0]; dDate.textContent = s.date; 
+    if (dLoc) dLoc.textContent = s.shortLoc;
+    mSub.textContent = `· ${s.name.split(' — ')[0]} 선택`; mDate.textContent = s.short; mLoc.textContent = s.shortLoc;
+  } else if (currentMode === 'multi') {
+    const sList = selectedIds.map(id => courseData.multi.find(x => x.id === id)).sort((a,b)=>a.id-b.id);
+    cName.innerHTML = `<span style="font-size:12px;background:var(--primary-lighter);padding:2px 6px;border-radius:4px;color:var(--primary);font-weight:bold;">조합형</span> ${selectedIds.length}개 특강 선택`;
+    cDate.innerHTML = sList.map(x => `<div style="margin-bottom:4px;">${x.short}</div>`).join('');
+    cLoc.textContent = sList[0].loc + (sList.length>1?' 등':'');
+    
+    dName.textContent = `${selectedIds.length}개 회차 (다중 선택)`;
+    dDate.textContent = sList[0].short + ' 시작';
+    if (dLoc) dLoc.textContent = sList[0].shortLoc;
+
+    mSub.textContent = `· ${selectedIds.length}개 특강 수강`;
+    mDate.textContent = sList[0].short + ' 시작';
+    mLoc.textContent = sList[0].shortLoc;
+  } else if (currentMode === 'cohort') {
+    const c = courseData.cohort.find(x => x.id === selectedIds[0]);
+    cName.innerHTML = `<span style="font-size:12px;background:#FFF0E6;color:#A84300;padding:2px 6px;border-radius:4px;font-weight:bold;">일괄</span> ${c.name}`; 
+    cDate.textContent = `총 ${c.sessions.length}회 일정 (상세 참고)`; 
+    cLoc.textContent = c.sessions[0].loc;
+    
+    dName.textContent = c.name;
+    dDate.textContent = c.sessions[0].short + ' 시작';
+    if (dLoc) dLoc.textContent = c.sessions[0].shortLoc;
+
+    mSub.textContent = `· ${c.name} 수강`;
+    mDate.textContent = c.sessions[0].short + ' 시작';
+    mLoc.textContent = c.sessions[0].shortLoc;
+  }
 
   goScreen('screen-confirm');
   document.getElementById('chip-confirm').classList.add('active');
@@ -1132,6 +1201,7 @@ function confirmCancel() {
 }
 
 /* ── Init ── */
+initData();
 goScreen('screen-detail');
 </script>
 </body>
