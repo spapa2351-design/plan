@@ -29,7 +29,8 @@
 
     const {
       Plus, Trash2, MapPin, Copy, Calendar, QrCode, Smartphone, X, CheckSquare,
-      Wand2, ChevronLeft, ChevronRight, ChevronUp, User, Users, MousePointerClick, ChevronDown, GripVertical
+      Wand2, ChevronLeft, ChevronRight, ChevronUp, User, Users, MousePointerClick, ChevronDown, GripVertical,
+      Save, Send, Clock, Check, AlertTriangle, Eye, FileText, CircleDot
     } = Lucide;
 
     const Toggle = ({ active, onClick }) => (
@@ -78,7 +79,9 @@
       });
 
       const [regPeriod, setRegPeriod] = useState({ start: '2026-04-10T09:00', end: '2026-04-25T18:00' });
-      const [cancelPolicy, setCancelPolicy] = useState({ enabled: false, type: 'relative', deadline: '', relativeValue: 3, relativeUnit: 'day' });
+      const [cancelPolicy, setCancelPolicy] = useState({ enabled: false, mode: 'allowed', relativeValue: 3, relativeUnit: 'day' });
+      // mode: 'allowed' = 기한부 취소 가능 | 'blocked' = 취소 불가
+      const [changePolicy, setChangePolicy] = useState({ enabled: false, relativeValue: 5, relativeUnit: 'day' });
       const [isSelfEnroll, setIsSelfEnroll] = useState(true);
       const [isPreviewOpen, setIsPreviewOpen] = useState(false);
       const [selectionRule, setSelectionRule] = useState('single');
@@ -86,8 +89,41 @@
       const [maxSelect, setMaxSelect] = useState(3);
       const [selectedMobileOptions, setSelectedMobileOptions] = useState([]);
       const [qrModal, setQrModal] = useState(null);
-      const [collapsedOpts, setCollapsedOpts] = useState({}); // { [optId]: true }
+      const [collapsedOpts, setCollapsedOpts] = useState({});
       const toggleCollapse = (optId) => setCollapsedOpts(prev => ({ ...prev, [optId]: !prev[optId] }));
+
+      /* ── 코스 상태 & 퍼블리싱 ── */
+      const [courseStatus, setCourseStatus] = useState('draft'); // draft | saved | published
+      const [lastSavedAt, setLastSavedAt] = useState(null);
+      const [showPublishModal, setShowPublishModal] = useState(false);
+      const [publishType, setPublishType] = useState('now'); // now | scheduled
+      const [publishSchedule, setPublishSchedule] = useState('');
+
+      const statusLabel = { draft: '초안', saved: '임시저장', published: '퍼블리싱됨' };
+      const statusColor = { draft: 'bg-slate-100 text-slate-500 border-slate-200', saved: 'bg-amber-50 text-amber-700 border-amber-200', published: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+
+      const handleSaveDraft = () => {
+        setCourseStatus('saved');
+        setLastSavedAt(new Date());
+      };
+
+      const getValidation = () => [
+        { label: '코스명 입력', ok: !!courseInfo.title.trim() },
+        { label: '담당 강사 지정', ok: !!courseInfo.instructor.trim() },
+        { label: '교육 장소 설정', ok: !!courseInfo.location.trim() },
+        { label: '신청 기간 설정', ok: !!regPeriod.start && !!regPeriod.end },
+        { label: '최소 1개 패키지 생성', ok: options.length > 0 },
+        { label: '모든 패키지에 회차 존재', ok: options.every(o => o.sessions.length > 0) },
+        { label: '모든 회차 날짜/시간 설정', ok: options.every(o => o.sessions.every(s => s.date && s.startTime && s.endTime)) },
+      ];
+
+      const handlePublish = () => {
+        const checks = getValidation();
+        if (checks.some(c => !c.ok)) return;
+        setCourseStatus('published');
+        setShowPublishModal(false);
+        setLastSavedAt(new Date());
+      };
 
       // 더미 그룹 목록 (실제 환경에서는 API 연동)
       const allGroups = [
@@ -243,15 +279,32 @@
           <header className="bg-white border-b border-slate-200 shrink-0 z-50 shadow-sm">
             <div className="px-8 py-4 flex justify-between items-center">
               <div className="flex items-center gap-3">
+                <a href="index.html" className="w-8 h-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center hover:bg-slate-200 transition-colors" title="코스 목록">
+                  <ChevronLeft size={18}/>
+                </a>
                 <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold shadow-sm"><MapPin size={18}/></div>
                 <div>
                   <h1 className="text-lg font-extrabold text-slate-900 leading-none mb-1">오프라인 코스 개설</h1>
                   <p className="text-[11px] font-semibold text-slate-500">통합 패키지 모델 (Unified Package Builder)</p>
                 </div>
+                <span className={`ml-2 px-3 py-1 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${statusColor[courseStatus]}`}>
+                  <CircleDot size={10}/>
+                  {statusLabel[courseStatus]}
+                </span>
               </div>
-              <button onClick={() => setIsPreviewOpen(true)} className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-bold hover:bg-slate-800 shadow-md transition-colors flex items-center gap-2">
-                <Smartphone size={16}/> 📱 학습자 앱 미리보기
-              </button>
+              <div className="flex items-center gap-2">
+                {lastSavedAt && (
+                  <span className="text-[11px] text-slate-400 font-medium mr-1">
+                    마지막 저장: {lastSavedAt.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' })}
+                  </span>
+                )}
+                <button onClick={handleSaveDraft} className="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm">
+                  <Save size={15}/> 임시저장
+                </button>
+                <button onClick={() => setIsPreviewOpen(true)} className="px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-bold hover:bg-slate-600 transition-colors flex items-center gap-1.5 shadow-sm">
+                  <Eye size={15}/> 미리보기
+                </button>
+              </div>
             </div>
           </header>
 
@@ -339,7 +392,24 @@
                   <div className="w-6 h-6 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
                   <h2 className="text-base font-bold text-slate-800">모집 및 수강 신청 설정</h2>
                 </div>
-                <div className="p-6">
+                <div className="p-6 space-y-6">
+                  {/* 수강 신청 기간 — 항상 고정 */}
+                  <div>
+                    <label className="block text-[13px] font-bold text-slate-800 mb-1">수강 신청 기간 <span className="text-red-500">*</span></label>
+                    <p className="text-[11px] text-slate-400 mb-3">코스 운영 기간을 설정합니다. 오프라인 코스는 반드시 기간이 지정되어야 합니다.</p>
+                    <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <div className="flex-1">
+                        <label className="block text-[11px] font-bold text-slate-500 mb-1.5">신청 오픈 일시</label>
+                        <input type="datetime-local" value={regPeriod.start} onChange={e => setRegPeriod({...regPeriod, start: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-indigo-500 text-slate-700 bg-white"/>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[11px] font-bold text-slate-500 mb-1.5">신청 마감 일시</label>
+                        <input type="datetime-local" value={regPeriod.end} onChange={e => setRegPeriod({...regPeriod, end: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-indigo-500 text-slate-700 bg-white"/>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
                   <h3 className="text-[14px] font-bold text-slate-800 mb-4">수강 등록 방식</h3>
                   <div className="border border-slate-200 rounded-xl overflow-hidden">
                     <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => setIsSelfEnroll(true)}>
@@ -351,86 +421,124 @@
                     </div>
                     {isSelfEnroll && (
                       <div className="p-6 bg-white space-y-8 animate-fadeIn">
-                        <div>
-                          <div className="flex justify-between items-center mb-3">
-                            <label className="text-[13px] font-bold text-slate-800">수강 신청 기간 설정</label>
-                            <Toggle active={true}/>
+                        {/* ── 취소 · 변경 정책 ── */}
+                        <div className="border border-slate-200 rounded-xl overflow-hidden">
+                          <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                            <div className="text-[13px] font-bold text-slate-800">취소 · 일정 변경 정책</div>
+                            <div className="text-[11px] text-slate-500 mt-0.5">신청 후 취소 및 옵션(날짜) 변경에 대한 규칙을 설정합니다.</div>
                           </div>
-                          <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                            <div className="flex-1">
-                              <label className="block text-[11px] font-bold text-slate-500 mb-1.5">신청 오픈 일시</label>
-                              <input type="datetime-local" value={regPeriod.start} onChange={e => setRegPeriod({...regPeriod, start: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-indigo-500 text-slate-700 bg-white"/>
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-[11px] font-bold text-slate-500 mb-1.5">신청 마감 일시</label>
-                              <input type="datetime-local" value={regPeriod.end} onChange={e => setRegPeriod({...regPeriod, end: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-indigo-500 text-slate-700 bg-white"/>
-                            </div>
-                          </div>
-                        </div>
-                        {/* 수강 취소 가능 기한 */}
-                        <div className="bg-rose-50/50 border border-rose-100 rounded-xl p-4">
-                          <div className="flex justify-between items-center mb-1">
-                            <div>
-                              <div className="text-[13px] font-bold text-slate-800">수강 취소 가능 기한</div>
-                              <div className="text-[11px] text-slate-500 mt-0.5">학습자가 신청 후 취소할 수 있는 마감 시점을 설정합니다.</div>
-                            </div>
-                            <Toggle active={cancelPolicy.enabled} onClick={() => setCancelPolicy(p => ({...p, enabled: !p.enabled}))}/>
-                          </div>
-                          {cancelPolicy.enabled && (
-                            <div className="mt-4 animate-fadeIn space-y-3">
-                              {/* 방식 선택 */}
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => setCancelPolicy(p => ({...p, type: 'relative'}))}
-                                  className={`flex-1 py-2 rounded-lg text-[12px] font-bold border transition-all
-                                    ${cancelPolicy.type === 'relative' ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-rose-300'}`}
-                                >
-                                  교육 시작 기준
-                                </button>
-                                <button
-                                  onClick={() => setCancelPolicy(p => ({...p, type: 'datetime'}))}
-                                  className={`flex-1 py-2 rounded-lg text-[12px] font-bold border transition-all
-                                    ${cancelPolicy.type === 'datetime' ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-rose-300'}`}
-                                >
-                                  특정 일시 지정
-                                </button>
+
+                          {/* 수강 취소 정책 */}
+                          <div className="p-4 border-b border-slate-100">
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-rose-400"></div>
+                                <span className="text-[12px] font-bold text-slate-700">수강 취소 정책</span>
                               </div>
-                              {cancelPolicy.type === 'relative' ? (
-                                <div className="flex items-center gap-2 bg-white border border-rose-200 rounded-lg px-4 py-3">
-                                  <span className="text-[12px] text-slate-500 font-semibold shrink-0">교육 시작</span>
+                              <Toggle active={cancelPolicy.enabled} onClick={() => setCancelPolicy(p => ({...p, enabled: !p.enabled}))}/>
+                            </div>
+
+                            {!cancelPolicy.enabled ? (
+                              <div className="text-[11px] text-slate-400 bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                                설정 안 함 — 신청 마감일 전까지 언제든 취소 가능
+                              </div>
+                            ) : (
+                              <div className="space-y-2.5 animate-fadeIn">
+                                {/* 취소 가능 */}
+                                <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all
+                                  ${cancelPolicy.mode === 'allowed' ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-rose-200 bg-white'}`}>
+                                  <input type="radio" name="cancelMode" checked={cancelPolicy.mode === 'allowed'}
+                                    onChange={() => setCancelPolicy(p => ({...p, mode: 'allowed'}))}
+                                    className="w-4 h-4 accent-rose-500"/>
+                                  <div className="flex-1">
+                                    <div className="text-[12px] font-bold text-slate-800 mb-1">기한부 취소 허용</div>
+                                    {cancelPolicy.mode === 'allowed' && (
+                                      <div className="flex items-center gap-1.5 mt-1.5 animate-fadeIn">
+                                        <span className="text-[11px] text-slate-500 font-semibold shrink-0">교육 시작</span>
+                                        <input
+                                          type="number" min="1" max="365"
+                                          value={cancelPolicy.relativeValue}
+                                          onChange={e => setCancelPolicy(p => ({...p, relativeValue: parseInt(e.target.value) || 1}))}
+                                          onClick={e => e.preventDefault()}
+                                          className="w-14 border border-rose-200 rounded-lg text-center text-[13px] font-black text-rose-600 outline-none focus:border-rose-400 py-1 bg-white"
+                                        />
+                                        <select
+                                          value={cancelPolicy.relativeUnit}
+                                          onChange={e => setCancelPolicy(p => ({...p, relativeUnit: e.target.value}))}
+                                          className="border border-rose-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-rose-400 bg-white"
+                                        >
+                                          <option value="day">일</option>
+                                          <option value="hour">시간</option>
+                                        </select>
+                                        <span className="text-[11px] text-slate-500 font-semibold shrink-0">전까지 가능</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </label>
+
+                                {/* 취소 불가 */}
+                                <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all
+                                  ${cancelPolicy.mode === 'blocked' ? 'border-slate-700 bg-slate-50' : 'border-slate-200 hover:border-slate-400 bg-white'}`}>
+                                  <input type="radio" name="cancelMode" checked={cancelPolicy.mode === 'blocked'}
+                                    onChange={() => setCancelPolicy(p => ({...p, mode: 'blocked'}))}
+                                    className="w-4 h-4 accent-slate-700"/>
+                                  <div>
+                                    <div className="text-[12px] font-bold text-slate-800">취소 불가</div>
+                                    <div className="text-[11px] text-slate-500 mt-0.5">신청 완료 후 학습자가 직접 취소할 수 없습니다. 관리자만 취소 처리 가능합니다.</div>
+                                  </div>
+                                </label>
+
+                                {cancelPolicy.mode === 'allowed' && (
+                                  <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1 pt-0.5">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                    기한 이후 취소 요청 시 관리자 승인이 필요합니다.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 일정 변경 제한 */}
+                          <div className="p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                                <span className="text-[12px] font-bold text-slate-700">일정 변경 제한</span>
+                              </div>
+                              <Toggle active={changePolicy.enabled} onClick={() => setChangePolicy(p => ({...p, enabled: !p.enabled}))}/>
+                            </div>
+
+                            {!changePolicy.enabled ? (
+                              <div className="text-[11px] text-slate-400 bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                                설정 안 함 — 신청 마감일 전까지 언제든 옵션 변경 가능
+                              </div>
+                            ) : (
+                              <div className="space-y-2.5 animate-fadeIn">
+                                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                                  <span className="text-[11px] text-slate-600 font-semibold shrink-0">교육 시작</span>
                                   <input
                                     type="number" min="1" max="365"
-                                    value={cancelPolicy.relativeValue}
-                                    onChange={e => setCancelPolicy(p => ({...p, relativeValue: parseInt(e.target.value) || 1}))}
-                                    className="w-16 border border-slate-200 rounded-lg text-center text-[14px] font-black text-rose-600 outline-none focus:border-rose-400 py-1.5"
+                                    value={changePolicy.relativeValue}
+                                    onChange={e => setChangePolicy(p => ({...p, relativeValue: parseInt(e.target.value) || 1}))}
+                                    className="w-14 border border-amber-300 rounded-lg text-center text-[13px] font-black text-amber-700 outline-none focus:border-amber-500 py-1 bg-white"
                                   />
                                   <select
-                                    value={cancelPolicy.relativeUnit}
-                                    onChange={e => setCancelPolicy(p => ({...p, relativeUnit: e.target.value}))}
-                                    className="border border-slate-200 rounded-lg px-2 py-1.5 text-[12px] font-bold text-slate-700 outline-none focus:border-rose-400 bg-white"
+                                    value={changePolicy.relativeUnit}
+                                    onChange={e => setChangePolicy(p => ({...p, relativeUnit: e.target.value}))}
+                                    className="border border-amber-300 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none focus:border-amber-500 bg-white"
                                   >
                                     <option value="day">일</option>
                                     <option value="hour">시간</option>
                                   </select>
-                                  <span className="text-[12px] text-slate-500 font-semibold shrink-0">전까지 취소 가능</span>
+                                  <span className="text-[11px] text-slate-600 font-semibold shrink-0">전까지 변경 가능</span>
                                 </div>
-                              ) : (
-                                <div className="bg-white border border-rose-200 rounded-lg px-4 py-3">
-                                  <label className="block text-[11px] font-bold text-slate-500 mb-1.5">취소 마감 일시</label>
-                                  <input
-                                    type="datetime-local"
-                                    value={cancelPolicy.deadline}
-                                    onChange={e => setCancelPolicy(p => ({...p, deadline: e.target.value}))}
-                                    className="w-full border border-slate-200 rounded-lg p-2.5 text-[13px] outline-none focus:border-rose-400 text-slate-700 bg-white"
-                                  />
-                                </div>
-                              )}
-                              <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                기한 이후 취소 시 관리자 승인이 필요합니다.
-                              </p>
-                            </div>
-                          )}
+                                <p className="text-[11px] text-amber-600 font-semibold flex items-center gap-1">
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                  기한 이후에는 신청한 옵션(날짜/반)을 변경할 수 없습니다.
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div>
@@ -480,6 +588,7 @@
                       </div>
                       <Toggle active={!isSelfEnroll} onClick={e => { e.stopPropagation(); setIsSelfEnroll(!isSelfEnroll); }}/>
                     </div>
+                  </div>
                   </div>
                 </div>
               </section>
@@ -652,9 +761,9 @@
             <aside className="w-[500px] bg-white border-l border-slate-200 flex flex-col z-20 shadow-[-10px_0_20px_-10px_rgba(0,0,0,0.05)] shrink-0">
               <div className="px-6 py-5 border-b border-slate-200 shrink-0 bg-slate-900 text-white">
                 <h3 className="font-bold text-[16px] flex items-center gap-2">
-                  <Calendar size={18} className="text-indigo-400"/> 세부 일정(회차) 스케줄링
+                  <Calendar size={18} className="text-indigo-400"/> 커리큘럼 관리
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-1">좌측에서 선택한 옵션에 포함될 실제 출석 일정을 만듭니다.</p>
+                <p className="text-[11px] text-slate-400 mt-1">패키지별 세부 회차 일정을 구성하고 순서를 조정합니다.</p>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#f4f7fc]">
@@ -851,10 +960,26 @@
                 </div>
               </div>
 
-              <div className="bg-white border-t border-slate-200 p-5 shrink-0">
-                <button className="w-full bg-[#5c66f2] text-white py-3.5 rounded-lg font-bold shadow-[0_4px_12px_rgba(92,102,242,0.3)] flex items-center justify-center gap-2 hover:bg-[#4a54e1] transition-all text-[15px]">
-                  최종 코스 등록
-                </button>
+              <div className="bg-white border-t border-slate-200 p-4 shrink-0 space-y-2">
+                {courseStatus === 'published' ? (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0"><Check size={16} className="text-white"/></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-bold text-emerald-800">퍼블리싱 완료</div>
+                      <div className="text-[11px] text-emerald-600">학습자 앱에 공개 중입니다.</div>
+                    </div>
+                    <button onClick={() => setCourseStatus('saved')} className="text-[11px] font-bold text-emerald-600 border border-emerald-300 bg-white px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors shrink-0">
+                      수정 모드
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowPublishModal(true)}
+                    className="w-full bg-[#5c66f2] text-white py-3.5 rounded-xl font-bold shadow-[0_4px_12px_rgba(92,102,242,0.3)] flex items-center justify-center gap-2 hover:bg-[#4a54e1] transition-all text-[15px]"
+                  >
+                    <Send size={16}/> 코스 퍼블리싱
+                  </button>
+                )}
               </div>
             </aside>
           </div>
@@ -1051,6 +1176,129 @@
               onClose={() => setQrModal(null)}
             />
           )}
+
+          {/* ── 퍼블리싱 모달 ── */}
+          {showPublishModal && (() => {
+            const checks = getValidation();
+            const allPassed = checks.every(c => c.ok);
+            const errorCount = checks.filter(c => !c.ok).length;
+            return (
+            <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center animate-fadeIn p-4" onClick={() => setShowPublishModal(false)}>
+              <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                {/* 헤더 */}
+                <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-[17px] font-black flex items-center gap-2"><Send size={18}/> 코스 퍼블리싱</h3>
+                      <p className="text-indigo-200 text-[12px] mt-1">아래 항목을 확인 후 학습자에게 공개합니다.</p>
+                    </div>
+                    <button onClick={() => setShowPublishModal(false)} className="text-white/60 hover:text-white transition-colors"><X size={22}/></button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                  {/* 유효성 체크리스트 */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5">
+                        <FileText size={14} className="text-slate-400"/> 등록 요건 확인
+                      </h4>
+                      {allPassed
+                        ? <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">모두 충족</span>
+                        : <span className="text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">{errorCount}개 미충족</span>
+                      }
+                    </div>
+                    <div className="space-y-1.5">
+                      {checks.map((c, i) => (
+                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-semibold transition-colors
+                          ${c.ok ? 'bg-emerald-50/60 text-emerald-700' : 'bg-rose-50 text-rose-600'}`}>
+                          {c.ok
+                            ? <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0"><Check size={12} className="text-white"/></div>
+                            : <div className="w-5 h-5 bg-rose-400 rounded-full flex items-center justify-center shrink-0"><X size={12} className="text-white"/></div>
+                          }
+                          {c.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 퍼블리싱 방식 */}
+                  {allPassed && (
+                    <div className="animate-fadeIn">
+                      <h4 className="text-[13px] font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                        <Clock size={14} className="text-slate-400"/> 공개 시점
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className={`flex items-center gap-2.5 p-3.5 rounded-xl border-2 cursor-pointer transition-all
+                          ${publishType === 'now' ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-200 hover:border-indigo-200'}`}>
+                          <input type="radio" name="pubType" checked={publishType === 'now'} onChange={() => setPublishType('now')} className="w-4 h-4 accent-indigo-600"/>
+                          <div>
+                            <div className="text-[13px] font-bold text-slate-800">즉시 공개</div>
+                            <div className="text-[11px] text-slate-500 mt-0.5">저장 즉시 학습자에게 노출</div>
+                          </div>
+                        </label>
+                        <label className={`flex items-center gap-2.5 p-3.5 rounded-xl border-2 cursor-pointer transition-all
+                          ${publishType === 'scheduled' ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-200 hover:border-indigo-200'}`}>
+                          <input type="radio" name="pubType" checked={publishType === 'scheduled'} onChange={() => setPublishType('scheduled')} className="w-4 h-4 accent-indigo-600"/>
+                          <div>
+                            <div className="text-[13px] font-bold text-slate-800">예약 공개</div>
+                            <div className="text-[11px] text-slate-500 mt-0.5">지정 일시에 자동 공개</div>
+                          </div>
+                        </label>
+                      </div>
+                      {publishType === 'scheduled' && (
+                        <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 animate-fadeIn">
+                          <label className="block text-[11px] font-bold text-slate-500 mb-1.5">공개 예약 일시</label>
+                          <input
+                            type="datetime-local"
+                            value={publishSchedule}
+                            onChange={e => setPublishSchedule(e.target.value)}
+                            className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-indigo-500 text-slate-700 bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 경고 */}
+                  {allPassed && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex gap-2.5 animate-fadeIn">
+                      <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0"/>
+                      <div className="text-[11px] text-amber-800 leading-relaxed">
+                        <strong>퍼블리싱 후 주의사항</strong><br/>
+                        · 학습자 앱에 즉시 노출되며, 신청이 시작될 수 있습니다.<br/>
+                        · 공개 후에도 수정은 가능하나, 이미 신청된 학습자에게 변경 알림이 발송됩니다.<br/>
+                        · 패키지 삭제 시 해당 신청 건은 자동 취소 처리됩니다.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 푸터 */}
+                <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
+                  <button onClick={() => setShowPublishModal(false)} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                    취소
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { handleSaveDraft(); setShowPublishModal(false); }} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+                      <Save size={14}/> 임시저장만
+                    </button>
+                    <button
+                      onClick={handlePublish}
+                      disabled={!allPassed || (publishType === 'scheduled' && !publishSchedule)}
+                      className={`px-6 py-2.5 rounded-xl text-[13px] font-bold flex items-center gap-1.5 transition-all shadow-sm
+                        ${allPassed && !(publishType === 'scheduled' && !publishSchedule)
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+                    >
+                      <Send size={14}/> {publishType === 'scheduled' ? '예약 퍼블리싱' : '즉시 퍼블리싱'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            );
+          })()}
         </div>
       );
     };
