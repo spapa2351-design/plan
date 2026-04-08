@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -79,6 +78,7 @@
       });
 
       const [regPeriod, setRegPeriod] = useState({ start: '2026-04-10T09:00', end: '2026-04-25T18:00' });
+      const [cancelPolicy, setCancelPolicy] = useState({ enabled: false, type: 'relative', deadline: '', relativeValue: 3, relativeUnit: 'day' });
       const [isSelfEnroll, setIsSelfEnroll] = useState(true);
       const [isPreviewOpen, setIsPreviewOpen] = useState(false);
       const [selectionRule, setSelectionRule] = useState('single');
@@ -367,6 +367,72 @@
                             </div>
                           </div>
                         </div>
+                        {/* 수강 취소 가능 기한 */}
+                        <div className="bg-rose-50/50 border border-rose-100 rounded-xl p-4">
+                          <div className="flex justify-between items-center mb-1">
+                            <div>
+                              <div className="text-[13px] font-bold text-slate-800">수강 취소 가능 기한</div>
+                              <div className="text-[11px] text-slate-500 mt-0.5">학습자가 신청 후 취소할 수 있는 마감 시점을 설정합니다.</div>
+                            </div>
+                            <Toggle active={cancelPolicy.enabled} onClick={() => setCancelPolicy(p => ({...p, enabled: !p.enabled}))}/>
+                          </div>
+                          {cancelPolicy.enabled && (
+                            <div className="mt-4 animate-fadeIn space-y-3">
+                              {/* 방식 선택 */}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setCancelPolicy(p => ({...p, type: 'relative'}))}
+                                  className={`flex-1 py-2 rounded-lg text-[12px] font-bold border transition-all
+                                    ${cancelPolicy.type === 'relative' ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-rose-300'}`}
+                                >
+                                  교육 시작 기준
+                                </button>
+                                <button
+                                  onClick={() => setCancelPolicy(p => ({...p, type: 'datetime'}))}
+                                  className={`flex-1 py-2 rounded-lg text-[12px] font-bold border transition-all
+                                    ${cancelPolicy.type === 'datetime' ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:border-rose-300'}`}
+                                >
+                                  특정 일시 지정
+                                </button>
+                              </div>
+                              {cancelPolicy.type === 'relative' ? (
+                                <div className="flex items-center gap-2 bg-white border border-rose-200 rounded-lg px-4 py-3">
+                                  <span className="text-[12px] text-slate-500 font-semibold shrink-0">교육 시작</span>
+                                  <input
+                                    type="number" min="1" max="365"
+                                    value={cancelPolicy.relativeValue}
+                                    onChange={e => setCancelPolicy(p => ({...p, relativeValue: parseInt(e.target.value) || 1}))}
+                                    className="w-16 border border-slate-200 rounded-lg text-center text-[14px] font-black text-rose-600 outline-none focus:border-rose-400 py-1.5"
+                                  />
+                                  <select
+                                    value={cancelPolicy.relativeUnit}
+                                    onChange={e => setCancelPolicy(p => ({...p, relativeUnit: e.target.value}))}
+                                    className="border border-slate-200 rounded-lg px-2 py-1.5 text-[12px] font-bold text-slate-700 outline-none focus:border-rose-400 bg-white"
+                                  >
+                                    <option value="day">일</option>
+                                    <option value="hour">시간</option>
+                                  </select>
+                                  <span className="text-[12px] text-slate-500 font-semibold shrink-0">전까지 취소 가능</span>
+                                </div>
+                              ) : (
+                                <div className="bg-white border border-rose-200 rounded-lg px-4 py-3">
+                                  <label className="block text-[11px] font-bold text-slate-500 mb-1.5">취소 마감 일시</label>
+                                  <input
+                                    type="datetime-local"
+                                    value={cancelPolicy.deadline}
+                                    onChange={e => setCancelPolicy(p => ({...p, deadline: e.target.value}))}
+                                    className="w-full border border-slate-200 rounded-lg p-2.5 text-[13px] outline-none focus:border-rose-400 text-slate-700 bg-white"
+                                  />
+                                </div>
+                              )}
+                              <p className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                기한 이후 취소 시 관리자 승인이 필요합니다.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
                         <div>
                           <label className="block text-[13px] font-bold text-slate-800 mb-3">수강 신청 권한 (그룹 지정) <span className="text-red-500">*</span></label>
                           <div className="border border-slate-300 rounded-lg p-2.5 flex items-center justify-between bg-white cursor-pointer hover:border-indigo-400 transition-colors">
@@ -398,8 +464,7 @@
                                 <div className="text-[11px] text-slate-500 mb-3">학습자가 자율적으로 N개의 옵션을 복수 선택합니다.</div>
                                 {selectionRule === 'multiple' && (
                                   <div className="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 text-[12px] font-bold text-slate-700 w-max shadow-sm" onClick={e => e.preventDefault()}>
-                                    최소 <input type="number" min="1" value={minSelect} onChange={e => setMinSelect(parseInt(e.target.value))} className="w-12 border border-slate-200 rounded text-center outline-none focus:border-indigo-500 py-1"/> 개 ~
-                                    최대 <input type="number" min="1" value={maxSelect} onChange={e => setMaxSelect(parseInt(e.target.value))} className="w-12 border border-slate-200 rounded text-center outline-none focus:border-indigo-500 py-1"/> 개 선택
+                                    최대 <input type="number" min="1" value={maxSelect} onChange={e => setMaxSelect(parseInt(e.target.value))} className="w-12 border border-slate-200 rounded text-center outline-none focus:border-indigo-500 py-1"/> 개까지 선택 가능
                                   </div>
                                 )}
                               </div>
@@ -626,19 +691,32 @@
                     const isBatchOpen = showBatchForm === opt.id;
                     const isCollapsed = !!collapsedOpts[opt.id];
                     return (
-                      <div key={opt.id} className={`bg-white border-2 rounded-xl overflow-hidden shadow-sm transition-all
-                        ${isActiveOpt ? 'border-indigo-400' : 'border-slate-200'}`}>
+                      <div
+                        key={opt.id}
+                        draggable
+                        onDragStart={e => onOptDragStart(e, opt.id)}
+                        onDragOver={e => onOptDragOver(e, opt.id)}
+                        onDrop={onOptDrop}
+                        onDragEnd={onOptDragEnd}
+                        className={`bg-white border-2 rounded-xl overflow-hidden shadow-sm transition-all select-none
+                          ${isActiveOpt ? 'border-indigo-400' : 'border-slate-200'}
+                          ${draggingOpt === opt.id ? 'drag-ghost' : ''}
+                          ${dragOverOpt === opt.id && draggingOpt !== opt.id ? 'drag-over-opt' : ''}`}
+                      >
 
                         {/* 패키지 헤더 */}
                         <div
                           onClick={() => setActiveOptionId(opt.id)}
-                          className={`px-4 py-3 flex items-center justify-between cursor-pointer
+                          className={`px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing
                             ${isActiveOpt ? 'bg-indigo-50' : 'bg-slate-50 hover:bg-slate-100'}
                             ${!isCollapsed ? (isActiveOpt ? 'border-b border-indigo-100' : 'border-b border-slate-100') : ''}`}
                         >
-                          <div>
-                            <div className={`text-[10px] font-bold mb-0.5 ${isActiveOpt ? 'text-indigo-400' : 'text-slate-400'}`}>패키지</div>
-                            <div className={`text-[13px] font-black leading-tight ${isActiveOpt ? 'text-indigo-900' : 'text-slate-700'}`}>{opt.name}</div>
+                          <div className="flex items-center gap-2">
+                            <GripVertical size={14} className="text-slate-300 shrink-0"/>
+                            <div>
+                              <div className={`text-[10px] font-bold mb-0.5 ${isActiveOpt ? 'text-indigo-400' : 'text-slate-400'}`}>패키지</div>
+                              <div className={`text-[13px] font-black leading-tight ${isActiveOpt ? 'text-indigo-900' : 'text-slate-700'}`}>{opt.name}</div>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isActiveOpt ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'}`}>
@@ -782,43 +860,135 @@
           </div>
 
           {/* 학습자 앱 미리보기 모달 */}
-          {isPreviewOpen && (
+          {isPreviewOpen && (() => {
+            const fmtDate = (d) => d ? new Date(d + 'T00:00').toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : '';
+            const fmtDateTime = (dt) => dt ? new Date(dt).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : '';
+            return (
             <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center animate-fadeIn p-4">
-              <div className="w-[340px] h-[700px] bg-white border-[14px] border-slate-800 rounded-[45px] relative overflow-hidden shadow-2xl flex flex-col">
+              <div className="w-[340px] h-[720px] bg-white border-[14px] border-slate-800 rounded-[45px] relative overflow-hidden shadow-2xl flex flex-col">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6 bg-slate-800 rounded-b-3xl z-20"></div>
-                <div className="flex-1 bg-white pt-12 flex flex-col relative overflow-y-auto custom-scrollbar">
-                  <div className="bg-gradient-to-b from-[#f0f4ff] to-white px-6 pt-6 pb-4">
-                    <div className="text-[11px] font-bold text-slate-500 mb-1 flex items-center justify-center gap-1">
-                      <Calendar size={12}/>
-                      {new Date(regPeriod.start).toLocaleDateString()} ~ {new Date(regPeriod.end).toLocaleDateString()}
-                    </div>
-                    <h2 className="text-xl font-black text-slate-900 leading-snug text-center mt-2">{courseInfo.title}</h2>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar pt-8">
+                  {/* 코스 헤더 */}
+                  <div className="bg-gradient-to-b from-[#eef1ff] to-white px-5 pt-4 pb-5">
+                    {/* 신청 기간 */}
+                    {isSelfEnroll && (
+                      <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-slate-400 mb-2">
+                        <Calendar size={10}/>
+                        신청 {fmtDateTime(regPeriod.start)} ~ {fmtDateTime(regPeriod.end)}
+                      </div>
+                    )}
+                    {/* 코스명 */}
+                    <h2 className="text-[17px] font-black text-slate-900 leading-snug text-center mb-3">{courseInfo.title || '코스명 미입력'}</h2>
+                    {/* 강사 */}
+                    {courseInfo.instructor && (
+                      <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-semibold mb-1">
+                        <User size={11}/>
+                        <span>{courseInfo.instructor}</span>
+                        {courseInfo.instructorDesc && <span className="text-slate-400 font-normal">· {courseInfo.instructorDesc}</span>}
+                      </div>
+                    )}
+                    {/* 장소 */}
+                    {courseInfo.location && (
+                      <div className="flex items-center justify-center gap-1 text-[11px] text-slate-400 font-medium">
+                        <MapPin size={10}/> {courseInfo.location}
+                      </div>
+                    )}
                   </div>
-                  <div className="px-6 pb-6">
-                    {selectionRule === 'single' ? (
-                      <div className="relative mt-4">
-                        <select className="w-full border-2 border-slate-800 rounded-sm p-3 text-[14px] font-bold text-slate-900 appearance-none bg-white outline-none cursor-pointer">
-                          <option disabled>일자 별 교육 신청하기</option>
-                          {options.map(opt => {
+
+                  {/* 코스 소개 */}
+                  {courseInfo.intro && (
+                    <div className="px-5 py-3 bg-slate-50 border-y border-slate-100">
+                      <p className="text-[11px] text-slate-600 leading-relaxed">{courseInfo.intro}</p>
+                    </div>
+                  )}
+
+                  {/* 교통/주차 */}
+                  {courseInfo.traffic && (
+                    <div className="px-5 py-2.5 border-b border-slate-100 flex gap-2">
+                      <MapPin size={11} className="text-slate-400 mt-0.5 shrink-0"/>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">{courseInfo.traffic}</p>
+                    </div>
+                  )}
+
+                  {/* 신청 영역 */}
+                  <div className="px-5 pb-8 pt-4">
+                    {!isSelfEnroll ? (
+                      /* 강제 할당 모드 */
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                        <div className="text-[13px] font-black text-amber-800 mb-1">관리자 배정 교육</div>
+                        <div className="text-[11px] text-amber-600">담당자가 직접 배정한 교육입니다.<br/>별도 신청 없이 일정을 확인하세요.</div>
+                        {/* 패키지 목록 */}
+                        <div className="mt-4 space-y-2 text-left">
+                          {options.map((opt, i) => (
+                            <div key={opt.id} className="bg-white border border-amber-200 rounded-lg p-3">
+                              <div className="text-[12px] font-bold text-slate-800 mb-1">{opt.name}</div>
+                              {(opt.startDate || opt.endDate) && (
+                                <div className="text-[10px] text-slate-500 flex items-center gap-1 mb-1">
+                                  <Calendar size={10}/> {fmtDate(opt.startDate)}{opt.endDate && opt.endDate !== opt.startDate ? ` ~ ${fmtDate(opt.endDate)}` : ''}
+                                </div>
+                              )}
+                              <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                                <MapPin size={10}/> {opt.place || courseInfo.location || '장소 미정'}
+                              </div>
+                              {(opt.groups||[]).length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {(opt.groups||[]).map(g => (
+                                    <span key={g.id} className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">{g.name}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : selectionRule === 'single' ? (
+                      /* 단일 선택 */
+                      <div>
+                        <div className="text-[11px] font-bold text-slate-500 mb-2">교육 일정 선택</div>
+                        <div className="space-y-2">
+                          {options.map((opt) => {
                             const remaining = opt.capacity - (opt.enrolled || 0);
                             const isClosed = remaining <= 0;
-                            return <option key={opt.id} disabled={isClosed}>{opt.name} {isClosed ? '[마감]' : `[잔여 : ${remaining}]`}</option>;
+                            const place = opt.place || courseInfo.location;
+                            return (
+                              <div key={opt.id} className={`border-2 rounded-xl p-3.5 transition-colors cursor-pointer
+                                ${isClosed ? 'border-slate-200 bg-slate-50 opacity-60' : 'border-slate-800 bg-white active:bg-slate-50'}`}>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className={`text-[13px] font-black leading-tight ${isClosed ? 'text-slate-400' : 'text-slate-900'}`}>{opt.name}</div>
+                                    {(opt.startDate || opt.endDate) && (
+                                      <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                                        <Calendar size={10}/> {fmtDate(opt.startDate)}{opt.endDate && opt.endDate !== opt.startDate ? ` ~ ${fmtDate(opt.endDate)}` : ''}
+                                      </div>
+                                    )}
+                                    {place && <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5"><MapPin size={10}/> {place}</div>}
+                                    {opt.sessions.length > 0 && <div className="text-[10px] text-slate-400 mt-0.5">총 {opt.sessions.length}회차</div>}
+                                  </div>
+                                  <div className="shrink-0">
+                                    {isClosed
+                                      ? <span className="text-[11px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg">마감</span>
+                                      : <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">잔여 {remaining}석</span>
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            );
                           })}
-                        </select>
-                        <div className="absolute right-0 top-0 h-full w-10 bg-slate-900 flex items-center justify-center pointer-events-none">
-                          <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white"></div>
                         </div>
                       </div>
                     ) : (
-                      <div className="mt-4">
-                        <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg mb-4 text-center">
-                          <span className="text-[12px] font-bold text-indigo-700">※ 아래 옵션 중 최소 {minSelect}개 ~ 최대 {maxSelect}개 선택 필수</span>
+                      /* 다중 선택 */
+                      <div>
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 text-center">
+                          <span className="text-[11px] font-bold text-indigo-700">최대 {maxSelect}개까지 선택 가능</span>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {options.map(opt => {
                             const remaining = opt.capacity - (opt.enrolled || 0);
                             const isClosed = remaining <= 0;
                             const isSelected = selectedMobileOptions.includes(opt.id);
+                            const place = opt.place || courseInfo.location;
                             return (
                               <div key={opt.id}
                                 onClick={() => {
@@ -829,19 +999,28 @@
                                     else setSelectedMobileOptions([...selectedMobileOptions, opt.id]);
                                   }
                                 }}
-                                className={`border-2 rounded-lg p-3 flex items-center gap-3 transition-colors
-                                  ${isClosed ? 'bg-slate-50 border-slate-200 cursor-not-allowed' : isSelected ? 'border-indigo-600 bg-indigo-50/30 cursor-pointer' : 'border-slate-300 cursor-pointer'}`}
+                                className={`border-2 rounded-xl p-3 flex gap-3 transition-colors
+                                  ${isClosed ? 'bg-slate-50 border-slate-200 cursor-not-allowed opacity-60' : isSelected ? 'border-indigo-600 bg-indigo-50/40 cursor-pointer' : 'border-slate-200 cursor-pointer'}`}
                               >
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0
+                                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5
                                   ${isClosed ? 'border-slate-300 bg-slate-100' : isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>
-                                  {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                  {isSelected && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                                 </div>
-                                <div className="flex-1 flex justify-between items-center">
-                                  <span className={`text-[13px] font-bold ${isClosed ? 'text-slate-400' : 'text-slate-800'}`}>{opt.name}</span>
-                                  {isClosed
-                                    ? <span className="text-[11px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">마감</span>
-                                    : <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">잔여 {remaining}</span>
-                                  }
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-1">
+                                    <span className={`text-[13px] font-black ${isClosed ? 'text-slate-400' : 'text-slate-800'}`}>{opt.name}</span>
+                                    {isClosed
+                                      ? <span className="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded shrink-0">마감</span>
+                                      : <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0">잔여 {remaining}</span>
+                                    }
+                                  </div>
+                                  {(opt.startDate || opt.endDate) && (
+                                    <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
+                                      <Calendar size={9}/> {fmtDate(opt.startDate)}{opt.endDate && opt.endDate !== opt.startDate ? ` ~ ${fmtDate(opt.endDate)}` : ''}
+                                    </div>
+                                  )}
+                                  {place && <div className="text-[10px] text-slate-400 flex items-center gap-1"><MapPin size={9}/> {place}</div>}
+                                  {opt.sessions.length > 0 && <div className="text-[10px] text-slate-400">총 {opt.sessions.length}회차</div>}
                                 </div>
                               </div>
                             );
@@ -849,13 +1028,19 @@
                         </div>
                       </div>
                     )}
-                    <button className="w-full bg-[#c00000] text-white font-bold py-3.5 rounded-sm mt-4 text-[15px] shadow-sm hover:bg-red-800">교육 신청 확정</button>
+
+                    {isSelfEnroll && (
+                      <button className="w-full bg-[#c00000] text-white font-bold py-3.5 rounded-xl mt-4 text-[14px] shadow-sm active:bg-red-800">
+                        교육 신청 확정
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
               <button onClick={() => setIsPreviewOpen(false)} className="absolute top-6 right-8 text-white hover:text-slate-300 flex items-center gap-2 font-bold text-lg"><X size={32}/> 닫기</button>
             </div>
-          )}
+            );
+          })()}
 
           {/* QR 출석부 모달 */}
           {qrModal && (
