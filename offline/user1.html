@@ -244,8 +244,10 @@
     <div style="height: 1px; background: var(--border); margin: 16px 0;"></div>
     
     <div style="font-size: 11px; font-weight: 800; color: var(--error); margin-bottom: 10px;">시간 흐름 시뮬레이션</div>
-    <label style="display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="radio" name="time_sim" value="before" checked onclick="setTimeSim('before')"> 취소 기한 내 (취소 가능)</label>
-    <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;"><input type="radio" name="time_sim" value="after" onclick="setTimeSim('after')"> 취소 기한 경과 (취소 불가)</label>
+    <!-- 취소/변경 기한 설정 시뮬레이터 옵션 (3단계) -->
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="radio" name="time_sim" value="before_all" checked onclick="setTimeSim('before_all')"> 기한 내 (취소/변경 가능)</label>
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="radio" name="time_sim" value="past_change" onclick="setTimeSim('past_change')"> 변경 기한 경과 (취소만 가능)</label>
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;"><input type="radio" name="time_sim" value="past_all" onclick="setTimeSim('past_all')"> 모든 기한 경과 (취소/변경 불가)</label>
   </div>
 </div>
 
@@ -302,8 +304,8 @@
         <div class="info-row">
           <div class="info-icon text-error" style="font-size:16px;">⚠️</div>
           <div>
-            <div class="info-label">수강 취소 규정</div>
-            <div class="info-val" style="color: var(--error);">교육 시작 1일 전까지 취소 가능</div>
+            <div class="info-label">취소 · 변경 규정</div>
+            <div class="info-val" style="color: var(--error);">교육 시작 3일 전까지 취소, 5일 전까지 변경 가능</div>
           </div>
         </div>
       </div>
@@ -376,12 +378,14 @@
         <div class="result-row" style="padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.08);"><span class="result-label">장소</span><span class="result-val" id="my-info-loc"></span></div>
         <div class="result-row" style="padding: 8px 0;"><span class="result-label">출석 현황</span><span class="result-val">진행 전</span></div>
 
+        <!-- 액션 버튼 영역 -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-          <button class="btn-primary" style="height:42px; font-size:13px; background:#fff; color:var(--black); border:1px solid var(--border); box-shadow:none;" onclick="openChangeSchedule()">🔄 일정 변경</button>
+          <button id="btn-change-course" class="btn-primary" style="height:42px; font-size:13px; background:#fff; color:var(--black); border:1px solid var(--border); box-shadow:none;" onclick="openChangeSchedule()">🔄 일정 변경</button>
           <button id="btn-cancel-course" class="btn-primary danger" style="height:42px; font-size:13px; background:#fff; color:var(--error); border:1px solid rgba(255,25,67,.3); box-shadow:none;" onclick="openCancelModal()">✕ 수강 취소</button>
         </div>
+        <!-- 취소 및 변경 기한 안내 텍스트 -->
         <div id="cancel-notice" style="font-size:11px; color:var(--secondary); margin-top:12px; text-align:center; font-weight:600;">
-          교육 시작 1일 전까지 취소가 가능합니다.
+          교육 시작 3일 전까지 취소, 5일 전까지 변경 가능합니다.
         </div>
       </div>
     </div>
@@ -501,7 +505,7 @@ let currentMode = 'single';
 const multiLimit = 2; 
 let selectedIds = [];
 let activeDetailId = null; 
-let timeSim = 'before'; // 'before' (취소가능) or 'after' (취소불가)
+let timeSim = 'before_all'; // 'before_all', 'past_change', 'past_all'
 
 function initData() {
   updateBadgesAndNotice();
@@ -570,7 +574,6 @@ function renderCurriculumPreview() {
     itemWrapper.className = `list-item-wrapper ${isFull ? 'disabled' : ''}`;
     if (isActive) itemWrapper.style.borderColor = "var(--primary)";
     
-    // 리스트 헤더 영역 (클릭 시 아코디언 펼침)
     itemWrapper.innerHTML = `
       <div class="list-item" onclick="handleDetailClick('${opt.id}')" style="${isActive && opt.sessions.length > 0 ? 'border-bottom: none; padding-bottom: 16px; background:var(--primary-lighter);' : ''}">
         <div class="sess-date-box ${opt.req ? 'req' : ''}" style="${isActive ? 'background:var(--primary); color:#fff;' : ''}">
@@ -587,7 +590,6 @@ function renderCurriculumPreview() {
       </div>
     `;
 
-    // 아코디언 상세 보기
     if (isActive && opt.sessions.length > 0) {
       let detailHtml = `<div class="sess-preview-box">`;
       detailHtml += `<div style="font-weight:800; margin-bottom:12px; font-size:13px; color:var(--black);"><i class="fa-solid fa-list-check"></i> 상세 커리큘럼 안내</div>`;
@@ -791,28 +793,60 @@ function bindData(type) {
 
 function updateCancelButtonUI() {
   const cancelBtn = document.getElementById('btn-cancel-course');
+  const changeBtn = document.getElementById('btn-change-course');
   const noticeText = document.getElementById('cancel-notice');
-  if(!cancelBtn) return;
+  if(!cancelBtn || !changeBtn) return;
 
-  if (timeSim === 'after') {
+  if (timeSim === 'past_all') {
+      // 취소, 변경 모두 불가
+      changeBtn.disabled = true;
+      changeBtn.style.color = '#94A3B8';
+      changeBtn.style.borderColor = '#E2E8F0';
+      changeBtn.style.background = '#F8FAFC';
+      
       cancelBtn.disabled = true;
       cancelBtn.style.color = '#94A3B8';
       cancelBtn.style.borderColor = '#E2E8F0';
       cancelBtn.style.background = '#F8FAFC';
       cancelBtn.innerHTML = '✕ 취소 불가';
+      
       if(noticeText) {
           noticeText.style.color = 'var(--error)';
-          noticeText.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> 교육 시작 1일 전이 지나 취소가 불가능합니다.';
+          noticeText.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> 취소 및 일정 변경 기한이 모두 지났습니다.';
       }
-  } else {
+  } else if (timeSim === 'past_change') {
+      // 변경 불가, 취소만 가능
+      changeBtn.disabled = true;
+      changeBtn.style.color = '#94A3B8';
+      changeBtn.style.borderColor = '#E2E8F0';
+      changeBtn.style.background = '#F8FAFC';
+
       cancelBtn.disabled = false;
       cancelBtn.style.color = 'var(--error)';
       cancelBtn.style.borderColor = 'rgba(255,25,67,.3)';
       cancelBtn.style.background = '#fff';
       cancelBtn.innerHTML = '✕ 수강 취소';
+
+      if(noticeText) {
+          noticeText.style.color = '#D97706'; // Warning Color
+          noticeText.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 일정 변경은 불가하며, 수강 취소만 가능합니다.';
+      }
+  } else {
+      // 취소, 변경 모두 가능
+      changeBtn.disabled = false;
+      changeBtn.style.color = 'var(--black)';
+      changeBtn.style.borderColor = 'var(--border)';
+      changeBtn.style.background = '#fff';
+
+      cancelBtn.disabled = false;
+      cancelBtn.style.color = 'var(--error)';
+      cancelBtn.style.borderColor = 'rgba(255,25,67,.3)';
+      cancelBtn.style.background = '#fff';
+      cancelBtn.innerHTML = '✕ 수강 취소';
+
       if(noticeText) {
           noticeText.style.color = 'var(--secondary)';
-          noticeText.innerHTML = '교육 시작 1일 전까지 취소가 가능합니다.';
+          noticeText.innerHTML = '교육 시작 3일 전까지 취소, 5일 전까지 변경 가능합니다.';
       }
   }
 }
@@ -837,7 +871,6 @@ function goScreen(id) {
 
 function openModal() {
   document.getElementById('sheet').classList.add('open');
-  // 상세 뷰에서 아코디언으로 열어본 항목이 있다면 모달 진입 시 자동 선택
   if(activeDetailId && !selectedIds.includes(activeDetailId)) {
     const targetOpt = mockData[currentMode].find(x => x.id === activeDetailId);
     if (targetOpt && targetOpt.remnant > 0) handleModalSelect(activeDetailId);
@@ -873,12 +906,13 @@ function closeSuccessModal() {
 }
 
 function openChangeSchedule() {
+  if (timeSim !== 'before_all') return; // 에러 방어
   goScreen('screen-detail');
   openModal();
 }
 
 function openCancelModal() {
-  if (timeSim === 'after') return; // 에러 방어코드
+  if (timeSim === 'past_all') return; // 에러 방어
   document.getElementById('modal-cancel').classList.add('open');
   document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
   const cancelChip = document.getElementById('chip-cancel');
