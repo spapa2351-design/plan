@@ -19,7 +19,7 @@
         .anim-pulse-border { animation: pulse-ring 2s infinite; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased font-medium">
 
     <!-- Navigation -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
@@ -28,11 +28,12 @@
                 <div class="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">🚀</div>
                 <span class="font-bold text-slate-900 tracking-tight text-lg">LMS Vision 2026</span>
             </div>
-            <div class="hidden md:flex space-x-1">
-                <button onclick="navTo('terminology-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-md">개념 재정의</button>
-                <button onclick="navTo('indexing-section')" class="px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 rounded-md">커리큘럼-에셋 설계</button>
-                <button onclick="navTo('risk-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-md">리스크 방어</button>
-                <button onclick="navTo('roadmap-section')" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-md">실행 로드맵</button>
+            <div class="hidden md:flex space-x-1 text-[13px]">
+                <button onclick="navTo('terminology-section')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-50 rounded-md">개념 재정의</button>
+                <button onclick="navTo('indexing-section')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-50 rounded-md">커리큘럼 설계</button>
+                <button onclick="navTo('governance-section')" class="px-4 py-2 font-semibold text-indigo-600 bg-indigo-50 rounded-md">에셋 거버넌스</button>
+                <button onclick="navTo('integrity-section')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-50 rounded-md">데이터 무결성</button>
+                <button onclick="navTo('roadmap-section')" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-50 rounded-md">실행 로드맵</button>
             </div>
         </div>
     </nav>
@@ -45,8 +46,8 @@
                 콘텐츠를 가두는 페이지에서<br/> <span class="text-indigo-600">자유로운 에셋(Asset)</span>으로
             </h1>
             <p class="text-lg text-slate-600 mb-8 leading-relaxed">
-                원본은 단 하나만 존재합니다. 커리큘럼은 에셋을 필요한 곳에 연결(Link)하여 구성하는 플레이리스트입니다. 
-                관념을 바꾸면 운영의 속도가 바뀝니다.
+                운영자는 수정을 멈출 수 없습니다. 하지만 시스템은 그 수정이 미치는 파도를 관리할 수 있습니다. 
+                <strong class="text-indigo-700 font-bold">참조형 아키텍처</strong>는 편집의 자유와 데이터의 안전을 동시에 보장합니다.
             </p>
         </section>
 
@@ -54,25 +55,20 @@
         <section id="terminology-section" class="max-w-5xl mx-auto mb-20 bg-white border border-slate-200 rounded-3xl p-10 shadow-sm relative overflow-hidden">
             <div class="text-center mb-10">
                 <div class="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full mb-3 uppercase tracking-widest">Terminology Shift</div>
-                <h2 class="text-3xl font-bold text-slate-900 mb-3">명칭의 재정의: 페이지에서 아이템으로</h2>
-                <p class="text-sm text-slate-500">새로운 아키텍처를 명확히 이해하기 위해, 시스템에서 부르는 이름부터 <strong class="text-indigo-600">'학습 아이템(Asset)'</strong>으로 변경합니다.</p>
+                <h2 class="text-3xl font-bold text-slate-900 mb-3 text-center">명칭의 재정의: 페이지에서 아이템으로</h2>
+                <p class="text-sm text-slate-500">시스템에서 부르는 이름부터 <strong class="text-indigo-600">'학습 아이템(Asset)'</strong>으로 변경합니다.</p>
             </div>
             
             <div class="flex flex-col md:flex-row gap-6 items-center justify-center relative">
-                <!-- AS-IS -->
                 <div class="flex-1 bg-rose-50 border border-rose-100 p-8 rounded-2xl text-center w-full">
                     <div class="text-[11px] font-bold text-rose-500 mb-3 uppercase tracking-tighter">AS-IS (과거 레거시)</div>
                     <div class="text-xl font-bold text-slate-400 line-through decoration-rose-400 decoration-2 mb-2">커리큘럼 - 페이지 (Page)</div>
                     <p class="text-xs text-slate-500 leading-relaxed">이북(e-book)처럼 껍데기 안에<br/>종속되어 갇히는 개념</p>
                 </div>
-
-                <!-- Arrow -->
                 <div class="text-3xl text-slate-300 font-bold hidden md:block">👉</div>
                 <div class="text-3xl text-slate-300 font-bold md:hidden">👇</div>
-
-                <!-- TO-BE -->
                 <div class="flex-1 bg-indigo-50 border border-indigo-200 p-8 rounded-2xl text-center w-full shadow-inner anim-pulse-border relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-3 py-1 rounded-bl-lg shadow-sm">NEW</div>
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-3 py-1 rounded-bl-lg shadow-sm uppercase">Next Gen</div>
                     <div class="text-[11px] font-bold text-indigo-600 mb-3 uppercase tracking-tighter">TO-BE (차세대 아키텍처)</div>
                     <div class="text-xl font-extrabold text-indigo-900 mb-2">커리큘럼 - 학습 아이템 (Asset)</div>
                     <p class="text-xs text-indigo-700/80 leading-relaxed font-medium">스포티파이 재생목록처럼 독립된 자산을<br/>끌어와 참조(Link)하는 개념</p>
@@ -80,173 +76,188 @@
             </div>
         </section>
 
+        <!-- NEW Section: Asset Governance (거버넌스 및 라이프사이클) -->
+        <section id="governance-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Governance & Workflow</div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">에셋 거버넌스: 편집 제한이 아닌 '안전한 관리'</h2>
+                <p class="text-sm text-slate-600 leading-relaxed mb-8">
+                    "편집을 아예 못하게 하는 것은 불가능합니다." 핵심은 에셋의 <strong class="text-slate-900 font-bold">생애주기(Status)</strong>를 정의하고, 학습 데이터가 쌓인 시점부터 **수정의 파급효과를 운영자에게 경고**하는 것입니다.
+                </p>
+                
+                <div class="flex flex-col md:flex-row gap-4 items-stretch">
+                    <div class="flex-1 bg-white border border-slate-200 p-6 rounded-2xl text-left">
+                        <div class="w-8 h-8 bg-slate-100 rounded flex items-center justify-center text-sm mb-3">📝</div>
+                        <div class="font-bold text-slate-800 text-sm mb-1">초안 상태 (Draft)</div>
+                        <div class="text-[11px] text-slate-500 leading-relaxed">수강생이 아직 없습니다. 에셋의 파일, 제목, 설정을 무제한으로 수정할 수 있습니다.</div>
+                    </div>
+                    <div class="flex-1 bg-indigo-50 border border-indigo-200 p-6 rounded-2xl text-left">
+                        <div class="w-8 h-8 bg-indigo-100 rounded flex items-center justify-center text-sm mb-3">🚀</div>
+                        <div class="font-bold text-indigo-900 text-sm mb-1">활성 상태 (Published)</div>
+                        <div class="text-[11px] text-indigo-700/80 leading-relaxed">수강 데이터가 쌓이기 시작했습니다. 수정 시 **'전체 업데이트'** 혹은 **'사본으로 분리'**를 선택해야 합니다.</div>
+                    </div>
+                    <div class="flex-1 bg-slate-800 p-6 rounded-2xl text-left">
+                        <div class="w-8 h-8 bg-slate-700 rounded flex items-center justify-center text-sm mb-3">📦</div>
+                        <div class="font-bold text-white text-sm mb-1">보관 상태 (Archived)</div>
+                        <div class="text-[11px] text-slate-400 leading-relaxed">더 이상 사용하지 않지만, 과거의 수강 통계를 보존하기 위해 시스템 뒤편에 영구 저장됩니다.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-2xl mx-auto bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden text-center p-10 space-y-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold">편집기 시뮬레이션</div>
+                <div class="text-sm text-slate-600">현재 <strong class="text-slate-800 font-bold">[영업 직무 가이드.mp4]</strong> 에셋을 수정하려고 합니다.</div>
+                <button onclick="openModal()" class="px-8 py-3 bg-slate-900 text-white font-extrabold rounded-xl hover:scale-105 transition-transform shadow-xl active:scale-95">에셋 편집 버튼 클릭</button>
+                <div class="text-[10px] text-slate-400 italic font-normal">* 시스템이 실시간으로 수강생 유무를 체크하여 최적의 수정 경로를 제안합니다.</div>
+            </div>
+        </section>
+
         <!-- Section: Curriculum & Asset Indexing -->
         <section id="indexing-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
-            <div class="mb-10 text-center">
-                <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Operational Workflow</div>
-                <h2 class="text-2xl font-bold text-slate-900">커리큘럼-에셋 인덱싱 시뮬레이션</h2>
-                <p class="text-sm text-slate-500 mt-2">커리큘럼의 뼈대를 먼저 잡고, 에셋 라이브러리에서 필요한 아이템을 꽂아 넣습니다.</p>
+            <div class="mb-10 text-center max-w-3xl mx-auto">
+                <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Indexing Workflow</div>
+                <h2 class="text-2xl font-bold text-slate-900">뼈대 먼저, 살은 나중에: 인덱싱 설계</h2>
+                <p class="text-sm text-slate-500 mt-2 italic">관리자는 목차를 먼저 잡고, 라이브러리에서 에셋을 갈아 끼우는 형태로 일합니다.</p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8 items-start">
-                <!-- Step 1: Curriculum Structure -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase">
                             <span class="w-5 h-5 bg-slate-800 text-white rounded-full flex items-center justify-center text-[9px]">1</span>
-                            커리큘럼 인덱싱 (목차 설계)
+                            Index Structure
                         </h3>
-                        <button onclick="addIndexNode()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">+ 목차 추가</button>
+                        <button onclick="addIndexNode()" class="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100">+ 목차 추가</button>
                     </div>
-                    
-                    <div id="index-builder" class="space-y-3 min-h-[220px]">
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                    <div id="index-builder" class="space-y-3 min-h-[150px]">
+                        <div class="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-3">
                             <span class="text-slate-400 font-mono text-[10px]">01</span>
-                            <input type="text" value="[필수] 프로젝트의 정의" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">
-                        </div>
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
-                            <span class="text-slate-400 font-mono text-[10px]">02</span>
-                            <input type="text" value="애자일 실무 베스트 프랙티스" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">
+                            <input type="text" value="[필수] 서비스 마인드셋" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 2: Asset Mapping -->
                 <div class="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-md relative">
-                    <div class="absolute -top-3 left-6 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">ASSET MAPPING</div>
+                    <div class="absolute -top-3 left-6 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-widest">Connect Assets</div>
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-bold text-indigo-900 flex items-center gap-2 text-sm">
+                        <h3 class="font-bold text-indigo-900 flex items-center gap-2 text-sm uppercase">
                             <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[9px]">2</span>
-                            에셋 참조(Reference) 연결
+                            Reference Linking
                         </h3>
-                        <button onclick="linkAllAssets()" class="px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded shadow-sm hover:bg-indigo-700">⚡ 에셋 매핑 시작</button>
+                        <button onclick="linkAllAssets()" class="px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-bold rounded-lg shadow-sm hover:bg-indigo-700">⚡ 에셋 매핑 실행</button>
                     </div>
-
                     <div id="mapping-viewer" class="space-y-4">
                         <div class="flex items-center gap-2">
-                            <div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-500 font-medium">프로젝트의 정의</div>
+                            <div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-500">서비스 마인드셋</div>
                             <div class="text-indigo-300">───</div>
-                            <div id="slot-1" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">
-                                [에셋 라이브러리 대기]
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-500 font-medium">애자일 실무...</div>
-                            <div class="text-indigo-300">───</div>
-                            <div id="slot-2" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">
-                                [에셋 라이브러리 대기]
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Library Preview -->
-                    <div class="mt-10 pt-6 border-t border-slate-100">
-                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-widest">Asset Library</div>
-                        <div class="flex gap-2 overflow-x-auto pb-2">
-                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
-                                <span class="text-lg">📹</span><span class="text-[9px] font-bold">Intro</span>
-                            </div>
-                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
-                                <span class="text-lg">📄</span><span class="text-[9px] font-bold">Guide</span>
-                            </div>
-                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
-                                <span class="text-lg">📹</span><span class="text-[9px] font-bold">Agile</span>
-                            </div>
-                            <div class="shrink-0 w-16 h-16 bg-slate-50 border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 hover:border-indigo-400 cursor-grab">
-                                <span class="text-lg">❓</span><span class="text-[9px] font-bold">Quiz</span>
-                            </div>
+                            <div id="slot-1" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">[에셋 대기]</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 4: Risk Management -->
-        <section id="risk-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
-            <div class="mb-10 text-center max-w-3xl mx-auto">
-                <div class="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full mb-3 uppercase tracking-wider">Side-effect Protection</div>
-                <h2 class="text-2xl font-bold text-slate-900 mb-4">참조 모델의 리스크 방어 로직</h2>
-                <p class="text-sm text-slate-600 leading-relaxed bg-amber-50/50 p-4 rounded-xl border border-amber-100 text-left">
-                    에셋 하나를 고쳤는데 다른 코스까지 바뀌면 위험하지 않을까? 시스템은 공유 중인 에셋 수정 시 <strong class="text-indigo-600">지능형 버전 분기(Save as New Asset)</strong> 옵션을 제공하여 예기치 못한 사고를 방지합니다.
+        <!-- Section: Data Integrity (데이터 무결성 방어 전략 -> 실무적 타협안 제안) -->
+        <section id="integrity-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
+            <div class="mb-10 text-center max-w-4xl mx-auto">
+                <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-3 uppercase tracking-wider font-bold">Pragmatic Proposal</div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">실무적 타협안 제안: 진도율 무결성을 지키는 3가지 아이디어</h2>
+                <p class="text-sm text-slate-600 leading-relaxed mb-8">
+                    완벽한 버전 관리(Versioning)는 자칫 개발 복잡도를 극심하게 높일 수 있습니다. 실제 현업의 에셋 재활용 빈도가 그리 높지 않다는 점을 감안하여, <strong class="text-indigo-600">개발 리소스를 대폭 줄이면서도 운영 리스크를 방어할 수 있는 현실적인 아이디어</strong>를 기획 단에서 제안해 봅니다. 개발팀이 보시기에 어떤 방식이 가장 적합할까요?
                 </p>
-            </div>
-
-            <div class="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-center p-8 space-y-6">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">✏️</div>
-                <div class="text-sm text-slate-600">현재 <strong class="text-slate-800">[임직원 환영사.mp4]</strong>를 편집하려 합니다.</div>
-                <button onclick="openModal()" class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-xl">에셋 편집 도구 실행</button>
+                
+                <div class="grid md:grid-cols-3 gap-5 text-left mt-8">
+                    <div class="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm hover:border-indigo-300 transition-colors">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="text-xl">💡</div>
+                            <div class="font-bold text-[12px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">제안 1 (가장 추천)</div>
+                        </div>
+                        <div class="font-bold text-sm text-slate-800 mb-2">'영상' 대신 '목차(Slot)' 기준 매핑</div>
+                        <div class="text-[12px] text-slate-500 leading-relaxed font-normal">
+                            "A영상 v1, v2를 개별 추적하지 말고, <strong class="text-slate-700">'1강 목차'라는 빈 껍데기(Slot)를 통과했는지만 체크</strong>하면 어떨까요? 나중에 1강 영상을 아예 다른 것으로 교체해도, 이미 1강을 수강 완료한 기존 학습자의 진도율은 100%로 인정해 주는 방식입니다."
+                        </div>
+                    </div>
+                    <div class="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm hover:border-slate-300 transition-colors">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="text-xl">💡</div>
+                            <div class="font-bold text-[12px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">제안 2</div>
+                        </div>
+                        <div class="font-bold text-sm text-slate-800 mb-2">에셋을 '참조' 대신 '템플릿(복제)'으로</div>
+                        <div class="text-[12px] text-slate-500 leading-relaxed font-normal">
+                            "에셋 재활용률이 낮다면 무리해서 참조 모델을 고집할 필요 없이, 라이브러리의 원본을 코스로 가져올 때 <strong class="text-slate-700">해당 코스만을 위한 '독립된 사본'이 생성</strong>되게 하면 어떨까요? 기존의 단방향 DB 구조와 유사해 개발 공수가 크게 줄어들 것 같습니다."
+                        </div>
+                    </div>
+                    <div class="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm hover:border-slate-300 transition-colors">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="text-xl">💡</div>
+                            <div class="font-bold text-[12px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">제안 3</div>
+                        </div>
+                        <div class="font-bold text-sm text-slate-800 mb-2">수강생 발생 시 '수정/삭제 원천 차단'</div>
+                        <div class="text-[12px] text-slate-500 leading-relaxed font-normal">
+                            "로직으로 풀지 않고 운영 정책으로 막는 가장 심플한 방법입니다. 수강 이력이 1건이라도 생기면 해당 에셋을 <strong class="text-slate-700">시스템적으로 수정 불가(Lock) 처리</strong>합니다. 꼭 수정해야 한다면, 기존 에셋을 숨김 처리하고 새 챕터를 추가하도록 가이드합니다."
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- Section 5: Strategic Roadmap (전략적 실행 로드맵) -->
+        <!-- Section: Strategic Roadmap -->
         <section id="roadmap-section" class="scroll-mt-24 pt-10 border-t border-slate-200">
             <div class="mb-10 text-center max-w-3xl mx-auto">
                 <h2 class="text-2xl font-bold text-slate-900 mb-3">전략적 실행 로드맵 (Execution Plan)</h2>
-                <p class="text-sm text-slate-600">안정적인 아키텍처 전환을 위해 3단계 타당성 검토 기반의 실행 로드맵입니다. 기존 시스템의 얽힌 레거시(Legacy)를 안전하게 회피하면서도 고객의 시급한 요구사항을 충족시키는 개발 순서를 제시합니다.</p>
+                <p class="text-sm text-slate-600">안정적인 아키텍처 전환을 위해 3단계 실행 로드맵을 제시합니다.</p>
             </div>
-
             <div class="grid md:grid-cols-3 gap-6">
-                <!-- Phase 1 -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm relative overflow-hidden">
                     <div class="w-1 absolute left-0 top-0 bottom-0 bg-slate-400"></div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phase 1</div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        🏢 오프라인 코스 선(先) 개발
-                    </h3>
-                    <p class="text-[13px] text-slate-500 leading-relaxed">기존 온라인 DB를 건드리지 않고, '쉽고 편한 현대적 UI/UX'의 뼈대와 출결 내재화 모듈을 안전하게 테스트하고 확립합니다.</p>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Phase 1</div>
+                    <h3 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2">🏢 오프라인 코스 선(先) 개발</h3>
+                    <p class="text-[12px] text-slate-500 leading-relaxed font-normal">기존 온라인 구조를 건드리지 않고, '현대적 UI/UX'의 뼈대와 출결 모듈을 안전하게 확립합니다.</p>
                 </div>
-
-                <!-- Phase 2 -->
-                <div class="bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-xl relative overflow-hidden group transform hover:-translate-y-1 transition-transform">
+                <div class="bg-white border-2 border-indigo-500 rounded-2xl p-7 shadow-xl relative overflow-hidden transform hover:-translate-y-1 transition-transform">
                     <div class="w-1 absolute left-0 top-0 bottom-0 bg-indigo-500"></div>
                     <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg uppercase">Game Changer</div>
-                    <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2">Phase 2</div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        💻 온라인 코스 (가벼운 조립)
-                    </h3>
-                    <p class="text-[13px] text-slate-500 leading-relaxed">무거운 저작 도구를 완전히 탈피하고, 가벼운 '에셋 참조형 플레이리스트' 세팅을 구현하여 폭발적인 반응을 이끌어냅니다.</p>
+                    <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-3">Phase 2</div>
+                    <h3 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2">💻 온라인 코스 (가벼운 조립)</h3>
+                    <p class="text-[12px] text-slate-500 leading-relaxed font-normal">무거운 저작 도구를 탈피하고, 가벼운 '에셋 참조형 플레이리스트' 세팅을 구현합니다.</p>
                 </div>
-
-                <!-- Phase 3 -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div class="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm relative overflow-hidden">
                     <div class="w-1 absolute left-0 top-0 bottom-0 bg-emerald-500"></div>
-                    <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Phase 3</div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        🔄 블렌디드 코스 완성
-                    </h3>
-                    <p class="text-[13px] text-slate-500 leading-relaxed">독립적인 모듈로 단단하게 완성된 오프라인 출석과 온라인 콘텐츠를 하나의 커리큘럼 UI 안에서 섞어주는(Mix) 융합 단계입니다.</p>
+                    <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-3">Phase 3</div>
+                    <h3 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2">🔄 블렌디드 코스 완성</h3>
+                    <p class="text-[12px] text-slate-500 leading-relaxed font-normal">독립 모듈로 완성된 오프라인 출석과 온라인 콘텐츠를 하나의 커리큘럼 UI에서 융합합니다.</p>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Modal Simulation -->
-    <div id="modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
-        <div class="bg-white max-w-lg w-full rounded-2xl shadow-2xl overflow-hidden">
-            <div class="bg-amber-50 p-6 border-b border-amber-200 flex flex-col items-center">
-                <div class="text-3xl mb-2">⚠️</div>
-                <h3 class="text-lg font-bold text-amber-900">영향도 경고: 공유 중인 에셋입니다.</h3>
-                <p class="text-xs text-amber-700 mt-1">이 에셋은 현재 <strong>12개의 다른 코스</strong>에서 참조 중입니다.</p>
+    <!-- Versioning Modal (제안 톤으로 변경) -->
+    <div id="modal" class="hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white max-w-lg w-full rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div class="bg-indigo-600 p-8 text-center text-white relative">
+                <div class="text-3xl mb-3">💬</div>
+                <h3 class="text-xl font-bold">운영 정책 제안 시뮬레이션</h3>
+                <p class="text-[12px] text-indigo-100 mt-2 leading-relaxed font-normal">현재 에셋은 **12개 코스**에서 공유 중이며, **450명**의 학습자가 시청 중입니다.<br/>개발팀의 부담을 덜기 위해 어떤 방식으로 우회하면 좋을까요?</p>
             </div>
-            <div class="p-6 space-y-4 bg-slate-50/50">
-                <button onclick="closeModal('전체 업데이트');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
-                    <div class="font-bold text-indigo-700 mb-1 flex justify-between items-center">
-                        <span class="text-sm">전체 코스 일괄 적용 (v2.0)</span>
-                        <span class="text-xs bg-indigo-100 px-1.5 py-0.5 rounded">권장</span>
+            <div class="p-8 space-y-4 bg-slate-50/50">
+                <button onclick="closeModal('목차 기준 매핑 적용');" class="w-full text-left p-5 bg-white border border-slate-200 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
+                    <div class="font-bold text-indigo-700 mb-1 flex justify-between items-center text-sm">
+                        <span>A. 영상 교체 + 기존 수강생 진도율 강제 인정</span>
+                        <span class="text-[9px] bg-indigo-100 px-2 py-0.5 rounded uppercase font-extrabold tracking-tighter">제안 1 방식</span>
                     </div>
-                    <p class="text-[10px] text-slate-500 italic leading-relaxed">법령 개정, 사명 변경 등 모든 코스에 공통으로 변경 사항을 적용해야 할 때 사용합니다.</p>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-normal">영상을 무조건 교체하되, '해당 목차(Slot)'를 이미 시청 완료했던 기존 학습자는 과거에 뭘 봤든 진도율 100%를 그대로 인정해주는 방식입니다.</p>
                 </button>
-                <button onclick="closeModal('개별 복제');" class="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group">
-                    <div class="font-bold text-emerald-700 mb-1 flex justify-between items-center">
-                        <span class="text-sm">현재 코스만 별도로 분리 (복제본 생성)</span>
-                        <span class="text-xs bg-emerald-100 px-1.5 py-0.5 rounded">안전</span>
+                <button onclick="closeModal('수정 원천 차단');" class="w-full text-left p-5 bg-white border border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group">
+                    <div class="font-bold text-emerald-700 mb-1 flex justify-between items-center text-sm">
+                        <span>B. 수정 원천 차단 (신규 챕터 추가 유도)</span>
+                        <span class="text-[9px] bg-emerald-100 px-2 py-0.5 rounded uppercase font-extrabold tracking-tighter">제안 3 방식</span>
                     </div>
-                    <p class="text-[10px] text-slate-500 italic leading-relaxed">다른 코스에는 영향을 주지 않고, 현재 코스의 특수 상황에 맞춰 에셋을 수정할 때 사용합니다.</p>
+                    <p class="text-[11px] text-slate-500 leading-relaxed font-normal">"수강생이 있어 수정할 수 없습니다."라는 경고를 띄우고 수정을 아예 막아버립니다. 복잡한 통계 꼬임을 개발 없이 방어합니다.</p>
                 </button>
             </div>
-            <div class="p-4 bg-white border-t border-slate-100 flex justify-end">
-                <button onclick="closeModal('cancel')" class="px-4 py-2 text-sm font-bold text-slate-400 hover:text-slate-600">취소</button>
+            <div class="p-6 bg-white border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal('cancel')" class="px-5 py-2.5 text-sm font-extrabold text-slate-400 hover:text-slate-700">작업 취소</button>
             </div>
         </div>
     </div>
@@ -255,38 +266,32 @@
         function navTo(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth' }); }
         function openModal() { document.getElementById('modal').classList.remove('hidden'); }
         function closeModal(type) { 
-            if(type !== 'cancel') alert(`[${type}] 방식으로 에셋 수정이 안전하게 완료되었습니다.`);
+            if(type !== 'cancel') alert(`✅ [${type}] 정책이 성공적으로 적용되었습니다. 수강 데이터는 안전하게 보호됩니다.`);
             document.getElementById('modal').classList.add('hidden'); 
         }
 
-        // --- Indexing & Asset Connection Logic ---
-        let indexCount = 2;
+        let indexCount = 1;
         function addIndexNode() {
             indexCount++;
             const builder = document.getElementById('index-builder');
             const viewer = document.getElementById('mapping-viewer');
-            
-            // Add Index Item
             const div = document.createElement('div');
-            div.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3 animate-pulse";
+            div.className = "p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center gap-3 animate-in slide-in-from-left duration-300";
             div.innerHTML = `<span class="text-slate-400 font-mono text-[10px]">${String(indexCount).padStart(2, '0')}</span><input type="text" placeholder="새로운 챕터 제목" class="bg-transparent font-bold text-sm w-full outline-none focus:text-indigo-600">`;
             builder.appendChild(div);
-            setTimeout(() => div.classList.remove('animate-pulse'), 1000);
-
-            // Add Viewer Slot
             const vDiv = document.createElement('div');
-            vDiv.className = "flex items-center gap-2";
-            vDiv.innerHTML = `<div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-400 line-clamp-1">새로운 챕터</div><div class="text-indigo-300">───</div><div id="slot-${indexCount}" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">[에셋 라이브러리 대기]</div>`;
+            vDiv.className = "flex items-center gap-2 animate-in slide-in-from-right duration-300";
+            vDiv.innerHTML = `<div class="flex-1 p-3 border border-slate-100 bg-slate-50 rounded-lg text-xs text-slate-500">새로운 챕터</div><div class="text-indigo-300">───</div><div id="slot-${indexCount}" class="flex-1 p-3 border border-dashed border-indigo-200 rounded-lg text-[10px] text-indigo-400 text-center bg-indigo-50/50">[에셋 대기]</div>`;
             viewer.appendChild(vDiv);
         }
 
         function linkAllAssets() {
-            const assets = ['📹 [영상] 프로젝트 정의 v2', '📹 [영상] 애자일 실습', '📄 [가이드] 협업 툴킷', '❓ [퀴즈] 기초 역량 평가'];
+            const assets = ['📹 [영상] 서비스 마인드 v2.1', '📹 [영상] 컴플레인 응대', '📄 [PDF] 현장 가이드', '❓ [퀴즈] 기초 역량 평가'];
             for(let i=1; i<=indexCount; i++) {
                 const slot = document.getElementById(`slot-${i}`);
                 if(slot) {
-                    slot.innerText = assets[i-1] || '📹 기본 에셋 참조 연결';
-                    slot.className = "flex-1 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-[10px] text-emerald-700 font-bold text-center transition-all duration-500 transform scale-105";
+                    slot.innerText = assets[i-1] || '📹 기본 에셋 참조 매핑';
+                    slot.className = "flex-1 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-[10px] text-emerald-700 font-extrabold text-center transition-all duration-700 transform scale-105";
                     setTimeout(() => slot.classList.remove('scale-105'), 500);
                 }
             }
