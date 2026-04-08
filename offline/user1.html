@@ -233,14 +233,19 @@
     <button class="proto-chip" id="chip-confirm" onclick="goConfirm()" disabled>② 신청 확인</button>
     <button class="proto-chip" id="chip-done" onclick="openSuccessModal()">③ 신청 완료 모달</button>
     <button class="proto-chip" id="chip-my" onclick="goScreen('screen-my')">④ 내 수강 내역</button>
-    <button class="proto-chip" id="chip-cancel" onclick="goScreen('screen-cancelled')">⑤ 수강 취소</button>
   </div>
   
   <div style="margin-top: 40px; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(34,51,84,.08);">
-    <div style="font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 10px;">관리자 운영 방식 테스트</div>
+    <div style="font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 10px;">관리자 운영 방식 설정</div>
     <label style="display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="radio" name="om" value="single" checked onclick="switchMode('single')"> 단일 선택형</label>
     <label style="display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="radio" name="om" value="cohort" onclick="switchMode('cohort')"> 기수 단위 운영</label>
     <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;"><input type="radio" name="om" value="multi" onclick="switchMode('multi')"> 다중 선택 조합</label>
+    
+    <div style="height: 1px; background: var(--border); margin: 16px 0;"></div>
+    
+    <div style="font-size: 11px; font-weight: 800; color: var(--error); margin-bottom: 10px;">시간 흐름 시뮬레이션</div>
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="radio" name="time_sim" value="before" checked onclick="setTimeSim('before')"> 취소 기한 내 (취소 가능)</label>
+    <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;"><input type="radio" name="time_sim" value="after" onclick="setTimeSim('after')"> 취소 기한 경과 (취소 불가)</label>
   </div>
 </div>
 
@@ -292,6 +297,13 @@
           <div>
             <div class="info-label">기본 장소명</div>
             <div class="info-val">한샘 HQ 대교육장 B동 3층</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon text-error" style="font-size:16px;">⚠️</div>
+          <div>
+            <div class="info-label">수강 취소 규정</div>
+            <div class="info-val" style="color: var(--error);">교육 시작 1일 전까지 취소 가능</div>
           </div>
         </div>
       </div>
@@ -366,7 +378,10 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
           <button class="btn-primary" style="height:42px; font-size:13px; background:#fff; color:var(--black); border:1px solid var(--border); box-shadow:none;" onclick="openChangeSchedule()">🔄 일정 변경</button>
-          <button class="btn-primary" style="height:42px; font-size:13px; background:#fff; color:var(--error); border:1px solid rgba(255,25,67,.3); box-shadow:none;" onclick="openCancelModal()">✕ 수강 취소</button>
+          <button id="btn-cancel-course" class="btn-primary danger" style="height:42px; font-size:13px; background:#fff; color:var(--error); border:1px solid rgba(255,25,67,.3); box-shadow:none;" onclick="openCancelModal()">✕ 수강 취소</button>
+        </div>
+        <div id="cancel-notice" style="font-size:11px; color:var(--secondary); margin-top:12px; text-align:center; font-weight:600;">
+          교육 시작 1일 전까지 취소가 가능합니다.
         </div>
       </div>
     </div>
@@ -406,7 +421,7 @@
       <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
       <div style="font-size: 18px; font-weight: 800; margin-bottom: 24px; color: var(--black);">수강을 정말 취소하시겠습니까?</div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button class="btn-primary" style="height:48px; font-size:15px; background:var(--bg-main); color:var(--black); box-shadow:none; border-radius: 8px;" onclick="closeCancelModal()">취소</button>
+        <button class="btn-primary" style="height:48px; font-size:15px; background:var(--bg-main); color:var(--black); box-shadow:none; border-radius: 8px; border:1px solid var(--border);" onclick="closeCancelModal()">취소</button>
         <button class="btn-primary" style="height:48px; font-size:15px; background:var(--error); box-shadow:none; border-radius: 8px;" onclick="confirmCancel()">확인</button>
       </div>
     </div>
@@ -486,6 +501,7 @@ let currentMode = 'single';
 const multiLimit = 2; 
 let selectedIds = [];
 let activeDetailId = null; 
+let timeSim = 'before'; // 'before' (취소가능) or 'after' (취소불가)
 
 function initData() {
   updateBadgesAndNotice();
@@ -499,6 +515,13 @@ function switchMode(mode) {
   selectedIds = [];
   activeDetailId = null;
   initData();
+}
+
+function setTimeSim(val) {
+  timeSim = val;
+  if(document.getElementById('screen-my').classList.contains('active')) {
+      updateCancelButtonUI();
+  }
 }
 
 function updateBadgesAndNotice() {
@@ -766,6 +789,34 @@ function bindData(type) {
   }
 }
 
+function updateCancelButtonUI() {
+  const cancelBtn = document.getElementById('btn-cancel-course');
+  const noticeText = document.getElementById('cancel-notice');
+  if(!cancelBtn) return;
+
+  if (timeSim === 'after') {
+      cancelBtn.disabled = true;
+      cancelBtn.style.color = '#94A3B8';
+      cancelBtn.style.borderColor = '#E2E8F0';
+      cancelBtn.style.background = '#F8FAFC';
+      cancelBtn.innerHTML = '✕ 취소 불가';
+      if(noticeText) {
+          noticeText.style.color = 'var(--error)';
+          noticeText.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> 교육 시작 1일 전이 지나 취소가 불가능합니다.';
+      }
+  } else {
+      cancelBtn.disabled = false;
+      cancelBtn.style.color = 'var(--error)';
+      cancelBtn.style.borderColor = 'rgba(255,25,67,.3)';
+      cancelBtn.style.background = '#fff';
+      cancelBtn.innerHTML = '✕ 수강 취소';
+      if(noticeText) {
+          noticeText.style.color = 'var(--secondary)';
+          noticeText.innerHTML = '교육 시작 1일 전까지 취소가 가능합니다.';
+      }
+  }
+}
+
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById(id);
@@ -778,7 +829,10 @@ function goScreen(id) {
       if(chip) chip.classList.add('active');
   }
 
-  if (id === 'screen-my') bindData('done');
+  if (id === 'screen-my') {
+      bindData('done');
+      updateCancelButtonUI();
+  }
 }
 
 function openModal() {
@@ -824,6 +878,7 @@ function openChangeSchedule() {
 }
 
 function openCancelModal() {
+  if (timeSim === 'after') return; // 에러 방어코드
   document.getElementById('modal-cancel').classList.add('open');
   document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
   const cancelChip = document.getElementById('chip-cancel');
