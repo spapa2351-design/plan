@@ -1,0 +1,17 @@
+# Claude Code / bkit local files
+.agents/
+.bkit/
+.claude/
+.mcp.json
+skills-lock.json
+
+# Dependencies
+figma-mcp/
+
+# Local workspace
+plan/
+plan-main/
+
+# OS files
+Thumbs.db
+.DS_Store
