@@ -65,9 +65,14 @@
       );
     };
 
+    /* ── URL 파라미터로 편집/등록 모드 구분 ── */
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('courseId');
+    const isEditMode = !!courseId;
+
     /* ── Main App ── */
     const App = () => {
-      const [courseInfo, setCourseInfo] = useState({
+      const [courseInfo, setCourseInfo] = useState(isEditMode ? {
         title: '2026 직무교육 — 프로젝트 관리 심화',
         category: '직무 역량',
         instructor: '김민준',
@@ -76,6 +81,15 @@
         location: '한샘 HQ 대교육장 B동 3층',
         address: '',
         traffic: '강남역 3번 출구 도보 5분 거리. 지하 주차장 이용 시 무료 주차권 지급.'
+      } : {
+        title: '',
+        category: '',
+        instructor: '',
+        instructorDesc: '',
+        intro: '',
+        location: '',
+        address: '',
+        traffic: ''
       });
 
       const [regPeriod, setRegPeriod] = useState({ start: '2026-04-10T09:00', end: '2026-04-25T18:00' });
@@ -93,7 +107,7 @@
       const toggleCollapse = (optId) => setCollapsedOpts(prev => ({ ...prev, [optId]: !prev[optId] }));
 
       /* ── 코스 상태 & 퍼블리싱 ── */
-      const [courseStatus, setCourseStatus] = useState('draft'); // draft | saved | published
+      const [courseStatus, setCourseStatus] = useState(isEditMode ? 'published' : 'draft'); // draft | saved | published
       const [lastSavedAt, setLastSavedAt] = useState(null);
       const [showPublishModal, setShowPublishModal] = useState(false);
       const [publishType, setPublishType] = useState('now'); // now | scheduled
@@ -284,7 +298,7 @@
                 </a>
                 <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold shadow-sm"><MapPin size={18}/></div>
                 <div>
-                  <h1 className="text-lg font-extrabold text-slate-900 leading-none mb-1">오프라인 코스 개설</h1>
+                  <h1 className="text-lg font-extrabold text-slate-900 leading-none mb-1">{isEditMode ? '오프라인 코스 편집' : '오프라인 코스 개설'}</h1>
                   <p className="text-[11px] font-semibold text-slate-500">통합 패키지 모델 (Unified Package Builder)</p>
                 </div>
                 <span className={`ml-2 px-3 py-1 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${statusColor[courseStatus]}`}>
@@ -962,15 +976,20 @@
 
               <div className="bg-white border-t border-slate-200 p-4 shrink-0 space-y-2">
                 {courseStatus === 'published' ? (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0"><Check size={16} className="text-white"/></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-bold text-emerald-800">퍼블리싱 완료</div>
-                      <div className="text-[11px] text-emerald-600">학습자 앱에 공개 중입니다.</div>
+                  <div className="space-y-2">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0"><Check size={16} className="text-white"/></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold text-emerald-800">퍼블리싱 완료</div>
+                        <div className="text-[11px] text-emerald-600">학습자 앱에 공개 중입니다.</div>
+                      </div>
+                      <button onClick={() => setCourseStatus('saved')} className="text-[11px] font-bold text-emerald-600 border border-emerald-300 bg-white px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors shrink-0">
+                        수정 모드
+                      </button>
                     </div>
-                    <button onClick={() => setCourseStatus('saved')} className="text-[11px] font-bold text-emerald-600 border border-emerald-300 bg-white px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors shrink-0">
-                      수정 모드
-                    </button>
+                    <a href={`admin1-1.html${courseId ? '?courseId=' + courseId : ''}`} className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-700 transition-colors text-[13px]">
+                      <Users size={15}/> 수강 관리로 이동
+                    </a>
                   </div>
                 ) : (
                   <button

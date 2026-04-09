@@ -85,6 +85,10 @@
 
     const fmtDate = (d) => d ? d.replace(/-/g, '/') : '';
 
+    /* ── URL 파라미터 ── */
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('courseId');
+
     /* ══════════════════════════════════════
        App
     ══════════════════════════════════════ */
@@ -704,7 +708,7 @@
                   <div className="animate-fadeIn space-y-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-[14px] font-bold text-slate-800">회차별 일정</h3>
-                      <a href="admin1.html" className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                      <a href={`admin1.html${courseId ? '?courseId=' + courseId : ''}`} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
                         <Edit3 size={11}/> 코스 편집
                       </a>
                     </div>
@@ -742,7 +746,7 @@
                   <div className="animate-fadeIn text-center py-20">
                     <MessageSquare size={40} className="text-slate-200 mx-auto mb-3"/>
                     <div className="text-[14px] font-bold text-slate-400 mb-1">설문이 등록되지 않았습니다</div>
-                    <div className="text-[12px] text-slate-400">코스 편집에서 설문을 추가할 수 있습니다.</div>
+                    <div className="text-[12px] text-slate-400">설문 기능은 추후 업데이트 예정입니다.</div>
                   </div>
                 )}
               </div>
