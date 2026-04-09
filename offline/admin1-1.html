@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스 수강 관리</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse-ring { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+    @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+    .animate-slide-up { animation: slide-up 0.4s ease-out forwards; }
+    .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body class="bg-[#f5f6fa] text-slate-800 antialiased custom-scrollbar">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect, useRef, useMemo } from 'https://esm.sh/react@18.2.0';
+    import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+    import * as Lucide from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0';
+
+    const {
+      ChevronLeft, ChevronDown, QrCode, Calendar, MapPin, Users, Clock,
+      CheckCircle, XCircle, AlertCircle, X, Download, Search, Edit3,
+      Trash2, UserCheck, UserX, Filter, Plus, Maximize2, Minimize2,
+      RefreshCw, Monitor, Eye, BarChart3, FileText, MessageSquare, Star,
+      Copy, ExternalLink, Power, ArrowRight
+    } = Lucide;
+
+    /* ══════════════════════════════════════
+       더미 데이터
+    ══════════════════════════════════════ */
+    const COURSE = {
+      title: '2026 직무교육 — 프로젝트 관리 심화',
+      category: '직무 역량',
+      instructor: '김민준',
+      location: '한샘 HQ 대교육장 B동 3층',
+      status: 'active',
+    };
+
+    const PACKAGES = [
+      { id: 'p1', name: '11월 01일 교육 신청', capacity: 30, enrolled: 30, place: '한샘 HQ B동 3층',
+        startDate: '2026-11-01', endDate: '2026-11-01',
+        sessions: [
+          { id: 's1', name: '1회차 오전', date: '2026-11-01', startTime: '09:00', endTime: '12:00', place: '한샘 HQ B동 3층' },
+          { id: 's2', name: '2회차 오후', date: '2026-11-01', startTime: '13:00', endTime: '18:00', place: '한샘 HQ B동 3층' },
+        ]},
+      { id: 'p2', name: '11월 02일 교육 신청', capacity: 30, enrolled: 25, place: '한샘 HQ B동 3층',
+        startDate: '2026-11-02', endDate: '2026-11-02',
+        sessions: [
+          { id: 's3', name: '1회차 오전', date: '2026-11-02', startTime: '09:00', endTime: '12:00', place: '한샘 HQ B동 3층' },
+          { id: 's4', name: '2회차 오후', date: '2026-11-02', startTime: '13:00', endTime: '18:00', place: '한샘 HQ B동 3층' },
+        ]},
+    ];
+
+    const STUDENTS_P1 = [
+      { id: 'u1', name: '이승주', username: 'test9', groups: ['비서실'], photo: '' },
+      { id: 'u2', name: '김하은', username: 'haeun.k', groups: ['개발팀'], photo: '' },
+      { id: 'u3', name: '박준서', username: 'junseo.p', groups: ['디자인팀'], photo: '' },
+      { id: 'u4', name: '정유진', username: 'yujin.j', groups: ['마케팅팀'], photo: '' },
+      { id: 'u5', name: '최민호', username: 'minho.c', groups: ['영업팀'], photo: '' },
+      { id: 'u6', name: '강소연', username: 'soyeon.k', groups: ['인사팀'], photo: '' },
+      { id: 'u7', name: '윤도현', username: 'dohyun.y', groups: ['재무팀'], photo: '' },
+      { id: 'u8', name: '한지우', username: 'jiwoo.h', groups: ['기획팀'], photo: '' },
+      { id: 'u9', name: '오세린', username: 'serin.o', groups: ['개발팀', '프론트엔드'], photo: '' },
+      { id: 'u10', name: '임태양', username: 'taeyang.l', groups: ['영업팀'], photo: '' },
+    ];
+
+    // 출석 상태: attended, late, early_leave, excused, absent, pending
+    const ATT_STATUS = {
+      pending:     { label: '미확인', bg: 'bg-slate-100', text: 'text-slate-500', icon: Clock },
+      attended:    { label: '출석', bg: 'bg-emerald-50', text: 'text-emerald-600', icon: CheckCircle },
+      late:        { label: '지각', bg: 'bg-amber-50', text: 'text-amber-600', icon: AlertCircle },
+      early_leave: { label: '조퇴', bg: 'bg-orange-50', text: 'text-orange-600', icon: ArrowRight },
+      excused:     { label: '출석인정', bg: 'bg-sky-50', text: 'text-sky-600', icon: UserCheck },
+      absent:      { label: '결석', bg: 'bg-rose-50', text: 'text-rose-600', icon: XCircle },
+    };
+
+    const fmtDate = (d) => d ? d.replace(/-/g, '/') : '';
+
+    /* ══════════════════════════════════════
+       App
+    ══════════════════════════════════════ */
+    const App = () => {
+      const [activeTab, setActiveTab] = useState('summary');
+      const [selectedPkg, setSelectedPkg] = useState('p1');
+      const [selectedSession, setSelectedSession] = useState('s1');
+      const [liveMode, setLiveMode] = useState(false);
+      const [qrCountdown, setQrCountdown] = useState(30);
+      const [search, setSearch] = useState('');
+      const [statusChangeModal, setStatusChangeModal] = useState(null); // { studentId, sessionId }
+      const [toasts, setToasts] = useState([]);
+
+      const pkg = PACKAGES.find(p => p.id === selectedPkg);
+      const session = pkg?.sessions.find(s => s.id === selectedSession) || pkg?.sessions[0];
+
+      // 출석 데이터 state
+      const [attendance, setAttendance] = useState(() => {
+        const map = {};
+        PACKAGES.forEach(p => p.sessions.forEach(s => {
+          map[s.id] = {};
+          STUDENTS_P1.forEach((st, i) => {
+            // 더미: 일부 출석 처리
+            map[s.id][st.id] = i < 3 ? 'attended' : i === 3 ? 'late' : 'pending';
+          });
+        }));
+        return map;
+      });
+
+      // QR 자동 갱신
+      const qrTimerRef = useRef(null);
+      useEffect(() => {
+        if (liveMode) {
+          setQrCountdown(30);
+          qrTimerRef.current = setInterval(() => {
+            setQrCountdown(prev => {
+              if (prev <= 1) return 30; // 갱신
+              return prev - 1;
+            });
+          }, 1000);
+        }
+        return () => clearInterval(qrTimerRef.current);
+      }, [liveMode, selectedSession]);
+
+      const getQrData = () => {
+        const ts = Math.floor(Date.now() / 30000); // 30초 단위 토큰
+        return `출석|${COURSE.title}|${pkg?.name}|${session?.id}|${ts}`;
+      };
+      const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(getQrData())}&chs=300x300&choe=UTF-8&chld=M`;
+
+      // 출석 통계
+      const getSessionStats = (sessId) => {
+        const att = attendance[sessId] || {};
+        const total = Object.keys(att).length;
+        const counts = { attended: 0, late: 0, early_leave: 0, excused: 0, absent: 0, pending: 0 };
+        Object.values(att).forEach(s => counts[s]++);
+        const present = counts.attended + counts.late + counts.excused;
+        return { total, ...counts, present, rate: total > 0 ? Math.round(present / total * 100) : 0 };
+      };
+
+      const handleStatusChange = (studentId, sessId, newStatus) => {
+        setAttendance(prev => ({
+          ...prev,
+          [sessId]: { ...prev[sessId], [studentId]: newStatus }
+        }));
+        const st = STUDENTS_P1.find(s => s.id === studentId);
+        addToast(`${st?.name} → ${ATT_STATUS[newStatus].label}`);
+        setStatusChangeModal(null);
+      };
+
+      const addToast = (msg) => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, msg }]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 2500);
+      };
+
+      const stats = getSessionStats(selectedSession);
+
+      const TABS = [
+        { id: 'summary', label: '요약', icon: BarChart3 },
+        { id: 'students', label: '수강', icon: Users },
+        { id: 'attendance', label: '출석', icon: UserCheck },
+        { id: 'schedule', label: '일정', icon: Calendar },
+        { id: 'survey', label: '설문', icon: MessageSquare },
+      ];
+
+      /* ── 라이브 모드 ── */
+      if (liveMode) {
+        return (
+          <div className="h-screen bg-slate-900 flex overflow-hidden">
+            {/* 좌측: QR 코드 */}
+            <div className="flex-[7] flex flex-col items-center justify-center relative">
+              <button onClick={() => setLiveMode(false)} className="absolute top-6 left-6 text-white/50 hover:text-white flex items-center gap-2 text-[13px] font-bold transition-colors">
+                <Minimize2 size={16}/> 라이브 모드 종료
+              </button>
+              <div className="text-center mb-8">
+                <div className="text-[14px] font-bold text-indigo-400 mb-1">{pkg?.name}</div>
+                <div className="text-[24px] font-black text-white">{session?.name}</div>
+                <div className="text-[13px] text-slate-400 mt-1">{fmtDate(session?.date)} · {session?.startTime} ~ {session?.endTime}</div>
+              </div>
+              <div className="bg-white rounded-3xl p-6 shadow-2xl relative">
+                <img src={qrUrl} alt="QR" className="w-[280px] h-[280px] rounded-xl"/>
+                {/* 갱신 카운트다운 */}
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 px-4 py-1.5 rounded-full flex items-center gap-2">
+                  <RefreshCw size={12} className={`text-indigo-400 ${qrCountdown <= 5 ? 'animate-spin' : ''}`}/>
+                  <span className={`text-[12px] font-bold ${qrCountdown <= 5 ? 'text-amber-400' : 'text-slate-300'}`}>{qrCountdown}초 후 갱신</span>
+                </div>
+              </div>
+              <p className="text-slate-500 text-[12px] mt-10">학습자 앱에서 QR을 스캔하세요</p>
+            </div>
+
+            {/* 우측: 실시간 대시보드 */}
+            <div className="flex-[3] bg-slate-800 border-l border-slate-700 flex flex-col">
+              <div className="p-6 border-b border-slate-700">
+                <div className="text-[11px] font-bold text-slate-500 mb-1">실시간 출석 현황</div>
+                <div className="flex items-end gap-2">
+                  <span className="text-[48px] font-black text-white leading-none">{stats.present}</span>
+                  <span className="text-[20px] text-slate-500 font-bold mb-1">/ {stats.total}</span>
+                </div>
+                {/* 프로그레스 */}
+                <div className="mt-4 w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${stats.rate}%` }}/>
+                </div>
+                <div className="text-[13px] font-bold text-emerald-400 mt-2">{stats.rate}% 출석</div>
+              </div>
+
+              {/* 상태별 카운트 */}
+              <div className="p-6 grid grid-cols-2 gap-3">
+                {[
+                  { key: 'attended', label: '출석', color: 'text-emerald-400' },
+                  { key: 'late', label: '지각', color: 'text-amber-400' },
+                  { key: 'excused', label: '출석인정', color: 'text-sky-400' },
+                  { key: 'absent', label: '결석', color: 'text-rose-400' },
+                  { key: 'pending', label: '미확인', color: 'text-slate-400' },
+                ].map(s => (
+                  <div key={s.key} className="bg-slate-700/50 rounded-xl p-3">
+                    <div className={`text-[10px] font-bold ${s.color} mb-0.5`}>{s.label}</div>
+                    <div className="text-[22px] font-black text-white">{stats[s.key]}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 최근 출석자 */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-2">
+                <div className="text-[10px] font-bold text-slate-500 mb-3">최근 출석</div>
+                <div className="space-y-2">
+                  {STUDENTS_P1.filter(st => (attendance[selectedSession]?.[st.id] || 'pending') === 'attended').map(st => (
+                    <div key={st.id} className="flex items-center gap-2 bg-slate-700/30 rounded-lg px-3 py-2 animate-fadeIn">
+                      <div className="w-7 h-7 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center">
+                        <CheckCircle size={13}/>
+                      </div>
+                      <div>
+                        <div className="text-[12px] font-bold text-white">{st.name}</div>
+                        <div className="text-[10px] text-slate-500">{st.groups[0]}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 패키지/회차 전환 */}
+              <div className="p-4 border-t border-slate-700">
+                <select value={selectedSession} onChange={e => setSelectedSession(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-[12px] font-bold outline-none">
+                  {pkg?.sessions.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.startTime}~{s.endTime})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* 토스트 */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50">
+              {toasts.map(t => (
+                <div key={t.id} className="bg-emerald-500 text-white px-6 py-3 rounded-xl text-[13px] font-bold shadow-xl animate-slide-up flex items-center gap-2">
+                  <CheckCircle size={16}/> {t.msg}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      /* ── 일반 모드 ── */
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* 헤더 */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+            <div className="px-8 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <a href="index.html" className="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors">
+                  <ChevronLeft size={18}/>
+                </a>
+                <div>
+                  <h1 className="text-[17px] font-black text-slate-900">{COURSE.title}</h1>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium mt-0.5">
+                    <span>홈</span><span>/</span><span>코스 목록</span><span>/</span><span className="text-slate-600 font-bold">수강 관리</span>
+                  </div>
+                </div>
+              </div>
+              <button className="px-4 py-2 bg-[#5c66f2] text-white rounded-lg text-[13px] font-bold hover:bg-[#4a54e1] transition-colors flex items-center gap-1.5 shadow-sm">
+                <UserCheck size={14}/> 수강생 등록
+              </button>
+            </div>
+          </header>
+
+          <div className="flex flex-1 overflow-hidden">
+
+            {/* ── 좌측 사이드바 ── */}
+            <aside className="w-[210px] bg-white border-r border-slate-200 overflow-y-auto custom-scrollbar shrink-0 p-5 space-y-5">
+              {/* 코스 표지 */}
+              <div className="w-full aspect-square bg-slate-100 rounded-xl flex items-center justify-center">
+                <MapPin size={40} className="text-slate-300"/>
+              </div>
+
+              <div>
+                <div className="text-[13px] font-black text-slate-900 leading-snug">{COURSE.title}</div>
+              </div>
+
+              {/* 패키지 선택 */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 mb-1.5">패키지(반) 선택</label>
+                <select
+                  value={selectedPkg}
+                  onChange={e => { setSelectedPkg(e.target.value); const p = PACKAGES.find(pp => pp.id === e.target.value); if (p) setSelectedSession(p.sessions[0]?.id); }}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[12px] font-bold text-slate-700 outline-none focus:border-indigo-400 bg-white"
+                >
+                  {PACKAGES.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+
+              {/* 패키지 정보 */}
+              <div className="space-y-2 text-[11px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-bold">상태</span>
+                  <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">운영중</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-bold">정원</span>
+                  <span className="font-bold text-slate-700">{pkg?.enrolled} / {pkg?.capacity}명</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-bold">잔여석</span>
+                  <span className={`font-bold ${pkg?.capacity - pkg?.enrolled <= 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                    {pkg?.capacity - pkg?.enrolled <= 0 ? '마감' : `${pkg?.capacity - pkg?.enrolled}석`}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 font-bold">회차</span>
+                  <span className="font-bold text-slate-700">총 {pkg?.sessions.length}회</span>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <div className="text-[10px] font-bold text-slate-400 mb-1">교육 기간</div>
+                <div className="text-[12px] font-bold text-slate-700">{fmtDate(pkg?.startDate)} ~ {fmtDate(pkg?.endDate)}</div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <div className="text-[10px] font-bold text-slate-400 mb-1">교육 장소</div>
+                <div className="text-[12px] font-bold text-slate-700 flex items-center gap-1"><MapPin size={11} className="text-slate-400"/> {pkg?.place}</div>
+              </div>
+
+              {/* QR 코드 (소형) */}
+              <div className="border-t border-slate-100 pt-4">
+                <div className="text-[10px] font-bold text-slate-400 mb-2">코스 QR 코드</div>
+                <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col items-center">
+                  <img src={qrUrl} alt="QR" className="w-[120px] h-[120px] rounded"/>
+                  <div className="flex gap-1.5 mt-3">
+                    <button className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center gap-1"><Download size={10}/> png</button>
+                    <button className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center gap-1"><Copy size={10}/> 링크 복사</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4">
+                <div className="text-[10px] font-bold text-slate-400 mb-1">분류</div>
+                <div className="text-[12px] font-bold text-slate-700">{COURSE.category}</div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4">
+                <div className="text-[10px] font-bold text-slate-400 mb-1">강사</div>
+                <div className="text-[12px] font-bold text-slate-700">{COURSE.instructor}</div>
+              </div>
+
+              {/* 종료 버튼 */}
+              <button className="w-full flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[12px] py-2.5 rounded-xl transition-colors">
+                <Power size={13}/> 종료하기
+              </button>
+            </aside>
+
+            {/* ── 메인 콘텐츠 ── */}
+            <main className="flex-1 overflow-y-auto custom-scrollbar">
+              {/* 탭 */}
+              <div className="bg-white border-b border-slate-200 px-8 flex items-center gap-1">
+                {TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-5 py-3 text-[13px] font-bold border-b-2 transition-colors flex items-center gap-1.5
+                      ${activeTab === tab.id ? 'border-[#5c66f2] text-[#5c66f2] bg-indigo-50/50' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <tab.icon size={14}/> {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-8">
+
+                {/* ═══ 요약 탭 ═══ */}
+                {activeTab === 'summary' && (
+                  <div className="animate-fadeIn space-y-6">
+                    <h3 className="text-[14px] font-bold text-slate-800">코스 정보</h3>
+                    <div className="grid grid-cols-4 gap-4">
+                      {[
+                        { label: '총 인원', value: `${pkg?.enrolled}`, unit: '명', color: 'text-slate-800' },
+                        { label: '출석 인원', value: `${stats.present}`, unit: `명 (미출석: ${stats.pending + stats.absent})`, color: 'text-indigo-600' },
+                        { label: '평균 출석률', value: `${stats.rate}`, unit: '%', color: 'text-emerald-600' },
+                        { label: '다음 교육일', value: fmtDate(pkg?.startDate), unit: '', color: 'text-slate-800' },
+                      ].map((s, i) => (
+                        <div key={i} className="bg-white border border-slate-200 rounded-xl p-5">
+                          <div className="text-[11px] font-bold text-slate-400 mb-2">{s.label}</div>
+                          <div className={`text-[26px] font-black ${s.color} leading-none`}>
+                            {s.value}
+                            <span className="text-[12px] text-slate-400 font-semibold ml-1">{s.unit}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 회차별 출석률 */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-[13px] font-bold text-slate-800">회차별 출석 현황</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {pkg?.sessions.map(sess => {
+                          const ss = getSessionStats(sess.id);
+                          return (
+                            <div key={sess.id} className="flex items-center gap-4 bg-slate-50 rounded-lg p-3">
+                              <div className="w-[200px]">
+                                <div className="text-[12px] font-bold text-slate-700">{sess.name}</div>
+                                <div className="text-[10px] text-slate-400">{fmtDate(sess.date)} · {sess.startTime}~{sess.endTime}</div>
+                              </div>
+                              <div className="flex-1">
+                                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                  <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${ss.rate}%` }}/>
+                                </div>
+                              </div>
+                              <div className="text-[12px] font-black text-slate-800 w-[60px] text-right">{ss.rate}%</div>
+                              <div className="text-[11px] text-slate-400 w-[80px] text-right">{ss.present}/{ss.total}명</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 패키지별 비교 */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-[13px] font-bold text-slate-800">패키지(반) 비교</h4>
+                      </div>
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="text-[10px] font-bold text-slate-400 border-b border-slate-100">
+                            <th className="py-2 pr-4">패키지명</th>
+                            <th className="py-2 pr-4">기간</th>
+                            <th className="py-2 pr-4">장소</th>
+                            <th className="py-2 pr-4 text-center">회차</th>
+                            <th className="py-2 pr-4 text-right">정원</th>
+                            <th className="py-2 pr-4 text-right">신청</th>
+                            <th className="py-2 text-right">잔여</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {PACKAGES.map(p => (
+                            <tr key={p.id} className="text-[11px] border-b border-slate-50 last:border-0">
+                              <td className="py-2.5 pr-4 font-bold text-slate-700">{p.name}</td>
+                              <td className="py-2.5 pr-4 text-slate-600">{fmtDate(p.startDate)} ~ {fmtDate(p.endDate)}</td>
+                              <td className="py-2.5 pr-4 text-slate-500">{p.place}</td>
+                              <td className="py-2.5 pr-4 text-center text-slate-600">{p.sessions.length}회</td>
+                              <td className="py-2.5 pr-4 text-right text-slate-600">{p.capacity}명</td>
+                              <td className="py-2.5 pr-4 text-right font-bold text-slate-800">{p.enrolled}명</td>
+                              <td className="py-2.5 text-right font-bold text-emerald-600">{p.capacity - p.enrolled}석</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ═══ 수강 탭 ═══ */}
+                {activeTab === 'students' && (
+                  <div className="animate-fadeIn">
+                    {/* 상단 액션바 */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <span className="text-[13px] font-bold text-slate-700">총 <span className="text-indigo-600">{STUDENTS_P1.length}</span></span>
+                        <div className="relative">
+                          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300"/>
+                          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="이름 / 아이디 검색"
+                            className="border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[12px] w-[200px] outline-none focus:border-indigo-400 bg-white placeholder-slate-300"/>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button className="text-[11px] font-bold text-rose-500 border border-rose-200 bg-rose-50 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition-colors">전체 수강생 삭제</button>
+                        <button className="text-[11px] font-bold text-slate-600 border border-slate-200 bg-white px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors">전체 수강 기간 변경</button>
+                      </div>
+                    </div>
+
+                    {/* 필터 */}
+                    <div className="bg-white border border-slate-200 rounded-t-xl px-4 py-2.5 flex items-center gap-2">
+                      <button className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold border border-dashed border-slate-300 rounded-lg px-2.5 py-1 hover:border-indigo-400 hover:text-indigo-500 transition-colors">
+                        <Plus size={11}/> 필터 추가
+                      </button>
+                    </div>
+
+                    {/* 수강생 테이블 */}
+                    <div className="bg-white border border-t-0 border-slate-200 rounded-b-xl overflow-hidden">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b border-slate-100 bg-slate-50/80">
+                            <th className="w-10 px-3 py-2.5"><input type="checkbox" className="w-4 h-4 rounded accent-indigo-600"/></th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[60px]">상태</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[36px]">사진</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400">이름</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400">아이디</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400">그룹</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[80px] text-center">출석률</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[100px]">수강 기간</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[50px] text-center">상세</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[50px] text-center">관리</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {STUDENTS_P1.filter(st => !search || st.name.includes(search) || st.username.includes(search)).map(st => {
+                            // 출석률 계산
+                            const totalSess = pkg?.sessions.length || 0;
+                            const attended = pkg?.sessions.filter(s => {
+                              const status = attendance[s.id]?.[st.id];
+                              return status === 'attended' || status === 'late' || status === 'excused';
+                            }).length || 0;
+                            const attRate = totalSess > 0 ? Math.round(attended / totalSess * 100) : 0;
+                            return (
+                              <tr key={st.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                                <td className="px-3 py-2.5"><input type="checkbox" className="w-4 h-4 rounded accent-indigo-600"/></td>
+                                <td className="px-3 py-2.5">
+                                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded whitespace-nowrap">학습 중</span>
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-400">
+                                    <Users size={14}/>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-[12px] font-bold text-slate-800">{st.name}</td>
+                                <td className="px-3 py-2.5 text-[12px] text-slate-500">{st.username}</td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex flex-wrap gap-1">
+                                    {st.groups.map((g, i) => (
+                                      <span key={i} className="text-[10px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">{g}</span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-center">
+                                  <span className={`text-[12px] font-bold ${attRate === 100 ? 'text-emerald-600' : attRate > 0 ? 'text-amber-600' : 'text-slate-400'}`}>{attRate}%</span>
+                                </td>
+                                <td className="px-3 py-2.5 text-[10px] text-slate-500 font-medium whitespace-nowrap">제한 없음 <Edit3 size={10} className="inline text-slate-300 ml-1"/></td>
+                                <td className="px-3 py-2.5 text-center"><button className="text-slate-400 hover:text-indigo-600"><Eye size={14}/></button></td>
+                                <td className="px-3 py-2.5 text-center"><button className="text-slate-400 hover:text-rose-500"><Trash2 size={14}/></button></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ═══ 출석 탭 ═══ */}
+                {activeTab === 'attendance' && (
+                  <div className="animate-fadeIn">
+                    {/* 회차 선택 바 */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex items-center gap-3 flex-wrap">
+                      {pkg?.sessions.map((sess, i) => {
+                        const ss = getSessionStats(sess.id);
+                        return (
+                          <button
+                            key={sess.id}
+                            onClick={() => setSelectedSession(sess.id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold border-2 transition-all
+                              ${selectedSession === sess.id ? 'border-[#5c66f2] bg-indigo-50 text-[#5c66f2]' : 'border-slate-200 text-slate-500 hover:border-indigo-200'}`}
+                          >
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold
+                              ${selectedSession === sess.id ? 'bg-[#5c66f2] text-white' : 'bg-slate-200 text-slate-500'}`}>{i + 1}</span>
+                            {sess.name}
+                            <span className="text-[10px] text-slate-400 ml-1">{ss.rate}%</span>
+                          </button>
+                        );
+                      })}
+
+                      <div className="ml-auto flex items-center gap-2">
+                        <button onClick={() => setLiveMode(true)}
+                          className="px-4 py-2 bg-[#5c66f2] text-white rounded-xl text-[12px] font-bold hover:bg-[#4a54e1] transition-colors flex items-center gap-1.5 shadow-sm">
+                          <Maximize2 size={13}/> 라이브 출석 모드
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 회차 정보 요약 */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex items-center gap-6">
+                      <div className="flex items-center gap-2 text-[12px] text-slate-600">
+                        <Calendar size={13} className="text-slate-400"/>
+                        <span className="font-bold">출석 기간</span>
+                        <span>{fmtDate(session?.date)} {session?.startTime} ~ {session?.endTime}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[12px]">
+                        <span className="font-bold text-emerald-600">출석 {stats.present}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[12px]">
+                        <span className="font-bold text-rose-500">미출석 {stats.pending + stats.absent}</span>
+                      </div>
+                    </div>
+
+                    {/* 필터 */}
+                    <div className="bg-white border border-slate-200 rounded-t-xl px-4 py-2.5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold border border-dashed border-slate-300 rounded-lg px-2.5 py-1 hover:border-indigo-400 hover:text-indigo-500 transition-colors">
+                          <Plus size={11}/> 필터 추가
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-slate-500">총 {stats.total}</span>
+                        <button className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center gap-1"><Download size={10}/> 다운로드</button>
+                      </div>
+                    </div>
+
+                    {/* 출석 테이블 */}
+                    <div className="bg-white border border-t-0 border-slate-200 rounded-b-xl overflow-hidden">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b border-slate-100 bg-slate-50/80">
+                            <th className="w-10 px-3 py-2.5"><input type="checkbox" className="w-4 h-4 rounded accent-indigo-600"/></th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[70px]">상태</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[36px]">사진</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400">이름</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400">아이디</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400">그룹</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[130px]">출석 시간</th>
+                            <th className="px-3 py-2.5 text-[10px] font-bold text-slate-400 w-[110px] text-center">관리</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {STUDENTS_P1.map(st => {
+                            const attStatus = attendance[selectedSession]?.[st.id] || 'pending';
+                            const cfg = ATT_STATUS[attStatus];
+                            const Icon = cfg.icon;
+                            return (
+                              <tr key={st.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                                <td className="px-3 py-2.5"><input type="checkbox" className="w-4 h-4 rounded accent-indigo-600"/></td>
+                                <td className="px-3 py-2.5">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap ${cfg.bg} ${cfg.text}`}>
+                                    <Icon size={11}/> {cfg.label}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-400"><Users size={14}/></div>
+                                </td>
+                                <td className="px-3 py-2.5 text-[12px] font-bold text-slate-800">{st.name}</td>
+                                <td className="px-3 py-2.5 text-[12px] text-slate-500">{st.username}</td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex flex-wrap gap-1">
+                                    {st.groups.map((g, i) => (
+                                      <span key={i} className="text-[10px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">{g}</span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-[11px] text-slate-500 font-medium">
+                                  {attStatus === 'attended' || attStatus === 'late' ? '09:03' : '-'}
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex items-center justify-center gap-1">
+                                    {attStatus === 'pending' ? (
+                                      <button
+                                        onClick={() => handleStatusChange(st.id, selectedSession, 'attended')}
+                                        className="text-[10px] font-bold text-white bg-[#5c66f2] px-3 py-1.5 rounded-lg hover:bg-[#4a54e1] transition-colors"
+                                      >
+                                        출석인정
+                                      </button>
+                                    ) : (
+                                      <select
+                                        value={attStatus}
+                                        onChange={e => handleStatusChange(st.id, selectedSession, e.target.value)}
+                                        className={`text-[10px] font-bold rounded-lg px-2 py-1 border outline-none ${cfg.bg} ${cfg.text} border-current/20`}
+                                      >
+                                        <option value="attended">출석</option>
+                                        <option value="late">지각</option>
+                                        <option value="early_leave">조퇴</option>
+                                        <option value="excused">출석인정</option>
+                                        <option value="absent">결석</option>
+                                        <option value="pending">미확인</option>
+                                      </select>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ═══ 일정 탭 ═══ */}
+                {activeTab === 'schedule' && (
+                  <div className="animate-fadeIn space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-[14px] font-bold text-slate-800">회차별 일정</h3>
+                      <a href="admin1.html" className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                        <Edit3 size={11}/> 코스 편집
+                      </a>
+                    </div>
+                    {pkg?.sessions.map((sess, i) => {
+                      const ss = getSessionStats(sess.id);
+                      return (
+                        <div key={sess.id} className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-6">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[14px] font-black shrink-0
+                            ${ss.rate === 100 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-indigo-50 text-indigo-600 border border-indigo-200'}`}>
+                            {i + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13px] font-bold text-slate-800">{sess.name}</div>
+                            <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-3">
+                              <span className="flex items-center gap-1"><Calendar size={10}/> {fmtDate(sess.date)}</span>
+                              <span className="flex items-center gap-1"><Clock size={10}/> {sess.startTime} ~ {sess.endTime}</span>
+                              <span className="flex items-center gap-1"><MapPin size={10}/> {sess.place}</span>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-[12px] font-bold text-slate-700">출석 {ss.present}/{ss.total}명</div>
+                            <div className={`text-[11px] font-bold ${ss.rate === 100 ? 'text-emerald-600' : ss.rate > 0 ? 'text-amber-600' : 'text-slate-400'}`}>{ss.rate}%</div>
+                          </div>
+                          {ss.rate === 100 && (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">완료</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ═══ 설문 탭 ═══ */}
+                {activeTab === 'survey' && (
+                  <div className="animate-fadeIn text-center py-20">
+                    <MessageSquare size={40} className="text-slate-200 mx-auto mb-3"/>
+                    <div className="text-[14px] font-bold text-slate-400 mb-1">설문이 등록되지 않았습니다</div>
+                    <div className="text-[12px] text-slate-400">코스 편집에서 설문을 추가할 수 있습니다.</div>
+                  </div>
+                )}
+              </div>
+            </main>
+          </div>
+
+          {/* 토스트 */}
+          <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
+            {toasts.map(t => (
+              <div key={t.id} className="bg-slate-800 text-white px-5 py-3 rounded-xl text-[12px] font-bold shadow-xl animate-slide-up flex items-center gap-2">
+                <CheckCircle size={14} className="text-emerald-400"/> {t.msg}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>
