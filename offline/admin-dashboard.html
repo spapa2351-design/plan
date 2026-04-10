@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스 대시보드</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Pretendard"','"Inter"','-apple-system','sans-serif'] },
+          colors: {
+            indigo: { 50:'#EEF0FF',100:'#E0E4FF',200:'#C7CDFF',300:'#9BA8FF',
+                      400:'#7B8AFF',500:'#5569FF',600:'#4454CC',700:'#3340A6' },
+          },
+          boxShadow: { card:'0px 2px 8px rgba(159,162,191,.18)' },
+        },
+      },
+    };
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family:'Pretendard',sans-serif; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+    .animate-in { animation: fadeIn .25s ease-out; }
+    .custom-scroll::-webkit-scrollbar { width:5px }
+    .custom-scroll::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:4px }
+    @keyframes pulse-live { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .pulse-live { animation: pulse-live 1.4s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-[#f2f5f9] text-slate-800 antialiased">
+<div id="root"></div>
+
+<script type="text/babel" data-type="module">
+import React, { useState, useMemo } from 'https://esm.sh/react@18.2.0';
+import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+import * as L from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0';
+
+const {
+  ChevronLeft, ChevronRight, QrCode, Calendar, MapPin, Users, Clock,
+  CheckCircle, AlertTriangle, AlertCircle, X, Edit3, UserCheck,
+  BarChart3, MessageSquare, TrendingUp, Phone, Maximize2, ArrowRight,
+  Info, Circle, CheckSquare,
+} = L;
+
+/* ═══════════════════════════════════
+   더미 데이터
+═══════════════════════════════════ */
+const TODAY = '2026-04-10';
+
+const COURSE = {
+  title: '2026 직무교육 — 프로젝트 관리 심화',
+  category: '직무 역량', instructor: '김민준',
+  location: '한샘 HQ B동 3층', threshold: 75,
+};
+
+const PKG_CFG = {
+  p1: { dot:'bg-indigo-500', light:'bg-indigo-50', text:'text-indigo-600', border:'border-indigo-200', bar:'bg-indigo-500', hex:'#5569FF' },
+  p2: { dot:'bg-emerald-500', light:'bg-emerald-50', text:'text-emerald-600', border:'border-emerald-200', bar:'bg-emerald-500', hex:'#10B981' },
+};
+
+const PACKAGES = [
+  {
+    id:'p1', name:'A반', label:'A반 (4/7)', capacity:30, enrolled:30,
+    sessions:[
+      { id:'s1', name:'1회차', date:'2026-04-07', start:'09:00', end:'18:00', attended:27, late:1, absent:2, total:30, status:'done' },
+      { id:'s2', name:'2회차', date:'2026-04-12', start:'09:00', end:'18:00', attended:0, late:0, absent:0, total:30, status:'upcoming' },
+      { id:'s3', name:'3회차', date:'2026-04-19', start:'09:00', end:'18:00', attended:0, late:0, absent:0, total:30, status:'upcoming' },
+      { id:'s4', name:'4회차', date:'2026-04-26', start:'09:00', end:'18:00', attended:0, late:0, absent:0, total:30, status:'upcoming' },
+    ],
+    atRisk: 3, absentCount: 2,
+  },
+  {
+    id:'p2', name:'B반', label:'B반 (4/8)', capacity:30, enrolled:25,
+    sessions:[
+      { id:'s5', name:'1회차', date:'2026-04-08', start:'09:00', end:'18:00', attended:23, late:1, absent:1, total:25, status:'done' },
+      { id:'s6', name:'2회차', date:'2026-04-13', start:'09:00', end:'18:00', attended:0, late:0, absent:0, total:25, status:'upcoming' },
+      { id:'s7', name:'3회차', date:'2026-04-20', start:'09:00', end:'18:00', attended:0, late:0, absent:0, total:25, status:'upcoming' },
+      { id:'s8', name:'4회차', date:'2026-04-27', start:'09:00', end:'18:00', attended:0, late:0, absent:0, total:25, status:'upcoming' },
+    ],
+    atRisk: 2, absentCount: 1,
+  },
+];
+
+const DAY_KO = ['일','월','화','수','목','금','토'];
+
+function calDays(y, m) {
+  const first = new Date(y, m-1, 1).getDay();
+  const last  = new Date(y, m, 0).getDate();
+  const days  = [...Array(first).fill(null), ...Array.from({length:last},(_,i)=>i+1)];
+  while (days.length % 7) days.push(null);
+  return days;
+}
+function pad(y,m,d){ return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function dDay(date){
+  const diff = Math.ceil((new Date(date)-new Date(TODAY))/86400000);
+  if(diff===0) return 'TODAY';
+  return diff>0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+}
+function fmtDate(date){
+  const d=new Date(date);
+  return `${d.getMonth()+1}/${d.getDate()}(${DAY_KO[d.getDay()]})`;
+}
+
+/* ═══════════════════════════════════
+   App
+═══════════════════════════════════ */
+function App() {
+  const [calMonth, setCalMonth] = useState(4);
+  const [dismissed, setDismissed] = useState([]);
+  const [activeTab, setActiveTab] = useState('summary');
+
+  const days = useMemo(()=>calDays(2026, calMonth),[calMonth]);
+
+  const sessByDate = useMemo(()=>{
+    const m={};
+    PACKAGES.forEach(p=>p.sessions.forEach(s=>{
+      if(!m[s.date]) m[s.date]=[];
+      m[s.date].push({...s, pkgId:p.id, pkgName:p.name});
+    }));
+    return m;
+  },[]);
+
+  const allUpcoming = PACKAGES
+    .flatMap(p=>p.sessions.filter(s=>s.date>=TODAY&&s.status==='upcoming').map(s=>({...s,pkgId:p.id,pkgName:p.name})))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  const nextSess = allUpcoming[0] || null;
+
+  const ALERTS = [
+    { id:'a1', type:'error', msg:'A반 1회차 결석 2명 미확인 처리', action:'확인하기' },
+    { id:'a2', type:'warn',  msg:'A반 잔여석 0 — 마감', action:null },
+    { id:'a3', type:'warn',  msg:'수료 위험 수강생 5명 (현재 기준)', action:'보기' },
+  ].filter(a=>!dismissed.includes(a.id));
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+
+      {/* ── Sidebar ── */}
+      <aside className="w-[210px] flex-shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-100">
+          <a href="index.html" className="flex items-center gap-1.5 text-[13px] font-bold text-slate-400 hover:text-indigo-500 transition-colors">
+            <ChevronLeft size={15}/> 코스 목록
+          </a>
+        </div>
+        <div className="px-4 py-4 border-b border-slate-100">
+          <div className="w-full aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-4xl mb-3 shadow-sm">📋</div>
+          <div className="text-[13px] font-bold text-slate-800 leading-snug mb-1">{COURSE.title}</div>
+          <div className="text-[11px] text-slate-400">{COURSE.category} · {COURSE.instructor}</div>
+        </div>
+        <div className="px-4 py-3 border-b border-slate-100 space-y-2">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">패키지(반)</div>
+          {PACKAGES.map(p=>{
+            const c=PKG_CFG[p.id];
+            const done=p.sessions.filter(s=>s.status==='done').length;
+            const rem=p.capacity-p.enrolled;
+            return (
+              <div key={p.id} className={`rounded-xl border p-2.5 ${c.light} ${c.border}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-2 h-2 rounded-full ${c.dot}`}/>
+                    <span className={`text-[12px] font-black ${c.text}`}>{p.label}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">{done}/{p.sessions.length}회차</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500 flex items-center gap-1"><Users size={10}/>{p.enrolled}/{p.capacity}명</span>
+                  {rem<=0
+                    ? <span className="font-bold text-rose-500">마감</span>
+                    : <span className="text-slate-400">잔여 {rem}석</span>
+                  }
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="px-4 py-3 flex-1 space-y-2 text-[11px] text-slate-400">
+          <div className="flex items-start gap-1.5"><MapPin size={11} className="mt-0.5 flex-shrink-0"/>{COURSE.location}</div>
+          <div className="flex items-center gap-1.5"><CheckCircle size={11}/>수료 기준 {COURSE.threshold}% 이상</div>
+        </div>
+        <div className="px-4 py-3 border-t border-slate-100">
+          <button className="w-full h-10 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-colors shadow-sm">
+            <Maximize2 size={13}/> 라이브 출석
+          </button>
+        </div>
+      </aside>
+
+      {/* ── 메인 ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Header */}
+        <div className="bg-white border-b border-slate-200 px-6 h-[56px] flex items-center justify-between flex-shrink-0">
+          <div>
+            <h1 className="text-[15px] font-black text-slate-800">{COURSE.title}</h1>
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+              <span>{COURSE.category}</span><span>·</span>
+              <span>{COURSE.instructor}</span><span>·</span>
+              <span>{COURSE.location}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="h-8 px-3 text-[12px] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 flex items-center gap-1.5">
+              <Edit3 size={12}/> 코스 편집
+            </button>
+            <button className="h-8 px-3 text-[12px] font-bold text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 flex items-center gap-1.5 shadow-sm">
+              <UserCheck size={12}/> 수강생 등록
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-white border-b border-slate-200 px-6 flex items-center flex-shrink-0">
+          {[
+            {id:'summary',label:'요약',Icon:BarChart3},
+            {id:'students',label:'수강',Icon:Users},
+            {id:'attendance',label:'출석',Icon:UserCheck},
+            {id:'survey',label:'설문',Icon:MessageSquare},
+          ].map(t=>(
+            <button key={t.id} onClick={()=>setActiveTab(t.id)}
+              className={`h-11 px-4 flex items-center gap-1.5 text-[13px] font-bold border-b-2 mr-0.5 transition-colors ${
+                activeTab===t.id ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}>
+              <t.Icon size={13}/>{t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto custom-scroll px-6 py-5 space-y-4 animate-in">
+
+          {/* ① 오늘 상태 바 */}
+          <TodayBar nextSess={nextSess}/>
+
+          {/* ② 알림 */}
+          {ALERTS.length>0 && (
+            <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 flex flex-wrap gap-2 items-center">
+              <span className="text-[11px] font-bold text-slate-300 mr-1 flex-shrink-0">주의사항</span>
+              {ALERTS.map(a=>(
+                <AlertChip key={a.id} alert={a} onClose={()=>setDismissed(d=>[...d,a.id])}/>
+              ))}
+            </div>
+          )}
+
+          {/* ③ 패키지 카드 */}
+          <div className="grid grid-cols-2 gap-4">
+            {PACKAGES.map(p=><PackageCard key={p.id} pkg={p}/>)}
+          </div>
+
+          {/* ④ 캘린더 */}
+          <CalSection
+            month={calMonth} days={days} byDate={sessByDate}
+            onPrev={()=>setCalMonth(m=>m>1?m-1:12)}
+            onNext={()=>setCalMonth(m=>m<12?m+1:1)}
+          />
+
+          {/* ⑤ 수료 예측 */}
+          <CompletionForecast/>
+
+          <div className="h-4"/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── TodayBar ─── */
+function TodayBar({nextSess}) {
+  const isToday = nextSess?.date === TODAY;
+  if (!nextSess) return (
+    <div className="bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center gap-3 text-slate-400">
+      <Calendar size={18}/>
+      <span className="text-[13px] font-bold">예정된 회차가 없습니다</span>
+    </div>
+  );
+  return (
+    <div className={`rounded-2xl px-5 py-4 flex items-center gap-4 ${isToday ? 'bg-indigo-600' : 'bg-white border border-slate-200'}`}>
+      {isToday ? (
+        <>
+          <div className="flex items-center gap-2 flex-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-white pulse-live"/>
+            <div>
+              <div className="text-[11px] font-bold text-indigo-200 mb-0.5">오늘 교육</div>
+              <div className="text-[16px] font-black text-white">
+                {nextSess.pkgName} · {nextSess.name}
+              </div>
+              <div className="text-[12px] text-indigo-200 mt-0.5">
+                {fmtDate(nextSess.date)} · {nextSess.start}–{nextSess.end} · {COURSE.location}
+              </div>
+            </div>
+          </div>
+          <button className="h-10 px-4 bg-white text-indigo-600 rounded-xl text-[13px] font-black flex items-center gap-2 shadow-sm">
+            <QrCode size={14}/> QR 출석 시작
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+            <Calendar size={18} className="text-indigo-500"/>
+          </div>
+          <div className="flex-1">
+            <div className="text-[11px] font-bold text-slate-400 mb-0.5">오늘 교육 없음 · 다음 교육</div>
+            <div className="flex items-center gap-2">
+              <span className="text-[15px] font-black text-slate-800">
+                {nextSess.pkgName} · {nextSess.name}
+              </span>
+              <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg">
+                {dDay(nextSess.date)}
+              </span>
+            </div>
+            <div className="text-[12px] text-slate-400 mt-0.5">
+              {fmtDate(nextSess.date)} · {nextSess.start}–{nextSess.end} · {COURSE.location}
+            </div>
+          </div>
+          <button className="h-9 px-4 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-[12px] font-bold flex items-center gap-1.5 transition-colors shadow-sm">
+            <Maximize2 size={12}/> 라이브 준비
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─── AlertChip ─── */
+function AlertChip({alert, onClose}) {
+  const styles = {
+    error: 'bg-rose-50 border-rose-200 text-rose-700',
+    warn:  'bg-amber-50 border-amber-200 text-amber-700',
+  };
+  const Icon = alert.type==='error' ? AlertCircle : AlertTriangle;
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12px] font-bold ${styles[alert.type]}`}>
+      <Icon size={11}/>
+      {alert.msg}
+      {alert.action && <button className="ml-0.5 underline opacity-75 hover:opacity-100">{alert.action}</button>}
+      <button onClick={onClose} className="ml-1 opacity-40 hover:opacity-80 transition-opacity"><X size={10}/></button>
+    </div>
+  );
+}
+
+/* ─── PackageCard ─── */
+function PackageCard({pkg}) {
+  const c = PKG_CFG[pkg.id];
+  const done = pkg.sessions.filter(s=>s.status==='done');
+  const doneCount = done.length;
+  const total = pkg.sessions.length;
+  const avgRate = doneCount>0
+    ? Math.round(done.reduce((s,x)=>s+x.attended/x.total*100, 0)/doneCount)
+    : null;
+  const nextSess = pkg.sessions.find(s=>s.status==='upcoming');
+  const rem = pkg.capacity - pkg.enrolled;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-card">
+      {/* 헤더 */}
+      <div className={`px-4 py-3 flex items-center justify-between border-b ${c.border} ${c.light}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-2.5 h-2.5 rounded-full ${c.dot}`}/>
+          <span className={`text-[14px] font-black ${c.text}`}>{pkg.label}</span>
+        </div>
+        <div className="flex items-center gap-2 text-[11px]">
+          <span className="text-slate-400">{doneCount}/{total}회차</span>
+          {rem<=0
+            ? <span className="font-bold text-rose-500 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">마감</span>
+            : <span className="text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-md">잔여 {rem}석</span>
+          }
+        </div>
+      </div>
+
+      {/* 핵심 수치 */}
+      <div className="px-4 py-4 grid grid-cols-3 divide-x divide-slate-100">
+        <Metric label="수강 인원" value={`${pkg.enrolled}/${pkg.capacity}`} unit="명"/>
+        <Metric label="평균 출석률" value={avgRate!==null ? `${avgRate}` : '—'} unit={avgRate!==null?'%':''} color={avgRate!==null&&avgRate<75?'text-rose-500':'text-slate-800'}/>
+        <Metric label="수료 위험" value={`${pkg.atRisk}`} unit="명" color="text-amber-500"/>
+      </div>
+
+      {/* 회차별 출석 바 */}
+      <div className="px-4 pb-3 space-y-2">
+        <div className="text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wide">회차별 출석률</div>
+        {pkg.sessions.map((sess,i)=>{
+          const isDone = sess.status==='done';
+          const rate = isDone ? Math.round(sess.attended/sess.total*100) : null;
+          return (
+            <div key={sess.id} className="flex items-center gap-2">
+              <div className="text-[10px] text-slate-400 w-10 flex-shrink-0 font-semibold">{i+1}회차</div>
+              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                {isDone && (
+                  <div className={`h-full rounded-full transition-all ${rate>=75?c.bar:'bg-amber-400'}`}
+                       style={{width:`${rate}%`}}/>
+                )}
+                {/* 수료 기준선 */}
+                <div className="absolute top-0 h-full w-px bg-slate-300" style={{left:'75%'}}/>
+              </div>
+              <div className="text-[10px] font-bold w-12 text-right">
+                {isDone
+                  ? <span className={rate>=75?c.text:'text-amber-500'}>{rate}%</span>
+                  : <span className="text-slate-300">{fmtDate(sess.date)}</span>
+                }
+              </div>
+            </div>
+          );
+        })}
+        <div className="text-[10px] text-slate-300 mt-0.5">▲ 수료 기준선 75%</div>
+      </div>
+
+      {/* 다음 회차 */}
+      {nextSess && (
+        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-bold text-slate-400 mb-0.5">다음 회차</div>
+            <div className="text-[13px] font-bold text-slate-700">
+              {nextSess.name}
+              <span className="text-slate-400 font-normal ml-1 text-[12px]">
+                {fmtDate(nextSess.date)} · {nextSess.start}–{nextSess.end}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${c.light} ${c.text}`}>
+              {dDay(nextSess.date)}
+            </span>
+            <button className={`h-7 px-3 text-[11px] font-bold rounded-lg flex items-center gap-1 ${c.light} ${c.text} border ${c.border} hover:opacity-80 transition-opacity`}>
+              출석 관리 <ArrowRight size={11}/>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Metric({label, value, unit, color='text-slate-800'}) {
+  return (
+    <div className="px-3 text-center first:pl-0 last:pr-0">
+      <div className="text-[10px] font-bold text-slate-400 mb-1">{label}</div>
+      <div className={`text-[22px] font-black leading-none ${color}`}>{value}<span className="text-[12px] font-bold ml-0.5">{unit}</span></div>
+    </div>
+  );
+}
+
+/* ─── Calendar ─── */
+function CalSection({month, days, byDate, onPrev, onNext}) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      {/* 헤더 */}
+      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calendar size={14} className="text-slate-400"/>
+          <span className="text-[14px] font-black text-slate-800">2026년 {month}월 교육 일정</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* 범례 */}
+          {PACKAGES.map(p=>{
+            const c=PKG_CFG[p.id];
+            return (
+              <div key={p.id} className={`flex items-center gap-1.5 text-[11px] font-bold ${c.text} ${c.light} border ${c.border} px-2.5 py-1 rounded-lg`}>
+                <div className={`w-2 h-2 rounded-full ${c.dot}`}/>
+                {p.name}
+              </div>
+            );
+          })}
+          <div className="flex gap-1 ml-2">
+            <button onClick={onPrev} className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronLeft size={13}/></button>
+            <button onClick={onNext} className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronRight size={13}/></button>
+          </div>
+        </div>
+      </div>
+
+      {/* 요일 */}
+      <div className="grid grid-cols-7 border-b border-slate-100">
+        {DAY_KO.map((d,i)=>(
+          <div key={d} className={`py-2 text-center text-[11px] font-bold ${i===0?'text-rose-400':i===6?'text-blue-400':'text-slate-400'}`}>{d}</div>
+        ))}
+      </div>
+
+      {/* 날짜 */}
+      <div className="grid grid-cols-7">
+        {days.map((day,i)=>{
+          if(!day) return <div key={`e${i}`} className="min-h-[80px] border-b border-r border-slate-50 bg-slate-50/30"/>;
+          const dateStr = pad(2026, month, day);
+          const isToday = dateStr===TODAY;
+          const sessions = byDate[dateStr] || [];
+          const dow = i%7;
+          const isSun = dow===0, isSat = dow===6;
+          return (
+            <div key={day}
+              className={`min-h-[80px] p-1.5 border-b border-r border-slate-50 ${isToday?'bg-indigo-50/80':''} ${isSat?'border-r-0':''}`}>
+              {/* 날짜 숫자 */}
+              <div className={`w-6 h-6 text-[11px] font-bold flex items-center justify-center rounded-full mb-1 ${
+                isToday ? 'bg-indigo-500 text-white' :
+                isSun ? 'text-rose-400' :
+                isSat ? 'text-blue-400' :
+                'text-slate-500'
+              }`}>{day}</div>
+              {/* 세션 칩 */}
+              <div className="space-y-0.5">
+                {sessions.map(sess=>{
+                  const c = PKG_CFG[sess.pkgId];
+                  const isDone = sess.status==='done';
+                  const rate = isDone ? Math.round(sess.attended/sess.total*100) : null;
+                  return (
+                    <div key={sess.id}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer hover:opacity-75 transition-opacity ${c.light} ${c.text} ${isDone?'opacity-60':''}`}>
+                      {isDone
+                        ? <CheckCircle size={9}/>
+                        : <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`}/>
+                      }
+                      <span className="truncate flex-1">{sess.pkgName} {sess.name}</span>
+                      {rate!==null && <span className="flex-shrink-0 ml-auto">{rate}%</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Completion Forecast ─── */
+function CompletionForecast() {
+  const rows = [
+    { label:'수료 가능', count:50, total:55, color:'bg-emerald-500', text:'text-emerald-600', note:'현재 출석 기준 이후 전 회차 참석 시' },
+    { label:'수료 위험', count:5,  total:55, color:'bg-amber-400',   text:'text-amber-600',  note:'1회차 결석 — 최종 기준 초과 가능성', action:true },
+  ];
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
+        <TrendingUp size={14} className="text-slate-400"/>
+        <span className="text-[14px] font-black text-slate-800">수료 예측</span>
+        <span className="text-[11px] text-slate-400 font-semibold">기준: {COURSE.threshold}% 이상</span>
+        <div className="ml-auto text-[11px] text-slate-300 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1">
+          <Info size={10}/> 1회차 완료 기준 — 최종 결과 변동 가능
+        </div>
+      </div>
+      <div className="p-5 space-y-3">
+        {rows.map(row=>(
+          <div key={row.label} className="flex items-center gap-3">
+            <div className="w-20 text-[12px] font-bold text-slate-600 flex-shrink-0">{row.label}</div>
+            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-700 ${row.color}`}
+                   style={{width:`${row.count/row.total*100}%`}}/>
+            </div>
+            <div className={`w-20 text-[13px] font-black flex-shrink-0 ${row.text}`}>
+              {row.count}명
+              <span className="text-[11px] font-bold ml-0.5">({Math.round(row.count/row.total*100)}%)</span>
+            </div>
+            <div className="text-[11px] text-slate-400 flex-1">{row.note}</div>
+            {row.action && (
+              <button className="flex-shrink-0 flex items-center gap-1 text-[11px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors">
+                <Phone size={10}/> 연락하기
+              </button>
+            )}
+          </div>
+        ))}
+        <div className="pt-2 text-[11px] text-slate-300 border-t border-slate-50">
+          수료 확정 인원은 전 회차 완료 후 산정됩니다
+        </div>
+      </div>
+    </div>
+  );
+}
+
+createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
