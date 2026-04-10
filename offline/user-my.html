@@ -781,10 +781,7 @@ function setFilter(el, type) {
 }
 
 /* ── Proto View toggle ── */
-function setView(view) {
-  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
-  event.target.classList.add('active');
-
+function applyView(view) {
   const hasCourses = document.getElementById('view-has-courses');
   const empty = document.getElementById('view-empty');
   const heroNormal = document.getElementById('hero-normal');
@@ -792,21 +789,17 @@ function setView(view) {
   const heroBusy = document.getElementById('hero-busy');
   const card1Next = document.getElementById('card1-next');
 
-  /* 기본: 전부 숨기기 */
   hasCourses.style.display = 'none';
   empty.style.display = 'none';
   heroNormal.style.display = 'none';
   heroToday.style.display = 'none';
   heroBusy.style.display = 'none';
 
-  /* 뷰별 표시 */
   if (view === 'empty') {
     empty.style.display = '';
   } else {
     hasCourses.style.display = '';
-
     if (view === 'no-hero') {
-      /* D-7 이상: 히어로 없음, 코스 카드만 */
       card1Next.innerHTML = '<span class="dday">D-24</span><span>3회차 · 5/3(토) 09:00 · 본사 대교육장</span>';
     } else if (view === 'today') {
       heroToday.style.display = '';
@@ -815,7 +808,6 @@ function setView(view) {
       heroBusy.style.display = '';
       card1Next.innerHTML = '<span class="dday imminent" style="color:#FF1943;background:#FEF2F2;">D-1</span><span>3회차 · 4/10(목) 09:00 · 본사 대교육장</span>';
     } else {
-      /* 일반 D-3 */
       heroNormal.style.display = '';
       card1Next.innerHTML = '<span class="dday">D-3</span><span>3회차 · 4/12(토) 09:00 · 본사 대교육장</span>';
     }
@@ -831,6 +823,12 @@ function setView(view) {
   document.getElementById('count-text').innerHTML = counts[view] || counts['has-courses'];
 }
 
+function setView(view) {
+  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+  try { event.target.classList.add('active'); } catch(e) {}
+  applyView(view);
+}
+
 /* ── QR result modals ── */
 function showQr(id) {
   document.getElementById(id).classList.add('open');
@@ -838,6 +836,53 @@ function showQr(id) {
 function closeQr() {
   document.querySelectorAll('.qr-overlay').forEach(o => o.classList.remove('open'));
 }
+
+/* ── 데모 토스트 ── */
+function showDemoToast(msg, color) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:${color||'#223354'};color:#fff;padding:12px 22px;border-radius:12px;
+    font-size:13px;font-weight:700;z-index:9999;
+    box-shadow:0 4px 20px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none;
+    transition:opacity 0.3s;`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; }, 2800);
+  setTimeout(() => el.remove(), 3200);
+}
+
+/* ── BroadcastChannel: 관리자 연동 ── */
+(function() {
+  try {
+    const ch = new BroadcastChannel('offline-demo');
+    ch.onmessage = function(e) {
+      if (e.data.type === 'SCENARIO_1') {
+        applyView('has-courses');
+        document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.proto-chip').forEach(c => {
+          if (c.textContent.trim().startsWith('일반')) c.classList.add('active');
+        });
+      } else if (e.data.type === 'LIVE_MODE_START') {
+        applyView('today');
+        document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.proto-chip').forEach(c => {
+          if (c.textContent.trim().includes('오늘')) c.classList.add('active');
+        });
+        showDemoToast('📡 관리자가 라이브 출석 모드를 시작했습니다', '#5569ff');
+        setTimeout(() => {
+          const qrBtn = document.querySelector('.btn-qr-big');
+          if (qrBtn) {
+            qrBtn.style.transition = 'box-shadow 0.2s';
+            qrBtn.style.boxShadow = '0 0 0 8px rgba(255,25,67,0.35), 0 4px 16px rgba(255,25,67,.3)';
+            setTimeout(() => { qrBtn.style.boxShadow = ''; }, 1400);
+          }
+        }, 400);
+      } else if (e.data.type === 'LIVE_MODE_END') {
+        showDemoToast('✅ 출석 체크가 종료되었습니다', '#1A7A4A');
+      }
+    };
+  } catch(err) {}
+})();
 </script>
 
 </body>

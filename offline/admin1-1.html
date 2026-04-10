@@ -332,6 +332,27 @@
         return () => clearInterval(qrTimerRef.current);
       }, [liveMode, selectedSession]);
 
+      // 데모 시나리오 제어
+      useEffect(() => {
+        const ch = new BroadcastChannel('offline-demo');
+        ch.onmessage = (e) => {
+          if (e.data.type === 'SCENARIO_1') {
+            setLiveMode(false);
+            setActiveTab('summary');
+          } else if (e.data.type === 'SCENARIO_2') {
+            setActiveTab('attendance');
+            setTimeout(() => {
+              setLiveMode(true);
+              new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_START' });
+            }, 700);
+          } else if (e.data.type === 'SCENARIO_3') {
+            setLiveMode(false);
+            new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_END' });
+          }
+        };
+        return () => ch.close();
+      }, []);
+
       const qrUrl = 'qr-dummy.png';
 
       // 출석 통계
@@ -410,7 +431,7 @@
         return (
           <div className="h-screen bg-slate-900 flex overflow-hidden">
             <div className="flex-[7] flex flex-col items-center justify-center relative">
-              <button onClick={() => setLiveMode(false)} className="absolute top-6 left-6 text-white/50 hover:text-white flex items-center gap-2 text-[14px] font-bold transition-colors">
+              <button onClick={() => { setLiveMode(false); new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_END' }); }} className="absolute top-6 left-6 text-white/50 hover:text-white flex items-center gap-2 text-[14px] font-bold transition-colors">
                 <Minimize2 size={16}/> 라이브 모드 종료
               </button>
               <div className="text-center mb-8">
@@ -904,7 +925,7 @@
                         );
                       })}
                       <div className="ml-auto flex items-center gap-2">
-                        <button onClick={() => setLiveMode(true)}
+                        <button onClick={() => { setLiveMode(true); new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_START' }); }}
                           className="px-4 py-2 bg-indigo-500 text-white rounded-xl text-[13px] font-bold hover:bg-indigo-600 transition-colors flex items-center gap-1.5 shadow-sm">
                           <Maximize2 size={13}/> 라이브 출석 모드
                         </button>
