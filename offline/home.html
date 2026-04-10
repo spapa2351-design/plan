@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>홈</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #5569ff;
+      --primary-lighter: #EEF0FF;
+      --secondary: #6E759F;
+      --error: #FF1943;
+      --success: #57CA22;
+      --success-dark: #1A7A4A;
+      --success-bg: #E6F4EA;
+      --warning-dark: #E65100;
+      --warning-bg: #FFF3E0;
+      --black: #223354;
+      --body-bg: #f2f5f9;
+      --white: #ffffff;
+      --border: rgba(34,51,84,.10);
+      --r: 10px; --r-lg: 16px; --r-xl: 20px;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Pretendard','Inter',sans-serif;
+      font-size: 14px; color: var(--black); background: var(--body-bg);
+    }
+
+    .app {
+      max-width: 390px; margin: 0 auto; min-height: 100vh;
+      background: var(--white); position: relative;
+      box-shadow: 0 0 0 1px var(--border);
+      display: flex; flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { background: #e8ecf4; display: flex; align-items: center; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+      .app { border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(34,51,84,.18); overflow: hidden; width: 390px; height: 860px; min-height: auto; }
+    }
+
+    /* ── 상단 헤더 ── */
+    .home-header {
+      padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #5569ff, #7B8BFF);
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 800;
+    }
+    .user-info .name { font-size: 15px; font-weight: 800; }
+    .user-info .sub { font-size: 11px; color: var(--secondary); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+    .stat-chip {
+      padding: 6px 12px; border-radius: 20px; background: var(--body-bg);
+      font-size: 11px; font-weight: 700; color: var(--black);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .stat-chip .num { color: var(--primary); font-weight: 900; }
+
+    .scroll-area { flex: 1; overflow-y: auto; padding-left: 20px; padding-right: 20px; }
+
+    /* ── 섹션 공통 ── */
+    .section { padding: 24px 0 8px; }
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0; margin-bottom: 14px;
+    }
+    .section-header h3 { font-size: 17px; font-weight: 900; letter-spacing: -0.3px; }
+    .section-header .more {
+      font-size: 12px; font-weight: 600; color: var(--secondary); cursor: pointer;
+      border: none; background: none; font-family: inherit;
+    }
+
+    /* ── 가로 스크롤 ── */
+    .h-scroll {
+      display: flex; gap: 12px; overflow-x: auto; padding: 0 0 4px;
+      margin: 0 -20px; padding-left: 20px;
+      scroll-snap-type: x mandatory;
+      -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .h-scroll::-webkit-scrollbar { display: none; }
+    .h-scroll::after { content: ''; flex-shrink: 0; width: 20px; }
+
+    /* ── 최근 수강 코스 카드 (이미지 #9 스타일) ── */
+    .recent-card {
+      flex-shrink: 0; width: 140px; scroll-snap-align: start; cursor: pointer;
+    }
+    .recent-thumb {
+      width: 140px; height: 140px; border-radius: var(--r-lg); overflow: hidden;
+      background: #eee; margin-bottom: 10px; position: relative;
+    }
+    .recent-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .recent-thumb .offline-dot {
+      position: absolute; top: 8px; left: 8px;
+      width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
+      box-shadow: 0 0 0 2px #fff;
+    }
+    .recent-name {
+      font-size: 13px; font-weight: 700; color: var(--black);
+      line-height: 1.4; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .recent-bottom { display: flex; align-items: center; gap: 6px; }
+
+    /* 상태 배지 (이미지 #9: 테두리형) */
+    .status-badge {
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 800; white-space: nowrap;
+    }
+    .status-badge.enrollable { color: var(--success-dark); border: 1.5px solid var(--success-dark); background: var(--success-bg); }
+    .status-badge.not-started { color: var(--error); border: 1.5px solid var(--error); background: #FFF5F7; }
+    .status-badge.in-progress { color: var(--primary); border: 1.5px solid var(--primary); background: var(--primary-lighter); }
+    .status-badge.scheduled { color: #64748B; border: 1.5px solid #CBD5E1; background: #F8FAFC; }
+    .status-badge.ended { color: #94A3B8; border: 1.5px solid #E2E8F0; background: #F8FAFC; text-decoration: line-through; }
+    .status-badge.completed { color: var(--success-dark); border: 1.5px solid var(--success-dark); background: var(--success-bg); }
+
+    .info-btn {
+      width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #E2E8F0;
+      background: none; color: #CBD5E1; font-size: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit;
+    }
+
+    /* ── 오프라인 코스 전용 영역 ── */
+    .offline-section {
+      background: linear-gradient(180deg, #F8F9FF 0%, var(--white) 100%);
+      border-top: 1px solid rgba(85,105,255,.06);
+      border-bottom: 1px solid rgba(85,105,255,.06);
+      padding: 24px 0 16px;
+      margin: 0 -20px; padding-left: 20px; padding-right: 20px;
+    }
+    .offline-section .section-header h3 {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .offline-section .section-header h3 .icon-wrap {
+      width: 22px; height: 22px; border-radius: 6px; background: var(--primary);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; color: #fff;
+    }
+    .offline-section .section-header .count {
+      font-size: 12px; font-weight: 700; color: var(--primary); margin-left: 2px;
+    }
+
+    /* 오프라인 카드 (넷플릭스 세로형) */
+    .offline-card {
+      flex-shrink: 0; width: 150px; scroll-snap-align: start; cursor: pointer;
+      border-radius: var(--r-lg); overflow: hidden;
+      background: var(--white); border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(34,51,84,.06);
+      transition: all .2s;
+    }
+    .offline-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(34,51,84,.12); }
+    .offline-cover {
+      width: 100%; aspect-ratio: 4/3; position: relative; overflow: hidden;
+    }
+    .offline-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .offline-cover .gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,.5), transparent); }
+    .offline-cover .cover-badge {
+      position: absolute; top: 8px; right: 8px;
+      padding: 3px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 800;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    .offline-cover .cover-badge.badge-enrollable { background: rgba(255,255,255,.92); color: var(--success-dark); }
+    .offline-cover .cover-badge.badge-not-started { background: rgba(255,25,67,.85); color: #fff; }
+    .offline-cover .cover-badge.badge-in-progress { background: rgba(85,105,255,.85); color: #fff; }
+    .offline-cover .cover-badge.badge-scheduled { background: rgba(100,116,139,.8); color: #fff; }
+    .offline-cover .cover-badge.badge-ended { background: rgba(0,0,0,.4); color: rgba(255,255,255,.7); }
+    .offline-cover .cover-badge.badge-completed { background: rgba(255,255,255,.92); color: var(--success-dark); }
+
+    .offline-body { padding: 10px 12px 12px; }
+    .offline-body .cat-tag {
+      font-size: 10px; font-weight: 700; color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .offline-body .title {
+      font-size: 13px; font-weight: 800; color: var(--black); line-height: 1.4;
+      margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .offline-body .meta {
+      font-size: 11px; color: var(--secondary); font-weight: 500;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .offline-body .meta i { font-size: 10px; }
+
+    /* 오프라인 진행바 */
+    .offline-progress {
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(34,51,84,.05);
+    }
+    .offline-progress .bar-label {
+      display: flex; justify-content: space-between; font-size: 10px; font-weight: 700;
+      color: var(--secondary); margin-bottom: 4px;
+    }
+    .offline-progress .bar-label .val { color: var(--primary); }
+    .offline-progress .bar {
+      height: 3px; background: #F1F5F9; border-radius: 2px; overflow: hidden;
+    }
+    .offline-progress .bar-fill { height: 100%; border-radius: 2px; }
+    .bar-fill.blue { background: var(--primary); }
+    .bar-fill.green { background: var(--success-dark); }
+    .bar-fill.red { background: var(--error); }
+
+    /* ── 일반 추천 코스 (기존 온라인) ── */
+    .recommend-card {
+      flex-shrink: 0; width: 150px; scroll-snap-align: start; cursor: pointer;
+    }
+    .recommend-thumb {
+      width: 150px; height: 200px; border-radius: var(--r-lg); overflow: hidden;
+      background: #eee; margin-bottom: 8px;
+    }
+    .recommend-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .recommend-name {
+      font-size: 12px; font-weight: 700; color: var(--black); line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      margin-bottom: 2px;
+    }
+    .recommend-sub { font-size: 11px; color: var(--secondary); }
+
+    /* ── 구분선 ── */
+    .divider { height: 8px; background: var(--body-bg); margin: 0 -20px; }
+
+    /* ── 하단 탭바 ── */
+    .tab-bar {
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 10px 0 env(safe-area-inset-bottom, 8px);
+      background: var(--white); border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .tab-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 600; color: #A0AEC0;
+      cursor: pointer; border: none; background: none; padding: 4px 12px; font-family: inherit;
+    }
+    .tab-item.active { color: var(--primary); }
+    .tab-item i { font-size: 18px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── 헤더 ── -->
+  <div class="home-header">
+    <div class="header-left">
+      <div class="avatar">JY</div>
+      <div class="user-info">
+        <div class="name">박진영 님 반갑습니다</div>
+        <div class="sub">설계팀 / 주임</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="stat-chip">
+        <span>수강 진행</span>
+        <span class="num">129</span>/<span>12</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- 최근 수강 코스 (온+오프라인 혼합) -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <h3>최근 수강 코스</h3>
+      </div>
+      <div class="h-scroll">
+
+        <!-- 온라인: 학습 중 -->
+        <div class="recent-card">
+          <div class="recent-thumb">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300&h=300&fit=crop" alt="">
+          </div>
+          <div class="recent-name">[2023 법정의무교육] 개인정보보호...</div>
+          <div class="recent-bottom">
+            <span class="status-badge in-progress">학습 중</span>
+            <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+          </div>
+        </div>
+
+        <!-- 오프라인: 시작전 -->
+        <div class="recent-card" onclick="location.href='user1.html'">
+          <div class="recent-thumb">
+            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=300&h=300&fit=crop" alt="">
+            <div class="offline-dot"></div>
+          </div>
+          <div class="recent-name">2026 직무교육 — 프로젝트 관리 심화</div>
+          <div class="recent-bottom">
+            <span class="status-badge not-started">시작전</span>
+            <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+          </div>
+        </div>
+
+        <!-- 온라인: 학습 중 -->
+        <div class="recent-card">
+          <div class="recent-thumb">
+            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&h=300&fit=crop" alt="">
+          </div>
+          <div class="recent-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recent-bottom">
+            <span class="status-badge in-progress">학습 중</span>
+            <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+          </div>
+        </div>
+
+        <!-- 오프라인: 수강중 -->
+        <div class="recent-card" onclick="location.href='user1.html?status=enrolled'">
+          <div class="recent-thumb">
+            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=300&h=300&fit=crop" alt="">
+            <div class="offline-dot"></div>
+          </div>
+          <div class="recent-name">ESG 실무 워크숍</div>
+          <div class="recent-bottom">
+            <span class="status-badge in-progress">수강중</span>
+            <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+          </div>
+        </div>
+
+        <!-- 오프라인: 수강예정 -->
+        <div class="recent-card">
+          <div class="recent-thumb">
+            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&h=300&fit=crop" alt="">
+            <div class="offline-dot"></div>
+          </div>
+          <div class="recent-name">글로벌 비즈니스 매너</div>
+          <div class="recent-bottom">
+            <span class="status-badge scheduled">수강예정</span>
+            <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- 온라인 추천 영역 (기존) -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <h3>조직리더십 — 팀장, 중간, 신입</h3>
+        <button class="more">더보기 ›</button>
+      </div>
+      <div class="h-scroll">
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #FBBF24, #F59E0B);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 학습완료</div>
+        </div>
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #3B82F6, #2563EB);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 미수강</div>
+        </div>
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 100%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- 오프라인 코스 전용 영역 (관리자 설정) -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="offline-section">
+      <div class="section-header">
+        <h3>
+          <span class="icon-wrap"><i class="fa-solid fa-location-dot"></i></span>
+          오프라인 코스
+          <span class="count">6</span>
+        </h3>
+        <button class="more" onclick="location.href='category.html?filter=offline'">전체보기 ›</button>
+      </div>
+      <div class="h-scroll">
+
+        <!-- 수강 신청 가능 -->
+        <div class="offline-card" onclick="location.href='user1.html'">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-enrollable"><i class="fa-solid fa-check" style="font-size:9px;"></i> 신청 가능</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">직무교육</div>
+            <div class="title">2026 직무교육 — 프로젝트 관리 심화</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 5/10 ~ 6/14 · 5회차</div>
+          </div>
+        </div>
+
+        <!-- 수강중 -->
+        <div class="offline-card" onclick="location.href='user1.html?status=enrolled'">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-in-progress">수강중</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">워크숍</div>
+            <div class="title">ESG 실무 워크숍</div>
+            <div class="meta"><i class="fa-solid fa-location-dot"></i> 방배 실습실</div>
+          </div>
+          <div class="offline-progress">
+            <div class="bar-label"><span>출석 2/3</span><span class="val">66%</span></div>
+            <div class="bar"><div class="bar-fill blue" style="width:66%"></div></div>
+          </div>
+        </div>
+
+        <!-- 시작전 -->
+        <div class="offline-card">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-not-started">시작전</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">신입사원</div>
+            <div class="title">신입사원 OJT 과정</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 5/1 시작 · 8회차</div>
+          </div>
+        </div>
+
+        <!-- 수강예정 -->
+        <div class="offline-card">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-scheduled">수강예정</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">리더십</div>
+            <div class="title">글로벌 비즈니스 매너</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 6/15 시작 · 2회차</div>
+          </div>
+        </div>
+
+        <!-- 수강종료 -->
+        <div class="offline-card">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-ended">수강종료</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">법정의무교육</div>
+            <div class="title">2025 법정의무교육</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 종료 · 3회차</div>
+          </div>
+          <div class="offline-progress">
+            <div class="bar-label"><span>출석 1/3</span><span style="color:var(--error);">33%</span></div>
+            <div class="bar"><div class="bar-fill red" style="width:33%"></div></div>
+          </div>
+        </div>
+
+        <!-- 학습 완료 -->
+        <div class="offline-card" onclick="location.href='user1-completed.html'">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1560439514-4e9645039924?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-completed"><i class="fa-solid fa-check" style="font-size:9px;"></i> 학습 완료</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">리더십</div>
+            <div class="title">2025 하반기 리더십 심화</div>
+            <div class="meta"><i class="fa-solid fa-trophy" style="color:#FBBF24;"></i> 수료 · 출석 100%</div>
+          </div>
+          <div class="offline-progress">
+            <div class="bar-label"><span>출석 4/4</span><span class="val">100%</span></div>
+            <div class="bar"><div class="bar-fill green" style="width:100%"></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- 추천 코스 1 (기존 온라인 영역) -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="section">
+      <div class="section-header">
+        <h3>추천 코스 1</h3>
+        <button class="more">더보기 ›</button>
+      </div>
+      <div class="h-scroll">
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #EC4899, #F472B6);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 미수강</div>
+        </div>
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #14B8A6, #2DD4BF);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 100%</div>
+        </div>
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #F97316, #FB923C);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 미수강</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- 오프라인: 관리자 설정 카테고리 영역 (직무교육) -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="offline-section">
+      <div class="section-header">
+        <h3>
+          <span class="icon-wrap"><i class="fa-solid fa-location-dot"></i></span>
+          직무교육
+        </h3>
+        <button class="more" onclick="location.href='category.html?filter=offline'">더보기 ›</button>
+      </div>
+      <div class="h-scroll">
+        <div class="offline-card" onclick="location.href='user1.html'">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-enrollable"><i class="fa-solid fa-check" style="font-size:9px;"></i> 신청 가능</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">직무교육</div>
+            <div class="title">2026 직무교육 — 프로젝트 관리 심화</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 5/10 ~ 6/14</div>
+          </div>
+        </div>
+        <div class="offline-card">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-enrollable"><i class="fa-solid fa-check" style="font-size:9px;"></i> 신청 가능</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">직무교육</div>
+            <div class="title">데이터 기반 의사결정 실습</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 5/20 ~ 7/10</div>
+          </div>
+        </div>
+        <div class="offline-card">
+          <div class="offline-cover">
+            <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=300&h=220&fit=crop" alt="">
+            <div class="gradient"></div>
+            <span class="cover-badge badge-enrollable"><i class="fa-solid fa-check" style="font-size:9px;"></i> 신청 가능</span>
+          </div>
+          <div class="offline-body">
+            <div class="cat-tag">직무교육</div>
+            <div class="title">커뮤니케이션 스킬 강화</div>
+            <div class="meta"><i class="fa-solid fa-calendar"></i> 6/1 ~ 6/30</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ── 추천 코스 2 (온라인) ── -->
+    <div class="section">
+      <div class="section-header">
+        <h3>추천 코스 2</h3>
+        <button class="more">더보기 ›</button>
+      </div>
+      <div class="h-scroll">
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #6366F1, #818CF8);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 미수강</div>
+        </div>
+        <div class="recommend-card">
+          <div class="recommend-thumb" style="background: linear-gradient(135deg, #0EA5E9, #38BDF8);"></div>
+          <div class="recommend-name">[2023 법정의무교육] 교육 계획수립...</div>
+          <div class="recommend-sub">교육 · 학습 중</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+
+  <!-- ── 하단 탭바 ── -->
+  <div class="tab-bar">
+    <button class="tab-item active"><i class="fa-solid fa-house"></i><span>홈</span></button>
+    <button class="tab-item" onclick="location.href='category.html'"><i class="fa-solid fa-bars-staggered"></i><span>카테고리</span></button>
+    <button class="tab-item"><i class="fa-solid fa-play"></i><span>숏클</span></button>
+    <button class="tab-item"><i class="fa-solid fa-ellipsis"></i><span>더보기</span></button>
+    <button class="tab-item" onclick="location.href='user-my.html'"><i class="fa-solid fa-user"></i><span>MY</span></button>
+  </div>
+
+</div>
+
+</body>
+</html>

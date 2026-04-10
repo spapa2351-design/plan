@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수강 완료 코스 상세</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #5569ff; --primary-lighter: #EEF0FF; --primary-dark: #4454CC;
+      --secondary: #6E759F; --error: #FF1943; --success: #1A7A4A; --success-bg: #E6F4EA;
+      --black: #223354; --body-bg: #f2f5f9; --white: #fff;
+      --border: rgba(34,51,84,.12);
+      --r-sm: 6px; --r: 10px; --r-lg: 16px;
+    }
+    html, body { height: 100%; }
+    body { font-family: 'Pretendard','Inter',sans-serif; font-size: 14px; color: var(--black); background: var(--body-bg); }
+
+    .app {
+      max-width: 390px; margin: 0 auto; min-height: 100vh;
+      background: var(--white); position: relative;
+      box-shadow: 0 0 0 1px var(--border); display: flex; flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { background: #e8ecf4; display: flex; align-items: center; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+      .app { border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(34,51,84,.18); overflow: hidden; width: 390px; height: 860px; min-height: auto; }
+    }
+
+    /* Nav */
+    .nav {
+      display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-back {
+      width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: var(--white); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--black); font-size: 16px;
+    }
+    .nav-title { font-size: 15px; font-weight: 700; flex: 1; }
+    .nav-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+
+    .scroll-area { flex: 1; overflow-y: auto; }
+
+    /* ── 수료 카드 ── */
+    .complete-card {
+      margin: 16px; padding: 24px; border-radius: var(--r-lg);
+      background: var(--white); border: 1px solid var(--border);
+      text-align: center; position: relative;
+    }
+    .complete-icon { font-size: 48px; margin-bottom: 12px; }
+    .complete-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 800; margin-bottom: 14px;
+    }
+    .complete-badge.pass { background: var(--success-bg); color: var(--success); }
+    .complete-badge.fail { background: #FEF2F2; color: var(--error); }
+    .complete-course-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+    .complete-package { font-size: 13px; color: var(--secondary); font-weight: 600; margin-bottom: 16px; }
+
+    .complete-stats {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+      background: var(--border); border-radius: var(--r); overflow: hidden;
+    }
+    .stat-item {
+      background: var(--body-bg); padding: 14px 8px; text-align: center;
+    }
+    .stat-label { font-size: 11px; font-weight: 600; color: var(--secondary); margin-bottom: 4px; }
+    .stat-val { font-size: 18px; font-weight: 800; }
+    .stat-val.good { color: var(--success); }
+    .stat-val.warn { color: #E65100; }
+    .stat-val.bad { color: var(--error); }
+
+    /* ── 섹션 ── */
+    .section { padding: 20px 16px; border-bottom: 8px solid var(--body-bg); }
+    .section:last-child { border-bottom: none; }
+    .section-title {
+      font-size: 15px; font-weight: 800; color: var(--black); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title i { font-size: 14px; color: var(--secondary); }
+
+    /* ── 회차 리스트 ── */
+    .sess-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0; border-bottom: 1px solid rgba(34,51,84,.05);
+    }
+    .sess-item:last-child { border-bottom: none; }
+    .sess-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; flex-shrink: 0;
+    }
+    .sess-num.attended { background: #DBEAFE; color: #1D4ED8; }
+    .sess-num.late { background: #FFF3E0; color: #E65100; }
+    .sess-num.absent { background: #FEF2F2; color: var(--error); }
+    .sess-info { flex: 1; min-width: 0; }
+    .sess-name { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+    .sess-meta { font-size: 12px; color: var(--secondary); font-weight: 500; }
+    .sess-time { font-size: 11px; margin-top: 2px; font-weight: 600; }
+    .sess-time.ok { color: var(--primary); }
+    .sess-time.late-t { color: #E65100; }
+    .sess-time.absent-t { color: var(--error); }
+    .sess-badge {
+      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+    }
+    .sess-badge.attended { background: #DBEAFE; color: #1D4ED8; }
+    .sess-badge.late { background: #FFF3E0; color: #E65100; }
+    .sess-badge.absent { background: #FEF2F2; color: var(--error); }
+
+    /* ── 코스 안내 (접기) ── */
+    .collapse-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; padding: 16px 0;
+    }
+    .collapse-header h4 { font-size: 14px; font-weight: 800; }
+    .collapse-header i { font-size: 12px; color: var(--secondary); transition: transform .2s; }
+    .collapse-header.open i { transform: rotate(180deg); }
+    .collapse-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .collapse-body.open { max-height: 500px; }
+    .info-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.03); }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+    .info-label { font-size: 11px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; }
+    .info-val { font-size: 13px; color: var(--black); font-weight: 600; line-height: 1.4; }
+
+    /* ── 하단 CTA ── */
+    .bottom-cta {
+      padding: 12px 16px 24px; background: var(--white);
+      border-top: 1px solid var(--border); position: sticky; bottom: 0; z-index: 10;
+    }
+    .btn-primary {
+      width: 100%; height: 54px; border-radius: var(--r);
+      border: none; font-size: 16px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all .15s;
+    }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:disabled { background: #E2E8F0; color: #94A3B8; cursor: not-allowed; box-shadow: none; }
+
+    /* Proto */
+    .proto-bar { position: fixed; top: 50%; right: 24px; transform: translateY(-50%); z-index: 500; }
+    .proto-chips { display: flex; flex-direction: column; gap: 6px; }
+    .proto-chip {
+      padding: 9px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: none; background: #fff; color: var(--secondary);
+      box-shadow: 0 2px 8px rgba(34,51,84,.08); transition: all .15s; text-align: left;
+    }
+    .proto-chip:hover { transform: translateX(-3px); color: var(--black); }
+    .proto-chip.active { background: var(--primary); color: #fff; }
+    @media (max-width: 900px) { .proto-bar { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- Proto -->
+<div class="proto-bar">
+  <div style="font-size:10px;font-weight:800;color:var(--secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">수강 결과</div>
+  <div class="proto-chips">
+    <button class="proto-chip active" onclick="setResult('pass')">수료 (출석률 100%)</button>
+    <button class="proto-chip" onclick="setResult('pass-late')">수료 (지각 포함)</button>
+    <button class="proto-chip" onclick="setResult('fail')">미수료 (출석률 부족)</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <div class="nav">
+    <button class="nav-back" onclick="history.back()">←</button>
+    <span class="nav-title">수강 완료 상세</span>
+    <span class="nav-badge" id="nav-badge" style="background:#E2E8F0; color:#475569;">수강 완료</span>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- ══ 수료 카드 ══ -->
+    <div class="complete-card" id="complete-card">
+      <div class="complete-icon" id="complete-icon">🏆</div>
+      <div class="complete-badge pass" id="complete-badge"><i class="fa-solid fa-check" style="font-size:11px;"></i> 수료</div>
+      <div class="complete-course-name">2025 하반기 리더십 심화</div>
+      <div class="complete-package">A반 (10월반) · 박지원 강사 · 2025.12.20 완료</div>
+
+      <div class="complete-stats" id="complete-stats">
+        <div class="stat-item">
+          <div class="stat-label">출석률</div>
+          <div class="stat-val good" id="stat-rate">100%</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">출석</div>
+          <div class="stat-val" id="stat-attend" style="color:var(--primary);">4회</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">결석</div>
+          <div class="stat-val" id="stat-absent" style="color:var(--secondary);">0회</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 회차별 출석 결과 ══ -->
+    <div class="section">
+      <div class="section-title"><i class="fa-solid fa-list-check"></i> 회차별 출석 결과</div>
+      <div id="sess-list">
+        <!-- JS로 동적 렌더링 -->
+      </div>
+    </div>
+
+    <!-- ══ 코스 안내 ══ -->
+    <div class="section" style="padding-bottom: 8px; border-bottom: none;">
+      <div class="collapse-header" id="collapse-toggle" onclick="toggleCollapse()">
+        <h4><i class="fa-solid fa-circle-info" style="color:var(--secondary);margin-right:6px;font-size:13px;"></i> 코스 안내</h4>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+      <div class="collapse-body" id="collapse-body">
+        <div class="info-row">
+          <div class="info-icon">👨‍🏫</div>
+          <div><div class="info-label">강사</div><div class="info-val">박지원 · 리더십 전문 코치</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🏢</div>
+          <div><div class="info-label">장소</div><div class="info-val">본사 대교육장 B동 3층</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">📝</div>
+          <div><div class="info-label">코스 소개</div><div class="info-val">차세대 리더를 위한 심화 코칭 과정. 조직 내 갈등 관리와 팀 빌딩 실습을 포함합니다.</div></div>
+        </div>
+        <div style="height: 12px;"></div>
+      </div>
+    </div>
+
+    <div style="height: 20px;"></div>
+  </div>
+
+  <!-- 하단 CTA -->
+  <div class="bottom-cta">
+    <button class="btn-primary" id="btn-cert" style="background:var(--primary); color:#fff; box-shadow: 0 4px 15px rgba(85,105,255,.3);">
+      <i class="fa-solid fa-award"></i> 수료증 다운로드
+    </button>
+  </div>
+
+</div>
+
+<script>
+const results = {
+  pass: {
+    icon: '🏆', badgeClass: 'pass', badgeText: '수료', rate: '100%', rateClass: 'good',
+    attend: '4회', absent: '0회', absentColor: 'var(--secondary)',
+    certEnabled: true,
+    sessions: [
+      { num: 1, name: '1회차 · 리더십 기초와 자기 인식', date: '10/5(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:52 출석' },
+      { num: 2, name: '2회차 · 갈등 관리와 소통 기법', date: '10/12(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:58 출석' },
+      { num: 3, name: '3회차 · 성과 코칭 실습', date: '10/19(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:55 출석' },
+      { num: 4, name: '4회차 · 팀 빌딩 워크숍', date: '10/26(토) 09:00–17:00 · 외부 연수원', status: 'attended', label: '출석', time: '09:00 출석' },
+    ]
+  },
+  'pass-late': {
+    icon: '🏆', badgeClass: 'pass', badgeText: '수료', rate: '100%', rateClass: 'good',
+    attend: '4회', absent: '0회', absentColor: 'var(--secondary)',
+    certEnabled: true,
+    sessions: [
+      { num: 1, name: '1회차 · 리더십 기초와 자기 인식', date: '10/5(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:52 출석' },
+      { num: 2, name: '2회차 · 갈등 관리와 소통 기법', date: '10/12(토) 09:00–18:00 · 본사 대교육장', status: 'late', label: '지각', time: '09:23 지각' },
+      { num: 3, name: '3회차 · 성과 코칭 실습', date: '10/19(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:55 출석' },
+      { num: 4, name: '4회차 · 팀 빌딩 워크숍', date: '10/26(토) 09:00–17:00 · 외부 연수원', status: 'attended', label: '출석', time: '09:01 출석' },
+    ]
+  },
+  fail: {
+    icon: '📭', badgeClass: 'fail', badgeText: '미수료', rate: '50%', rateClass: 'bad',
+    attend: '2회', absent: '2회', absentColor: 'var(--error)',
+    certEnabled: false,
+    sessions: [
+      { num: 1, name: '1회차 · 리더십 기초와 자기 인식', date: '10/5(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:52 출석' },
+      { num: 2, name: '2회차 · 갈등 관리와 소통 기법', date: '10/12(토) 09:00–18:00 · 본사 대교육장', status: 'absent', label: '결석', time: '결석 처리' },
+      { num: 3, name: '3회차 · 성과 코칭 실습', date: '10/19(토) 09:00–18:00 · 본사 대교육장', status: 'attended', label: '출석', time: '08:55 출석' },
+      { num: 4, name: '4회차 · 팀 빌딩 워크숍', date: '10/26(토) 09:00–17:00 · 외부 연수원', status: 'absent', label: '결석', time: '결석 처리' },
+    ]
+  }
+};
+
+function setResult(type) {
+  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const r = results[type];
+
+  document.getElementById('complete-icon').textContent = r.icon;
+  const badge = document.getElementById('complete-badge');
+  badge.className = 'complete-badge ' + r.badgeClass;
+  badge.innerHTML = (r.badgeClass === 'pass' ? '<i class="fa-solid fa-check" style="font-size:11px;"></i> ' : '<i class="fa-solid fa-xmark" style="font-size:11px;"></i> ') + r.badgeText;
+
+  document.getElementById('stat-rate').textContent = r.rate;
+  document.getElementById('stat-rate').className = 'stat-val ' + r.rateClass;
+  document.getElementById('stat-attend').textContent = r.attend;
+  document.getElementById('stat-absent').textContent = r.absent;
+  document.getElementById('stat-absent').style.color = r.absentColor;
+
+  const btn = document.getElementById('btn-cert');
+  if (r.certEnabled) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-award"></i> 수료증 다운로드';
+    btn.style.background = 'var(--primary)';
+    btn.style.boxShadow = '0 4px 15px rgba(85,105,255,.3)';
+  } else {
+    btn.disabled = true;
+    btn.innerHTML = '미수료 · 수료증 발급 불가';
+    btn.style.background = '';
+    btn.style.boxShadow = '';
+  }
+
+  const navBadge = document.getElementById('nav-badge');
+  if (r.badgeClass === 'pass') {
+    navBadge.style.background = 'var(--success-bg)';
+    navBadge.style.color = 'var(--success)';
+    navBadge.textContent = '수료';
+  } else {
+    navBadge.style.background = '#FEF2F2';
+    navBadge.style.color = 'var(--error)';
+    navBadge.textContent = '미수료';
+  }
+
+  renderSessions(r.sessions);
+}
+
+function renderSessions(sessions) {
+  const list = document.getElementById('sess-list');
+  list.innerHTML = sessions.map(s => {
+    const timeClass = s.status === 'attended' ? 'ok' : (s.status === 'late' ? 'late-t' : 'absent-t');
+    const icon = s.status === 'attended' ? '<i class="fa-solid fa-check" style="font-size:10px;margin-right:3px;"></i>' :
+                 (s.status === 'late' ? '<i class="fa-solid fa-clock" style="font-size:10px;margin-right:3px;"></i>' :
+                 '<i class="fa-solid fa-xmark" style="font-size:10px;margin-right:3px;"></i>');
+    return `
+      <div class="sess-item">
+        <div class="sess-num ${s.status}">${s.num}</div>
+        <div class="sess-info">
+          <div class="sess-name">${s.name}</div>
+          <div class="sess-meta">${s.date}</div>
+          <div class="sess-time ${timeClass}">${icon} ${s.time}</div>
+        </div>
+        <span class="sess-badge ${s.status}">${s.label}</span>
+      </div>`;
+  }).join('');
+}
+
+function toggleCollapse() {
+  document.getElementById('collapse-toggle').classList.toggle('open');
+  document.getElementById('collapse-body').classList.toggle('open');
+}
+
+/* 초기 렌더링 */
+setResult('pass');
+// setResult은 proto-chip 클릭 이벤트도 처리하므로 초기에는 직접 렌더만
+renderSessions(results.pass.sessions);
+</script>
+
+</body>
+</html>

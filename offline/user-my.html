@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MY — 오프라인 코스</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #5569ff;
+      --primary-lighter: #EEF0FF;
+      --primary-dark: #4454CC;
+      --secondary: #6E759F;
+      --error: #FF1943;
+      --success: #1A7A4A;
+      --success-bg: #E6F4EA;
+      --warning: #E65100;
+      --warning-bg: #FFF3E0;
+      --black: #223354;
+      --body-bg: #f2f5f9;
+      --white: #ffffff;
+      --border: rgba(34,51,84,.12);
+      --r-sm: 6px; --r: 10px; --r-lg: 16px;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Pretendard','Inter',sans-serif;
+      font-size: 14px; color: var(--black); background: var(--body-bg);
+    }
+
+    /* ── 앱 레이아웃 ── */
+    .app {
+      max-width: 390px; margin: 0 auto; min-height: 100vh;
+      background: var(--white); position: relative;
+      box-shadow: 0 0 0 1px var(--border);
+      display: flex; flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { background: #e8ecf4; display: flex; align-items: center; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+      .app { border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(34,51,84,.18); overflow: hidden; width: 390px; height: 860px; min-height: auto; }
+    }
+
+    /* ── 상단 헤더 ── */
+    .top-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; background: var(--white);
+    }
+    .top-header h1 { font-size: 22px; font-weight: 800; }
+    .top-icons { display: flex; gap: 12px; }
+    .top-icon {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--body-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: var(--secondary); cursor: pointer; position: relative;
+      border: none;
+    }
+    .top-icon .noti-badge {
+      position: absolute; top: -2px; right: -2px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--error); color: #fff; font-size: 10px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── 메인 탭 (코스 / PLUS 코스 / 찜한 코스 / 오프라인) ── */
+    .main-tabs {
+      display: flex; border-bottom: 1px solid var(--border);
+      padding: 0 16px; background: var(--white);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .main-tab {
+      padding: 12px 14px; font-size: 14px; font-weight: 700;
+      color: var(--secondary); cursor: pointer; position: relative;
+      border: none; background: none; white-space: nowrap;
+    }
+    .main-tab.active {
+      color: var(--black);
+    }
+    .main-tab.active::after {
+      content: ''; position: absolute; bottom: -1px; left: 12px; right: 12px;
+      height: 2px; background: var(--black); border-radius: 2px;
+    }
+    .main-tab.highlight {
+      color: var(--primary);
+    }
+    .main-tab.highlight.active::after {
+      background: var(--primary);
+    }
+
+    /* ── 스크롤 영역 ── */
+    .scroll-area { flex: 1; overflow-y: auto; background: var(--body-bg); }
+
+    /* ── 필터 바 ── */
+    .filter-bar {
+      padding: 16px 20px 12px; background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+    .filter-chips {
+      display: flex; gap: 8px;
+    }
+    .filter-chip {
+      padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+      border: 1px solid var(--border); background: var(--white); color: var(--secondary);
+      cursor: pointer; transition: all .15s;
+    }
+    .filter-chip.active {
+      background: var(--black); color: var(--white); border-color: var(--black);
+    }
+    .filter-count {
+      padding: 10px 20px 0; font-size: 13px; color: var(--secondary); font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    /* ── 섹션 ── */
+    .section-group { padding: 20px 16px 8px; }
+    .section-title {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .section-title h3 { font-size: 16px; font-weight: 800; color: var(--black); }
+    .section-title .count {
+      font-size: 14px; font-weight: 700; color: var(--primary); margin-left: 6px;
+    }
+    .section-title .more {
+      font-size: 13px; font-weight: 600; color: var(--secondary); cursor: pointer;
+      border: none; background: none;
+    }
+
+    /* ── 다음 교육 히어로 카드 ── */
+    .next-session-card {
+      margin: 16px 16px 0; padding: 20px;
+      background: linear-gradient(135deg, #5569ff 0%, #7B8BFF 100%);
+      border-radius: var(--r-lg); color: #fff;
+      box-shadow: 0 8px 24px rgba(85,105,255,.25);
+    }
+    .next-label {
+      font-size: 11px; font-weight: 700; opacity: 0.8;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .next-course-name { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+    .next-session-name { font-size: 13px; font-weight: 600; opacity: 0.85; margin-bottom: 14px; }
+    .next-info-row {
+      display: flex; gap: 16px; font-size: 13px; font-weight: 600; opacity: 0.9;
+    }
+    .next-info-row i { margin-right: 4px; font-size: 12px; }
+    .next-dday {
+      position: absolute; top: 20px; right: 20px;
+      font-size: 28px; font-weight: 800; opacity: 0.95;
+    }
+    .next-session-card { position: relative; }
+    .next-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 16px; padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.2);
+    }
+    .next-bottom .loc { font-size: 13px; font-weight: 600; opacity: 0.85; }
+    .next-bottom .loc i { margin-right: 4px; }
+    .btn-qr {
+      padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      background: rgba(255,255,255,.2); color: #fff; border: 1px solid rgba(255,255,255,.3);
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      backdrop-filter: blur(4px);
+    }
+    .btn-qr:hover { background: rgba(255,255,255,.3); }
+
+    /* ── 코스 카드 (수강중) ── */
+    .course-card {
+      background: var(--white); border-radius: var(--r-lg);
+      padding: 16px; margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(34,51,84,.05);
+      border: 1px solid var(--border);
+      cursor: pointer; transition: all .15s;
+    }
+    .course-card:hover { box-shadow: 0 4px 12px rgba(34,51,84,.08); transform: translateY(-1px); }
+    .course-card:active { transform: scale(0.99); }
+    .card-top {
+      display: flex; gap: 14px; margin-bottom: 12px;
+    }
+    .card-thumb {
+      width: 56px; height: 56px; border-radius: var(--r);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .card-info { flex: 1; min-width: 0; }
+    .card-badges { display: flex; gap: 4px; margin-bottom: 6px; }
+    .badge-sm {
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+    }
+    .card-name { font-size: 15px; font-weight: 800; color: var(--black); margin-bottom: 2px; line-height: 1.4; }
+    .card-sub { font-size: 12px; color: var(--secondary); font-weight: 500; }
+
+    /* 출석률 바 */
+    .attend-bar-wrap {
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(34,51,84,.06);
+    }
+    .attend-label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 600; margin-bottom: 6px;
+    }
+    .attend-label .label { color: var(--secondary); }
+    .attend-label .val { color: var(--primary); font-weight: 800; }
+    .attend-bar {
+      height: 6px; border-radius: 3px; background: #E5E7EB; overflow: hidden;
+    }
+    .attend-bar-fill {
+      height: 100%; border-radius: 3px; transition: width .4s ease;
+    }
+    .attend-bar-fill.good { background: linear-gradient(90deg, #5569ff, #7B8BFF); }
+    .attend-bar-fill.warn { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+    .attend-bar-fill.danger { background: linear-gradient(90deg, #FF1943, #FF6B81); }
+
+    /* 다음 회차 미니 정보 */
+    .next-mini {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 10px; padding: 8px 12px;
+      background: var(--body-bg); border-radius: 8px;
+      font-size: 12px; font-weight: 600; color: var(--secondary);
+    }
+    .next-mini .dday {
+      font-weight: 800; color: var(--primary);
+      background: var(--primary-lighter); padding: 2px 8px;
+      border-radius: 4px; font-size: 11px;
+    }
+    .next-mini .dday.imminent {
+      color: var(--error); background: #FEF2F2;
+    }
+
+    /* ── QR 결과 모달 ── */
+    .qr-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 600;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .qr-overlay.open { display: flex; }
+    .qr-modal {
+      background: var(--white); border-radius: 20px;
+      padding: 36px 28px 28px; width: 100%; max-width: 320px;
+      text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,.2);
+      animation: modalPop .25s ease-out;
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .qr-modal-icon {
+      width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+    }
+    .qr-modal-icon.success { background: #DBEAFE; color: #1D4ED8; }
+    .qr-modal-icon.late-icon { background: #FFF3E0; color: #E65100; }
+    .qr-modal-icon.fail { background: #FEF2F2; color: var(--error); }
+    .qr-modal-icon.wait { background: var(--body-bg); color: var(--secondary); }
+    .qr-modal-title { font-size: 18px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
+    .qr-modal-course { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 14px; }
+    .qr-modal-name { font-size: 15px; font-weight: 800; color: var(--black); margin-bottom: 4px; }
+    .qr-modal-desc { font-size: 13px; color: var(--secondary); line-height: 1.5; margin-bottom: 6px; }
+    .qr-modal-time { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 20px; }
+    .qr-modal-btn {
+      width: 100%; height: 50px; border-radius: 10px; border: none;
+      font-size: 15px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .qr-modal-btn.primary { background: var(--primary); color: #fff; }
+    .qr-modal-btn.gray { background: var(--black); color: #fff; }
+    .qr-modal-btn:active { transform: scale(.98); }
+
+    /* ── 다건 몰림: 컴팩트 일정 리스트 ── */
+    .upcoming-list {
+      margin: 12px 16px 0; background: var(--white);
+      border-radius: var(--r-lg); border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .upcoming-header {
+      padding: 12px 16px; background: var(--body-bg);
+      font-size: 12px; font-weight: 800; color: var(--secondary);
+      display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .upcoming-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-bottom: 1px solid rgba(34,51,84,.04);
+      cursor: pointer; transition: background .1s;
+    }
+    .upcoming-item:last-child { border-bottom: none; }
+    .upcoming-item:hover { background: var(--body-bg); }
+    .upcoming-dday {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: 800; flex-shrink: 0; font-size: 14px; line-height: 1;
+    }
+    .upcoming-dday.near { background: #FEF2F2; color: var(--error); }
+    .upcoming-dday.normal { background: var(--primary-lighter); color: var(--primary); }
+    .upcoming-dday .d-label { font-size: 9px; font-weight: 700; opacity: .7; }
+    .upcoming-info { flex: 1; min-width: 0; }
+    .upcoming-course { font-size: 13px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upcoming-detail { font-size: 11px; color: var(--secondary); font-weight: 500; margin-top: 2px; }
+    .upcoming-loc { font-size: 11px; color: var(--secondary); display: flex; align-items: center; gap: 3px; }
+    .upcoming-loc i { font-size: 9px; }
+
+    /* ── 완료 코스 카드 ── */
+    .done-card {
+      background: var(--white); border-radius: var(--r-lg);
+      padding: 14px 16px; margin-bottom: 10px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer; transition: all .15s;
+    }
+    .done-card:hover { box-shadow: 0 2px 8px rgba(34,51,84,.06); }
+    .done-thumb {
+      width: 44px; height: 44px; border-radius: 8px;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; background: #F3F4F6;
+    }
+    .done-info { flex: 1; min-width: 0; }
+    .done-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .done-sub { font-size: 12px; color: var(--secondary); }
+    .done-status {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .done-status.pass { background: var(--success-bg); color: var(--success); }
+    .done-status.fail { background: #FEF2F2; color: var(--error); }
+
+    /* ── 빈 상태 ── */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--secondary);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state .msg { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+    .empty-state .sub { font-size: 13px; color: #9CA3AF; }
+    .empty-state .btn-explore {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 20px; padding: 10px 24px; border-radius: 8px;
+      background: var(--primary); color: #fff; font-size: 14px; font-weight: 700;
+      border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(85,105,255,.2);
+    }
+
+    /* ── 하단 탭바 ── */
+    .tab-bar {
+      display: flex; border-top: 1px solid var(--border); background: var(--white);
+      padding: 6px 0 env(safe-area-inset-bottom, 8px);
+      position: sticky; bottom: 0;
+    }
+    .tab-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 6px 0; cursor: pointer; border: none; background: none;
+      font-size: 10px; font-weight: 600; color: var(--secondary);
+    }
+    .tab-item.active { color: var(--black); }
+    .tab-item i { font-size: 18px; margin-bottom: 1px; }
+
+    /* ── 사이드 Proto 메뉴 ── */
+    .proto-bar { position: fixed; top: 50%; right: 30px; transform: translateY(-50%); z-index: 500; }
+    .proto-chips { display: flex; flex-direction: column; gap: 8px; }
+    .proto-chip {
+      padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;
+      cursor: pointer; border: none; background: #fff; color: var(--secondary);
+      box-shadow: 0 2px 10px rgba(34,51,84,.08); transition: all .15s; text-align: left;
+    }
+    .proto-chip:hover { transform: translateX(-3px); color: var(--black); }
+    .proto-chip.active { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(85,105,255,.3); }
+    .proto-chip.active-warn { background: var(--error); color: #fff; box-shadow: 0 4px 15px rgba(255,25,67,.3); }
+    @media (max-width: 900px) { .proto-bar { display: none; } }
+
+    /* ── 오늘 교육 히어로 (D-Day) ── */
+    .today-hero {
+      margin: 16px 16px 0; border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: 0 8px 32px rgba(255,25,67,.2);
+    }
+    .today-hero-top {
+      padding: 20px 20px 16px;
+      background: linear-gradient(135deg, #FF1943 0%, #FF6B81 100%);
+      color: #fff; position: relative;
+    }
+    .today-live-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(255,255,255,.2); font-size: 11px; font-weight: 800;
+      margin-bottom: 12px; backdrop-filter: blur(4px);
+    }
+    .today-live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #fff;
+      animation: pulse-dot 1.5s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.7); }
+    }
+    .today-course-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+    .today-session-name { font-size: 13px; font-weight: 600; opacity: .85; margin-bottom: 12px; }
+    .today-info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .today-info-item {
+      background: rgba(255,255,255,.15); border-radius: 8px; padding: 8px 12px;
+      font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);
+    }
+    .today-info-item i { margin-right: 4px; font-size: 11px; }
+    .today-info-item .val { font-size: 14px; font-weight: 800; display: block; margin-top: 2px; }
+    .today-dday {
+      position: absolute; top: 18px; right: 20px;
+      font-size: 14px; font-weight: 800; padding: 6px 14px;
+      background: #fff; color: var(--error); border-radius: 8px;
+    }
+    .today-hero-bottom {
+      padding: 16px 20px; background: #fff;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .btn-qr-big {
+      flex: 1; height: 52px; border-radius: var(--r); border: none;
+      background: var(--error); color: #fff;
+      font-size: 16px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(255,25,67,.3);
+      transition: all .15s;
+    }
+    .btn-qr-big:active { transform: scale(.98); }
+    .btn-qr-big i { font-size: 20px; }
+    .btn-map {
+      width: 52px; height: 52px; border-radius: var(--r); border: 1px solid var(--border);
+      background: #fff; color: var(--secondary); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      flex-shrink: 0; transition: all .15s;
+    }
+    .btn-map:hover { background: var(--body-bg); color: var(--black); }
+  </style>
+</head>
+<body>
+
+<!-- ── Proto 사이드 메뉴 ── -->
+<div class="proto-bar">
+  <div style="font-size: 10px; font-weight: 800; color: var(--secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">시뮬레이션</div>
+  <div class="proto-chips">
+    <button class="proto-chip" onclick="setView('no-hero')">D-7 이상 (히어로 없음)</button>
+    <button class="proto-chip active" onclick="setView('has-courses')">일반 (D-3)</button>
+    <button class="proto-chip" onclick="setView('today')">오늘 교육 있는 날</button>
+    <button class="proto-chip" onclick="setView('busy')">이번 주 5건 몰림</button>
+    <button class="proto-chip" onclick="setView('empty')">수강 코스 없음</button>
+  </div>
+  <div style="font-size: 10px; font-weight: 800; color: var(--secondary); margin: 16px 0 10px; text-transform: uppercase; letter-spacing: 1px;">QR 출석 결과</div>
+  <div class="proto-chips">
+    <button class="proto-chip" onclick="showQr('qr-success')">출석 완료</button>
+    <button class="proto-chip" onclick="showQr('qr-late')">지각</button>
+    <button class="proto-chip" onclick="showQr('qr-expired')">기간 종료</button>
+    <button class="proto-chip" onclick="showQr('qr-notarget')">대상 아님</button>
+    <button class="proto-chip" onclick="showQr('qr-notyet')">시작 전</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ════ 상단 헤더 ════ -->
+  <div class="top-header">
+    <button class="top-icon" onclick="history.back()" style="margin-right:4px;"><i class="fa-solid fa-chevron-left"></i></button>
+    <h1>MY</h1>
+    <div class="top-icons">
+      <button class="top-icon"><i class="fa-solid fa-magnifying-glass"></i></button>
+      <button class="top-icon">
+        <i class="fa-solid fa-bell"></i>
+        <span class="noti-badge">3</span>
+      </button>
+      <button class="top-icon"><i class="fa-solid fa-gear"></i></button>
+    </div>
+  </div>
+
+  <!-- ════ 메인 탭 ════ -->
+  <div class="main-tabs">
+    <button class="main-tab" onclick="selectTab(this)">코스</button>
+    <button class="main-tab" onclick="selectTab(this)">PLUS 코스</button>
+    <button class="main-tab" onclick="selectTab(this)">찜한 코스</button>
+    <button class="main-tab highlight active" onclick="selectTab(this)">오프라인</button>
+  </div>
+
+  <!-- ════ 필터 ════ -->
+  <div class="filter-bar">
+    <div class="filter-chips">
+      <button class="filter-chip active" onclick="setFilter(this,'all')">전체</button>
+      <button class="filter-chip" onclick="setFilter(this,'ongoing')">수강중</button>
+      <button class="filter-chip" onclick="setFilter(this,'upcoming')">수강예정</button>
+      <button class="filter-chip" onclick="setFilter(this,'done')">수강종료</button>
+    </div>
+  </div>
+  <div class="filter-count" id="filter-count">
+    <span id="count-text">수강중인 오프라인 코스 · <strong>3</strong>건</span>
+  </div>
+
+  <!-- ════ 스크롤 콘텐츠 ════ -->
+  <div class="scroll-area" id="scroll-area">
+
+    <!-- ▸▸▸ 유콘텐츠 (수강중 있음 · 일반) ▸▸▸ -->
+    <div id="view-has-courses">
+
+      <!-- ── 다음 교육 일정 히어로 (D-3) ── -->
+      <div class="next-session-card" id="hero-normal">
+        <div class="next-dday">D-3</div>
+        <div class="next-label">다음 교육 일정</div>
+        <div class="next-course-name">2026 직무교육 — 프로젝트 관리 심화</div>
+        <div class="next-session-name">3회차 · 프로젝트 리스크 관리 실습</div>
+        <div class="next-info-row">
+          <span><i class="fa-regular fa-calendar"></i> 4월 12일 (토) 09:00–18:00</span>
+        </div>
+        <div class="next-bottom">
+          <span class="loc"><i class="fa-solid fa-location-dot"></i> 본사 대교육장 B동 3층</span>
+          <button class="btn-qr" onclick="showQr('qr-success')"><i class="fa-solid fa-qrcode"></i> QR 출석</button>
+        </div>
+      </div>
+
+      <!-- ── 오늘 교육 히어로 (D-Day) ── -->
+      <div class="today-hero" id="hero-today" style="display:none;">
+        <div class="today-hero-top">
+          <div class="today-dday">TODAY</div>
+          <div class="today-live-badge"><span class="today-live-dot"></span> 오늘 교육</div>
+          <div class="today-course-name">2026 직무교육 — 프로젝트 관리 심화</div>
+          <div class="today-session-name">3회차 · 프로젝트 리스크 관리 실습</div>
+          <div class="today-info-grid">
+            <div class="today-info-item">
+              <i class="fa-regular fa-clock"></i> 시간
+              <span class="val">09:00 – 18:00</span>
+            </div>
+            <div class="today-info-item">
+              <i class="fa-solid fa-location-dot"></i> 장소
+              <span class="val">본사 대교육장 B동 3층</span>
+            </div>
+          </div>
+        </div>
+        <div class="today-hero-bottom">
+          <button class="btn-qr-big" onclick="showQr('qr-success')"><i class="fa-solid fa-qrcode"></i> QR 출석 체크인</button>
+          <button class="btn-map" title="길찾기"><i class="fa-solid fa-diamond-turn-right"></i></button>
+        </div>
+      </div>
+
+      <!-- ── 이번 주 5건 몰림: 메인 히어로 + 컴팩트 리스트 ── -->
+      <div id="hero-busy" style="display:none;">
+        <!-- 가장 가까운 1건: 내일 -->
+        <div class="next-session-card">
+          <div class="next-dday">D-1</div>
+          <div class="next-label">가장 가까운 교육</div>
+          <div class="next-course-name">2026 직무교육 — 프로젝트 관리 심화</div>
+          <div class="next-session-name">3회차 · 프로젝트 리스크 관리 실습</div>
+          <div class="next-info-row">
+            <span><i class="fa-regular fa-calendar"></i> 4월 10일 (목) 09:00–18:00</span>
+          </div>
+          <div class="next-bottom">
+            <span class="loc"><i class="fa-solid fa-location-dot"></i> 본사 대교육장 B동 3층</span>
+            <button class="btn-qr" onclick="showQr('qr-notyet')"><i class="fa-solid fa-qrcode"></i> QR 출석</button>
+          </div>
+        </div>
+
+        <!-- 나머지 4건 컴팩트 리스트 -->
+        <div class="upcoming-list">
+          <div class="upcoming-header"><i class="fa-regular fa-calendar-check"></i> 이번 주 예정 일정 · 4건 더</div>
+
+          <div class="upcoming-item">
+            <div class="upcoming-dday near">
+              <span class="d-label">D</span>2
+            </div>
+            <div class="upcoming-info">
+              <div class="upcoming-course">ESG 실무 워크숍</div>
+              <div class="upcoming-detail">1회차 · 4/11(금) 09:00–17:00</div>
+            </div>
+            <div class="upcoming-loc"><i class="fa-solid fa-location-dot"></i> 방배 실습실</div>
+          </div>
+
+          <div class="upcoming-item">
+            <div class="upcoming-dday near">
+              <span class="d-label">D</span>3
+            </div>
+            <div class="upcoming-info">
+              <div class="upcoming-course">2026 직무교육 — 프로젝트 관리 심화</div>
+              <div class="upcoming-detail">4회차 · 4/12(토) 09:00–18:00</div>
+            </div>
+            <div class="upcoming-loc"><i class="fa-solid fa-location-dot"></i> 본사 대교육장</div>
+          </div>
+
+          <div class="upcoming-item">
+            <div class="upcoming-dday normal">
+              <span class="d-label">D</span>5
+            </div>
+            <div class="upcoming-info">
+              <div class="upcoming-course">리더십 코칭 마스터</div>
+              <div class="upcoming-detail">2회차 · 4/14(월) 13:00–17:00</div>
+            </div>
+            <div class="upcoming-loc"><i class="fa-solid fa-location-dot"></i> 외부 연수원</div>
+          </div>
+
+          <div class="upcoming-item">
+            <div class="upcoming-dday normal">
+              <span class="d-label">D</span>6
+            </div>
+            <div class="upcoming-info">
+              <div class="upcoming-course">ESG 실무 워크숍</div>
+              <div class="upcoming-detail">2회차 · 4/15(화) 09:00–17:00</div>
+            </div>
+            <div class="upcoming-loc"><i class="fa-solid fa-location-dot"></i> 방배 실습실</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 수강중인 코스 ── -->
+      <div class="section-group">
+        <div class="section-title">
+          <h3>수강중인 코스 <span class="count">2</span></h3>
+        </div>
+
+        <!-- 카드 1: 진행중 코스 -->
+        <div class="course-card" onclick="location.href='user1-enrolled.html'">
+          <div class="card-top">
+            <div class="card-thumb" style="background: linear-gradient(135deg, #5569ff, #7B8BFF); color: #fff;">📋</div>
+            <div class="card-info">
+              <div class="card-badges">
+                <span class="badge-sm" style="background:var(--primary-lighter); color:var(--primary);">A반 (5월 평일반)</span>
+                <span class="badge-sm" style="background:#E6F4EA; color:#1A7A4A;">진행중</span>
+              </div>
+              <div class="card-name">2026 직무교육 — 프로젝트 관리 심화</div>
+              <div class="card-sub">김민준 · 총 5회차</div>
+            </div>
+          </div>
+          <div class="attend-bar-wrap">
+            <div class="attend-label">
+              <span class="label">출석률 (2/5회차 완료)</span>
+              <span class="val">100%</span>
+            </div>
+            <div class="attend-bar"><div class="attend-bar-fill good" style="width:100%"></div></div>
+          </div>
+          <div class="next-mini" id="card1-next">
+            <span class="dday">D-3</span>
+            <span>3회차 · 4/12(토) 09:00 · 본사 대교육장</span>
+          </div>
+        </div>
+
+        <!-- 카드 2: 예정 코스 -->
+        <div class="course-card" onclick="location.href='user1-enrolled.html'">
+          <div class="card-top">
+            <div class="card-thumb" style="background: linear-gradient(135deg, #10B981, #34D399); color: #fff;">🎯</div>
+            <div class="card-info">
+              <div class="card-badges">
+                <span class="badge-sm" style="background:#ECFDF5; color:#065F46;">B반 (6월반)</span>
+                <span class="badge-sm" style="background:var(--warning-bg); color:var(--warning);">예정</span>
+              </div>
+              <div class="card-name">ESG 실무 워크숍</div>
+              <div class="card-sub">이서연 · 총 3회차</div>
+            </div>
+          </div>
+          <div class="attend-bar-wrap">
+            <div class="attend-label">
+              <span class="label">교육 시작 전</span>
+              <span class="val">—</span>
+            </div>
+            <div class="attend-bar"><div class="attend-bar-fill good" style="width:0%"></div></div>
+          </div>
+          <div class="next-mini">
+            <span class="dday">D-62</span>
+            <span>1회차 · 6/10(화) 09:00 · 방배 실습실</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 완료된 코스 ── -->
+      <div class="section-group">
+        <div class="section-title">
+          <h3>완료된 코스 <span class="count">1</span></h3>
+        </div>
+
+        <div class="done-card" onclick="location.href='user1-completed.html'">
+          <div class="done-thumb">🏆</div>
+          <div class="done-info">
+            <div class="done-name">2025 하반기 리더십 심화</div>
+            <div class="done-sub">총 4회차 · 출석률 100% · 2025.12.20 완료</div>
+          </div>
+          <div class="done-status pass">수료</div>
+        </div>
+
+      </div>
+
+      <div style="height: 20px;"></div>
+    </div>
+
+    <!-- ▸▸▸ 빈 상태 ▸▸▸ -->
+    <div id="view-empty" style="display: none;">
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <div class="msg">수강중인 오프라인 코스가 없습니다</div>
+        <div class="sub">오프라인 코스를 탐색하고 교육에 신청해 보세요.</div>
+        <button class="btn-explore"><i class="fa-solid fa-compass"></i> 코스 탐색하기</button>
+      </div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- ════ 하단 탭바 ════ -->
+  <div class="tab-bar">
+    <button class="tab-item" onclick="location.href='home.html'"><i class="fa-solid fa-house"></i><span>홈</span></button>
+    <button class="tab-item" onclick="location.href='category.html'"><i class="fa-solid fa-bars-staggered"></i><span>카테고리</span></button>
+    <button class="tab-item"><i class="fa-solid fa-play"></i><span>숏클</span></button>
+    <button class="tab-item"><i class="fa-solid fa-ellipsis"></i><span>더보기</span></button>
+    <button class="tab-item active"><i class="fa-solid fa-user"></i><span>MY</span></button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ════ QR 결과 모달들 ════ -->
+
+<!-- 출석 성공 -->
+<div class="qr-overlay" id="qr-success" onclick="if(event.target===this)closeQr()">
+  <div class="qr-modal">
+    <div class="qr-modal-icon success"><i class="fa-solid fa-check"></i></div>
+    <div class="qr-modal-title">출석 완료</div>
+    <div class="qr-modal-course">3회차 · 리스크 관리 실습</div>
+    <div class="qr-modal-name">홍길동 님</div>
+    <div class="qr-modal-desc">출석이 완료되었습니다.</div>
+    <div class="qr-modal-time">2026.04.12 08:57</div>
+    <button class="qr-modal-btn primary" onclick="closeQr()">확인</button>
+  </div>
+</div>
+
+<!-- 지각 -->
+<div class="qr-overlay" id="qr-late" onclick="if(event.target===this)closeQr()">
+  <div class="qr-modal">
+    <div class="qr-modal-icon late-icon"><i class="fa-solid fa-clock"></i></div>
+    <div class="qr-modal-title">지각 처리</div>
+    <div class="qr-modal-course">3회차 · 리스크 관리 실습</div>
+    <div class="qr-modal-name">홍길동 님</div>
+    <div class="qr-modal-desc">출석 시간이 지나 지각으로 처리되었습니다.</div>
+    <div class="qr-modal-time" style="color:#E65100;">2026.04.12 09:23</div>
+    <button class="qr-modal-btn primary" style="background:#E65100;" onclick="closeQr()">확인</button>
+  </div>
+</div>
+
+<!-- 출석 기간 종료 -->
+<div class="qr-overlay" id="qr-expired" onclick="if(event.target===this)closeQr()">
+  <div class="qr-modal">
+    <div class="qr-modal-icon fail"><i class="fa-solid fa-xmark"></i></div>
+    <div class="qr-modal-title">출석 기간 종료</div>
+    <div class="qr-modal-course">3회차 · 리스크 관리 실습</div>
+    <div class="qr-modal-desc">출석 체크 기간이 종료되었습니다.<br>관리자에게 문의해 주세요.</div>
+    <div style="height:8px"></div>
+    <button class="qr-modal-btn gray" onclick="closeQr()">홈으로</button>
+  </div>
+</div>
+
+<!-- 출석 대상 아님 -->
+<div class="qr-overlay" id="qr-notarget" onclick="if(event.target===this)closeQr()">
+  <div class="qr-modal">
+    <div class="qr-modal-icon fail"><i class="fa-solid fa-user-xmark"></i></div>
+    <div class="qr-modal-title">출석 대상이 아닙니다</div>
+    <div class="qr-modal-desc" style="margin-top:8px;">해당 코스의 수강 대상이 아닙니다.<br>관리자에게 문의해 주세요.</div>
+    <div style="height:8px"></div>
+    <button class="qr-modal-btn gray" onclick="closeQr()">홈으로</button>
+  </div>
+</div>
+
+<!-- 출석 체크 시작 전 -->
+<div class="qr-overlay" id="qr-notyet" onclick="if(event.target===this)closeQr()">
+  <div class="qr-modal">
+    <div class="qr-modal-icon wait"><i class="fa-regular fa-clock"></i></div>
+    <div class="qr-modal-title">아직 출석 시간이 아닙니다</div>
+    <div class="qr-modal-course">3회차 · 리스크 관리 실습</div>
+    <div class="qr-modal-desc" style="margin-top:8px;">출석 체크는 교육 시작 시간부터<br>가능합니다. 잠시 후 다시 시도해 주세요.</div>
+    <div style="height:8px"></div>
+    <button class="qr-modal-btn primary" onclick="closeQr()">확인</button>
+  </div>
+</div>
+
+<script>
+/* ── Tab switching ── */
+function selectTab(el) {
+  document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ── Filter ── */
+function setFilter(el, type) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  // 실제로는 필터링 로직 — 프로토에서는 시각만
+  const labels = { all: '오프라인 코스 · <strong>3</strong>건', ongoing: '수강중 · <strong>1</strong>건', upcoming: '수강예정 · <strong>1</strong>건', done: '수강종료 · <strong>1</strong>건' };
+  document.getElementById('count-text').innerHTML = labels[type] || labels.all;
+}
+
+/* ── Proto View toggle ── */
+function setView(view) {
+  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const hasCourses = document.getElementById('view-has-courses');
+  const empty = document.getElementById('view-empty');
+  const heroNormal = document.getElementById('hero-normal');
+  const heroToday = document.getElementById('hero-today');
+  const heroBusy = document.getElementById('hero-busy');
+  const card1Next = document.getElementById('card1-next');
+
+  /* 기본: 전부 숨기기 */
+  hasCourses.style.display = 'none';
+  empty.style.display = 'none';
+  heroNormal.style.display = 'none';
+  heroToday.style.display = 'none';
+  heroBusy.style.display = 'none';
+
+  /* 뷰별 표시 */
+  if (view === 'empty') {
+    empty.style.display = '';
+  } else {
+    hasCourses.style.display = '';
+
+    if (view === 'no-hero') {
+      /* D-7 이상: 히어로 없음, 코스 카드만 */
+      card1Next.innerHTML = '<span class="dday">D-24</span><span>3회차 · 5/3(토) 09:00 · 본사 대교육장</span>';
+    } else if (view === 'today') {
+      heroToday.style.display = '';
+      card1Next.innerHTML = '<span class="dday imminent" style="color:#FF1943;background:#FEF2F2;">오늘</span><span>3회차 · 09:00 · 본사 대교육장</span>';
+    } else if (view === 'busy') {
+      heroBusy.style.display = '';
+      card1Next.innerHTML = '<span class="dday imminent" style="color:#FF1943;background:#FEF2F2;">D-1</span><span>3회차 · 4/10(목) 09:00 · 본사 대교육장</span>';
+    } else {
+      /* 일반 D-3 */
+      heroNormal.style.display = '';
+      card1Next.innerHTML = '<span class="dday">D-3</span><span>3회차 · 4/12(토) 09:00 · 본사 대교육장</span>';
+    }
+  }
+
+  const counts = {
+    'no-hero': '수강중인 오프라인 코스 · <strong>3</strong>건',
+    'has-courses': '수강중인 오프라인 코스 · <strong>3</strong>건',
+    'today': '수강중인 오프라인 코스 · <strong>3</strong>건',
+    'busy': '수강중인 오프라인 코스 · <strong>3</strong>건',
+    'empty': '수강중인 오프라인 코스 · <strong>0</strong>건'
+  };
+  document.getElementById('count-text').innerHTML = counts[view] || counts['has-courses'];
+}
+
+/* ── QR result modals ── */
+function showQr(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeQr() {
+  document.querySelectorAll('.qr-overlay').forEach(o => o.classList.remove('open'));
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Pretendard"', '"Roboto"', '"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Helvetica', 'Arial', 'sans-serif'],
+          },
+          colors: {
+            indigo: {
+              50: '#EEF0FF', 100: '#E0E4FF', 200: '#C7CDFF', 300: '#9BA8FF',
+              400: '#7B8AFF', 500: '#5569FF', 600: '#4454CC', 700: '#3340A6',
+              800: '#2A3587', 900: '#000C57', 950: '#000940',
+            },
+          },
+          boxShadow: {
+            card: '0px 9px 16px rgba(159,162,191,.18), 0px 2px 2px rgba(159,162,191,0.32)',
+            'card-sm': '0px 2px 3px rgba(159,162,191,.18), 0px 1px 1px rgba(159,162,191,0.32)',
+          },
+          fontSize: {
+            xs: ['13px', { lineHeight: '1.5' }],
+            sm: ['15px', { lineHeight: '1.5' }],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+    body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    table { border-collapse: separate; border-spacing: 0; }
+  </style>
+</head>
+<body class="bg-[#f2f5f9] text-slate-800 antialiased custom-scrollbar">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useMemo } from 'https://esm.sh/react@18.2.0';
+    import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+    import * as Lucide from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0';
+
+    const {
+      Plus, Search, ChevronDown, ChevronRight, MapPin, Monitor, Layers,
+      Calendar, Users, Trash2, Copy, Edit3, Star, Download, Grid3X3, List,
+      Link2, MoreHorizontal, X, CheckCircle, Clock, Archive, AlertCircle,
+      BookOpen, QrCode, Eye, GripVertical, Settings, Filter
+    } = Lucide;
+
+    /* ══════════════════════════════════════
+       더미 데이터 (오프라인 코스 전용)
+    ══════════════════════════════════════ */
+    const COURSES = [
+      { id: 1, title: '2026 직무교육 — 프로젝트 관리 심화', status: 'active', thumb: '', instructor: '김민준', creator: 'jiyoungkim', category: '직무 역량', registeredAt: '2026/04/08 14:28', enrollMethod: 'self',
+        totalEnrolled: 55, totalCapacity: 60,
+        packages: [
+          { name: '11월 01일 교육', startDate: '2026-11-01', endDate: '2026-11-01', place: '한샘 HQ B동 3층', capacity: 30, enrolled: 30, sessions: 2 },
+          { name: '11월 02일 교육', startDate: '2026-11-02', endDate: '2026-11-02', place: '한샘 HQ B동 3층', capacity: 30, enrolled: 25, sessions: 2 },
+        ]},
+      { id: 3, title: 'AI 활용 업무 자동화 워크숍', status: 'draft', thumb: '', instructor: '박지훈', creator: 'jiyoungkim', category: '직무 역량', registeredAt: '2026/04/07 17:45', enrollMethod: 'self',
+        totalEnrolled: 0, totalCapacity: 120,
+        packages: [
+          { name: 'A반 (초급)', startDate: '2026-05-12', endDate: '2026-05-12', place: '판교 연수원', capacity: 40, enrolled: 0, sessions: 3 },
+          { name: 'B반 (중급)', startDate: '2026-05-13', endDate: '2026-05-13', place: '판교 연수원', capacity: 40, enrolled: 0, sessions: 3 },
+          { name: 'C반 (심화)', startDate: '2026-05-14', endDate: '2026-05-14', place: '강남 교육장', capacity: 40, enrolled: 0, sessions: 2 },
+        ]},
+      { id: 6, title: '고객 응대 서비스 매너', status: 'closed', thumb: '', instructor: '한소희', creator: 'jiyoungkim', category: '직무 역량', registeredAt: '2026/03/10 10:30', enrollMethod: 'assign',
+        totalEnrolled: 30, totalCapacity: 30,
+        packages: [
+          { name: '3월 15일 교육', startDate: '2026-03-15', endDate: '2026-03-15', place: '한샘 HQ 대교육장', capacity: 30, enrolled: 30, sessions: 2 },
+        ]},
+      { id: 10, title: '안전보건 법정의무교육 (4월)', status: 'active', thumb: '', instructor: '강태훈', creator: 'jiyoungkim', category: '공통/온보딩', registeredAt: '2026/03/25 09:00', enrollMethod: 'assign',
+        totalEnrolled: 120, totalCapacity: 150,
+        packages: [
+          { name: '1기 (4/7~4/11)', startDate: '2026-04-07', endDate: '2026-04-11', place: '한샘 HQ 대교육장', capacity: 30, enrolled: 30, sessions: 5 },
+          { name: '2기 (4/14~4/18)', startDate: '2026-04-14', endDate: '2026-04-18', place: '한샘 HQ 대교육장', capacity: 30, enrolled: 30, sessions: 5 },
+          { name: '3기 (4/21~4/25)', startDate: '2026-04-21', endDate: '2026-04-25', place: '판교 연수원', capacity: 30, enrolled: 30, sessions: 5 },
+          { name: '4기 (4/28~4/30)', startDate: '2026-04-28', endDate: '2026-04-30', place: '판교 연수원', capacity: 30, enrolled: 20, sessions: 3 },
+          { name: '5기 (5/7~5/9)', startDate: '2026-05-07', endDate: '2026-05-09', place: '강남 교육장', capacity: 30, enrolled: 10, sessions: 3 },
+        ]},
+      { id: 11, title: '신임 팀장 리더십 캠프', status: 'active', thumb: '', instructor: '최예진', creator: 'jaewan.na', category: '리더십', registeredAt: '2026/04/05 11:20', enrollMethod: 'self',
+        totalEnrolled: 38, totalCapacity: 50,
+        packages: [
+          { name: '1차 워크숍', startDate: '2026-05-20', endDate: '2026-05-20', place: '한샘 HQ 세미나룸', capacity: 25, enrolled: 20, sessions: 2 },
+          { name: '2차 워크숍', startDate: '2026-06-10', endDate: '2026-06-10', place: '한샘 HQ 세미나룸', capacity: 25, enrolled: 18, sessions: 2 },
+        ]},
+      { id: 12, title: '영업 전략 부트캠프 (5기)', status: 'draft', thumb: '', instructor: '김도윤', creator: 'jiyoungkim', category: '영업', registeredAt: '2026/04/06 13:10', enrollMethod: 'self',
+        totalEnrolled: 0, totalCapacity: 100,
+        packages: [
+          { name: '집합교육 1주차', startDate: '2026-06-01', endDate: '2026-06-05', place: '판교 연수원', capacity: 25, enrolled: 0, sessions: 5 },
+          { name: '집합교육 2주차', startDate: '2026-06-15', endDate: '2026-06-19', place: '판교 연수원', capacity: 25, enrolled: 0, sessions: 5 },
+          { name: '집합교육 3주차', startDate: '2026-07-01', endDate: '2026-07-03', place: '강남 교육장', capacity: 25, enrolled: 0, sessions: 6 },
+          { name: '최종 발표', startDate: '2026-07-31', endDate: '2026-07-31', place: '한샘 HQ 대교육장', capacity: 25, enrolled: 0, sessions: 1 },
+        ]},
+    ];
+
+    const CATEGORIES = [
+      { id: 'all', label: '전체', children: [] },
+      { id: 'work', label: 'WORK', children: [
+        { id: 'job', label: '직무 역량' },
+        { id: 'leader', label: '리더십' },
+        { id: 'sales', label: '영업' },
+      ]},
+      { id: 'common', label: '공통/온보딩', children: [] },
+      { id: 'it', label: 'IT', children: [] },
+      { id: 'dx', label: 'DX', children: [] },
+    ];
+
+    /* ── 설정 맵 ── */
+    const STATUS_CFG = {
+      active:    { label: '운영중', bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-500' },
+      published: { label: '운영중', bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-500' },
+      draft:     { label: '임시저장', bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-400' },
+      saved:     { label: '임시저장', bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-400' },
+      closed:    { label: '종료', bg: 'bg-slate-50', text: 'text-slate-400', dot: 'bg-slate-300' },
+    };
+
+    const fmtDate = (d) => d ? d.replace(/-/g, '.').slice(5) : '';
+    const fmtRange = (s, e) => {
+      if (!s) return '-';
+      const fs = fmtDate(s);
+      return e && e !== s ? `${fs} ~ ${fmtDate(e)}` : fs;
+    };
+
+    /* ══════════════════════════════════════
+       App
+    ══════════════════════════════════════ */
+    const App = () => {
+      const [courses, setCourses] = useState(COURSES);
+      const [statusFilter, setStatusFilter] = useState('all');
+      const [search, setSearch] = useState('');
+      const [expandedIds, setExpandedIds] = useState(new Set());
+      const [selectedIds, setSelectedIds] = useState(new Set());
+      const [catFilter, setCatFilter] = useState('all');
+      const [expandedCats, setExpandedCats] = useState(new Set(['work']));
+
+      const toggleExpand = (id) => setExpandedIds(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+      const toggleSelect = (id) => setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+      const toggleCatExpand = (id) => setExpandedCats(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+
+      /* ── 상태별 카운트 ── */
+      const statusCounts = useMemo(() => ({
+        all: courses.length,
+        active: courses.filter(c => c.status === 'active' || c.status === 'published').length,
+        draft: courses.filter(c => c.status === 'draft' || c.status === 'saved').length,
+        closed: courses.filter(c => c.status === 'closed').length,
+      }), [courses]);
+
+      const filtered = useMemo(() => {
+        let list = courses;
+        if (statusFilter === 'active') list = list.filter(c => c.status === 'active' || c.status === 'published');
+        else if (statusFilter === 'draft') list = list.filter(c => c.status === 'draft' || c.status === 'saved');
+        else if (statusFilter === 'closed') list = list.filter(c => c.status === 'closed');
+        if (catFilter !== 'all') list = list.filter(c => c.category === catFilter);
+        if (search.trim()) {
+          const q = search.trim().toLowerCase();
+          list = list.filter(c => c.title.toLowerCase().includes(q) || c.instructor.toLowerCase().includes(q));
+        }
+        return list;
+      }, [courses, statusFilter, catFilter, search]);
+
+      const allSelected = filtered.length > 0 && filtered.every(c => selectedIds.has(c.id));
+      const toggleAll = () => {
+        if (allSelected) setSelectedIds(new Set());
+        else setSelectedIds(new Set(filtered.map(c => c.id)));
+      };
+
+      const handleDelete = (id) => {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        setCourses(courses.filter(c => c.id !== id));
+        setSelectedIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      };
+
+      /* ── 코스의 날짜 범위 요약 ── */
+      const getDateRange = (course) => {
+        if (course.packages.length === 0) return '-';
+        const starts = course.packages.map(p => p.startDate).filter(Boolean).sort();
+        const ends = course.packages.map(p => p.endDate).filter(Boolean).sort();
+        if (starts.length === 0) return '-';
+        return fmtRange(starts[0], ends[ends.length - 1]);
+      };
+
+      /* ── 장소 요약 ── */
+      const getPlaceSummary = (course) => {
+        const places = [...new Set(course.packages.map(p => p.place).filter(Boolean))];
+        if (places.length === 0) return '';
+        if (places.length === 1) return places[0];
+        return `${places[0]} 외 ${places.length - 1}곳`;
+      };
+
+      /* ── 총 회차 수 ── */
+      const getTotalSessions = (course) => course.packages.reduce((s, p) => s + (p.sessions || 0), 0);
+
+      const SIDEBAR_MENUS = [
+        { id: 'member', label: '회원', icon: Users, hasChildren: true },
+        { id: 'course', label: '코스', icon: BookOpen, hasChildren: true, children: [
+          { id: 'course-main', label: '코스' },
+          { id: 'course-plus', label: 'PLUS 코스' },
+        ]},
+        { id: 'offline-course', label: '오프라인 코스', icon: MapPin, active: true },
+        { id: 'content', label: '콘텐츠', icon: Copy, hasChildren: true },
+        { id: 'ttube', label: 'T튜브', icon: Monitor, hasChildren: true },
+        { id: 'ai-quiz', label: 'AI 퀴메이커', icon: Star, badge: 'N' },
+        { id: 'translation', label: 'Translation', icon: List, hasChildren: true },
+        { id: 'question-bank', label: '문제 은행', icon: Archive },
+        { id: 'opinion', label: '의견', icon: AlertCircle },
+        { id: 'gamification', label: '게이미피케이션', icon: Grid3X3, hasChildren: true },
+        { id: 'live', label: '라이브 스트리밍', icon: Eye, hasChildren: true },
+        { id: 'touch', label: '터치투게더', icon: Users },
+        { id: 'attendance', label: '출석 체크', icon: CheckCircle },
+        { id: 'ai-chat', label: 'AI 챗봇', icon: Monitor, badge: 'N' },
+        { id: 'stats', label: '통계', icon: Filter },
+        { id: 'notice', label: '공지사항', icon: Archive },
+        { id: 'popup', label: '팝업', icon: Layers },
+      ];
+
+      const [sideExpanded, setSideExpanded] = useState(new Set(['course']));
+      const toggleSideMenu = (id) => setSideExpanded(prev => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+
+      /* ── 상태 필터 탭 정의 ── */
+      const STATUS_TABS = [
+        { key: 'all', label: '전체' },
+        { key: 'active', label: '운영중' },
+        { key: 'draft', label: '임시저장' },
+        { key: 'closed', label: '종료' },
+      ];
+
+      return (
+        <div className="min-h-screen flex">
+
+          {/* ══ 글로벌 좌측 사이드바 ══ */}
+          <aside className="w-[200px] bg-white border-r border-slate-200 flex flex-col shrink-0 h-screen sticky top-0 overflow-y-auto custom-scrollbar">
+            {/* 로고 */}
+            <div className="px-5 py-5 flex items-center justify-center">
+              <span className="text-[40px]">🔥</span>
+            </div>
+            {/* 메뉴 */}
+            <nav className="flex-1 px-3 pb-6 space-y-0.5">
+              {SIDEBAR_MENUS.map(menu => (
+                <div key={menu.id}>
+                  <button
+                    onClick={() => menu.hasChildren && toggleSideMenu(menu.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[14px] font-semibold transition-colors
+                      ${menu.active ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    {React.createElement(menu.icon, { size: 16, className: menu.active ? 'text-indigo-600' : 'text-slate-400' })}
+                    <span className="flex-1 text-left">{menu.label}</span>
+                    {menu.badge && (
+                      <span className="w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{menu.badge}</span>
+                    )}
+                    {menu.hasChildren && (
+                      <span className="text-slate-400">
+                        {sideExpanded.has(menu.id)
+                          ? <ChevronDown size={14}/>
+                          : <ChevronRight size={14}/>
+                        }
+                      </span>
+                    )}
+                  </button>
+                  {menu.children && sideExpanded.has(menu.id) && (
+                    <div className="ml-7 mt-0.5 space-y-0.5">
+                      {menu.children.map(sub => (
+                        <a key={sub.id} href="#"
+                          className={`block px-3 py-1.5 rounded-md text-[13px] transition-colors
+                            ${sub.active ? 'text-indigo-700 font-bold' : 'text-slate-500 hover:bg-slate-50 font-medium'}`}
+                        >
+                          {sub.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </aside>
+
+          {/* ══ 메인 영역 (헤더 + 콘텐츠) ══ */}
+          <div className="flex-1 flex flex-col min-h-screen">
+
+          {/* ── 헤더 ── */}
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+            <div className="px-8 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center">
+                  <MapPin size={16} className="text-violet-600"/>
+                </div>
+                <h1 className="text-[20px] font-black text-slate-900">오프라인 코스</h1>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+                  <List size={14}/> 코스 순서 관리
+                </button>
+                <a href="admin1-1.html" className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+                  <Plus size={14}/> 수강생 등록
+                </a>
+                <a href="admin1.html" className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-[14px] font-bold hover:bg-indigo-600 transition-colors flex items-center gap-1.5 shadow-sm">
+                  <Plus size={14}/> 코스 등록
+                </a>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex flex-1 overflow-hidden">
+
+            {/* ── 좌측 분류 사이드바 ── */}
+            <aside className="w-[180px] bg-white border-r border-slate-200 overflow-y-auto custom-scrollbar shrink-0 py-4">
+              <div className="px-4 mb-3 flex items-center justify-between">
+                <span className="text-[14px] font-bold text-slate-800">분류</span>
+                <div className="flex items-center gap-1">
+                  <button className="text-slate-400 hover:text-slate-600"><Settings size={14}/></button>
+                  <button className="text-slate-400 hover:text-slate-600"><ChevronDown size={14}/></button>
+                </div>
+              </div>
+              <div className="space-y-0.5">
+                {/* 전체 */}
+                <button
+                  onClick={() => setCatFilter('all')}
+                  className={`w-full text-left px-4 py-1.5 text-[13px] font-semibold transition-colors
+                    ${catFilter === 'all' ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                >
+                  전체
+                </button>
+                {CATEGORIES.filter(c => c.id !== 'all').map(cat => (
+                  <div key={cat.id}>
+                    <button
+                      onClick={() => cat.children.length > 0 ? toggleCatExpand(cat.id) : setCatFilter(cat.label)}
+                      className={`w-full text-left px-4 py-1.5 text-[13px] font-semibold flex items-center gap-1 transition-colors
+                        ${catFilter === cat.label ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      {cat.children.length > 0 && (
+                        <span className="text-slate-400">{expandedCats.has(cat.id) ? <ChevronDown size={12}/> : <ChevronRight size={12}/>}</span>
+                      )}
+                      {cat.label}
+                    </button>
+                    {cat.children.length > 0 && expandedCats.has(cat.id) && (
+                      <div className="ml-3">
+                        {cat.children.map(sub => (
+                          <button
+                            key={sub.id}
+                            onClick={() => setCatFilter(sub.label)}
+                            className={`w-full text-left px-4 py-1 text-[12px] transition-colors
+                              ${catFilter === sub.label ? 'text-indigo-700 font-bold bg-indigo-50' : 'text-slate-500 hover:bg-slate-50 font-medium'}`}
+                          >
+                            {sub.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </aside>
+
+            {/* ── 메인 콘텐츠 ── */}
+            <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#f5f6fa]">
+              {/* 필터 바 — 상태 탭 (메인 필터) */}
+              <div className="bg-white border-b border-slate-200 px-6 py-3">
+                <div className="flex items-center gap-2">
+                  {STATUS_TABS.map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setStatusFilter(tab.key)}
+                      className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold border transition-all flex items-center gap-1.5
+                        ${statusFilter === tab.key
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300'}`}
+                    >
+                      {tab.label}
+                      <span className={`${statusFilter === tab.key ? 'text-indigo-200' : 'text-slate-300'}`}>{statusCounts[tab.key]}</span>
+                    </button>
+                  ))}
+                  <button className="ml-2 flex items-center gap-1 text-[13px] text-slate-400 font-semibold border border-dashed border-slate-300 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-500 transition-colors">
+                    <Plus size={12}/> 필터 추가
+                  </button>
+                </div>
+              </div>
+
+              {/* 카운트 + 검색 */}
+              <div className="px-6 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-[14px] font-bold text-slate-700">총 <span className="text-indigo-600">{filtered.length}</span></span>
+                  <div className="relative">
+                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-300"/>
+                    <input
+                      type="text" value={search} onChange={e => setSearch(e.target.value)}
+                      placeholder="코스명 / 강사 검색"
+                      className="border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[13px] w-[220px] outline-none focus:border-indigo-400 transition-all bg-white placeholder-slate-300"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] text-slate-400 font-medium">코스 순서 설정순</span>
+                  <button className="p-1.5 border border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 bg-white"><Download size={14}/></button>
+                  <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
+                    <button className="p-1.5 text-slate-400 hover:bg-slate-50"><Grid3X3 size={14}/></button>
+                    <button className="p-1.5 bg-indigo-50 text-indigo-600"><List size={14}/></button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── 테이블 ── */}
+              <div className="px-6 pb-8">
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/80">
+                        <th className="w-10 px-3 py-3">
+                          <input type="checkbox" checked={allSelected} onChange={toggleAll} className="w-4 h-4 rounded accent-indigo-600"/>
+                        </th>
+                        <th className="w-10 px-0 py-3"></th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[80px]">상태</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400">코스명</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[90px] text-center">수강관리</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[100px]">패키지</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[90px]">분류</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[140px]">교육 기간</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[70px] text-right">수강 인원</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[130px]">등록일</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[100px]">생성자</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[80px] text-center">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map(course => {
+                        const statusCfg = STATUS_CFG[course.status];
+                        const isExpanded = expandedIds.has(course.id);
+                        const isSelected = selectedIds.has(course.id);
+                        const hasPackages = course.packages.length > 0;
+                        const totalSessions = getTotalSessions(course);
+                        const isFull = course.totalCapacity > 0 && course.totalEnrolled >= course.totalCapacity;
+
+                        return (
+                          <React.Fragment key={course.id}>
+                            {/* ── 메인 행 ── */}
+                            <tr className={`border-b border-slate-100 transition-colors group
+                              ${isSelected ? 'bg-indigo-50/30' : 'hover:bg-slate-50/80'}
+                              ${isExpanded ? 'bg-slate-50/50' : ''}`}>
+                              {/* 체크 */}
+                              <td className="px-3 py-3">
+                                <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(course.id)} className="w-4 h-4 rounded accent-indigo-600"/>
+                              </td>
+                              {/* 확장 화살표 */}
+                              <td className="px-0 py-3">
+                                {hasPackages ? (
+                                  <button onClick={() => toggleExpand(course.id)} className="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                                    {isExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                                  </button>
+                                ) : <div className="w-6"/>}
+                              </td>
+                              {/* 상태 */}
+                              <td className="px-3 py-3">
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-bold whitespace-nowrap ${statusCfg.bg} ${statusCfg.text}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusCfg.dot}`}/>
+                                  {statusCfg.label}
+                                </span>
+                              </td>
+                              {/* 코스명 */}
+                              <td className="px-3 py-3">
+                                <div className="flex items-center gap-2">
+                                  <a href={`admin1.html?courseId=${course.id}`} className="text-[14px] font-bold text-slate-800 hover:text-indigo-600 transition-colors leading-snug">
+                                    {course.title}
+                                  </a>
+                                  {hasPackages && (
+                                    <span className="shrink-0 text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{course.packages.length}개 반</span>
+                                  )}
+                                </div>
+                                {hasPackages && (
+                                  <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                                    <MapPin size={9}/> {getPlaceSummary(course)}
+                                  </div>
+                                )}
+                              </td>
+                              {/* 수강관리 */}
+                              <td className="px-3 py-3 text-center">
+                                {course.status === 'active' || course.status === 'closed' ? (
+                                  <a href={`admin1-1.html?courseId=${course.id}`} className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-indigo-100 transition-colors">
+                                    <Users size={10}/> 수강관리
+                                  </a>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-300 border border-slate-200 px-2.5 py-1 rounded-md text-[11px] font-bold cursor-not-allowed" title="퍼블리싱 후 이용 가능">
+                                    <Users size={10}/> 수강관리
+                                  </span>
+                                )}
+                              </td>
+                              {/* 패키지 */}
+                              <td className="px-3 py-3">
+                                <button onClick={() => toggleExpand(course.id)} className="inline-flex items-center gap-1 bg-violet-50 text-violet-600 border border-violet-200 px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-violet-100 transition-colors">
+                                  <Calendar size={10}/> {course.packages.length}개 · {totalSessions}회차
+                                </button>
+                              </td>
+                              {/* 분류 */}
+                              <td className="px-3 py-3">
+                                <span className="inline-block bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-bold">{course.category}</span>
+                              </td>
+                              {/* 교육 기간 */}
+                              <td className="px-3 py-3 text-[12px] text-slate-600 font-medium">
+                                {getDateRange(course)}
+                              </td>
+                              {/* 수강 인원 */}
+                              <td className="px-3 py-3 text-right">
+                                <span className="text-[13px] font-black text-slate-800">{course.totalEnrolled}</span>
+                                {course.totalCapacity > 0 && (
+                                  <span className="text-[12px] text-slate-400 font-medium">/{course.totalCapacity}</span>
+                                )}
+                                {isFull && <span className="block text-[10px] font-bold text-rose-500">마감</span>}
+                              </td>
+                              {/* 등록일 */}
+                              <td className="px-3 py-3 text-[12px] text-slate-500 font-medium">{course.registeredAt}</td>
+                              {/* 생성자 */}
+                              <td className="px-3 py-3 text-[12px] text-slate-500 font-medium">{course.creator}</td>
+                              {/* 관리 */}
+                              <td className="px-3 py-3">
+                                <div className="flex items-center justify-center gap-0.5">
+                                  <button className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"><Link2 size={14}/></button>
+                                  <a href={`admin1.html?courseId=${course.id}`} className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"><Edit3 size={14}/></a>
+                                  <button onClick={() => handleDelete(course.id)} className="p-1 text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={14}/></button>
+                                </div>
+                              </td>
+                            </tr>
+
+                            {/* ── 확장 행: 패키지 상세 ── */}
+                            {isExpanded && hasPackages && (
+                              <tr className="animate-fadeIn">
+                                <td colSpan="12" className="px-0 py-0">
+                                  <div className="bg-[#f8f9fd] border-b border-slate-200 px-12 py-4">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <span className="text-[12px] font-bold text-slate-500">패키지(반) 상세</span>
+                                      <span className="text-[11px] text-slate-400 font-medium">— {course.packages.length}개 패키지 / 총 {totalSessions}회차</span>
+                                    </div>
+                                    <table className="w-full">
+                                      <thead>
+                                        <tr className="text-[11px] font-bold text-slate-400 border-b border-slate-200">
+                                          <th className="text-left py-2 pr-4">패키지명</th>
+                                          <th className="text-left py-2 pr-4">기간</th>
+                                          <th className="text-left py-2 pr-4">장소</th>
+                                          <th className="text-center py-2 pr-4">회차</th>
+                                          <th className="text-right py-2 pr-4">정원</th>
+                                          <th className="text-right py-2 pr-4">신청</th>
+                                          <th className="text-right py-2">잔여</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {course.packages.map((pkg, i) => {
+                                          const remaining = pkg.capacity - pkg.enrolled;
+                                          const pctFull = pkg.capacity > 0 ? Math.round(pkg.enrolled / pkg.capacity * 100) : 0;
+                                          return (
+                                            <tr key={i} className="text-[12px] border-b border-slate-100 last:border-0">
+                                              <td className="py-2 pr-4 font-bold text-slate-700">{pkg.name}</td>
+                                              <td className="py-2 pr-4 text-slate-600">{fmtRange(pkg.startDate, pkg.endDate)}</td>
+                                              <td className="py-2 pr-4 text-slate-500 flex items-center gap-1"><MapPin size={10} className="text-slate-300"/> {pkg.place}</td>
+                                              <td className="py-2 pr-4 text-center text-slate-600">{pkg.sessions}회</td>
+                                              <td className="py-2 pr-4 text-right text-slate-600">{pkg.capacity}명</td>
+                                              <td className="py-2 pr-4 text-right font-bold text-slate-800">{pkg.enrolled}명</td>
+                                              <td className="py-2 text-right">
+                                                <span className={`font-bold ${remaining <= 0 ? 'text-rose-500' : remaining <= 5 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                                  {remaining <= 0 ? '마감' : `${remaining}석`}
+                                                </span>
+                                                {remaining > 0 && pctFull >= 80 && (
+                                                  <span className="text-[10px] text-amber-500 font-bold ml-1">임박</span>
+                                                )}
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
+                                      </tbody>
+                                    </table>
+                                    <div className="mt-3 flex items-center gap-2">
+                                      <a href={`admin1.html?courseId=${course.id}`} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                                        <Edit3 size={10}/> 패키지 편집
+                                      </a>
+                                      {course.status === 'active' || course.status === 'closed' ? (
+                                        <a href={`admin1-1.html?courseId=${course.id}`} className="text-[11px] font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1">
+                                          <QrCode size={10}/> 수강관리
+                                        </a>
+                                      ) : (
+                                        <span className="text-[11px] font-bold text-slate-300 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-not-allowed" title="퍼블리싱 후 이용 가능">
+                                          <QrCode size={10}/> 수강관리
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {filtered.length === 0 && (
+                    <div className="py-20 text-center">
+                      <Search size={32} className="text-slate-200 mx-auto mb-3"/>
+                      <div className="text-[14px] font-bold text-slate-400">검색 결과가 없습니다</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </main>
+          </div>
+
+          </div>{/* 메인 영역 끝 */}
+        </div>
+      );
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>

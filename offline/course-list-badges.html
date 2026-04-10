@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스 — 직무교육</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #5569ff;
+      --primary-lighter: #EEF0FF;
+      --secondary: #6E759F;
+      --error: #FF1943;
+      --success-dark: #1A7A4A;
+      --success-bg: #E6F4EA;
+      --black: #223354;
+      --body-bg: #f2f5f9;
+      --white: #ffffff;
+      --border: rgba(34,51,84,.10);
+      --r: 10px; --r-lg: 16px;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Pretendard','Inter',sans-serif;
+      font-size: 14px; color: var(--black); background: var(--body-bg);
+    }
+
+    .app {
+      max-width: 390px; margin: 0 auto; min-height: 100vh;
+      background: var(--white); position: relative;
+      box-shadow: 0 0 0 1px var(--border);
+      display: flex; flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { background: #e8ecf4; display: flex; align-items: center; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+      .app { border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(34,51,84,.18); overflow: hidden; width: 390px; height: 860px; min-height: auto; }
+    }
+
+    /* ── 헤더 ── */
+    .top-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 20px; background: var(--white);
+    }
+    .btn-back {
+      width: 32px; height: 32px; border-radius: 50%; border: none; background: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--black); cursor: pointer;
+    }
+    .top-header h1 { flex: 1; font-size: 18px; font-weight: 800; }
+
+    /* ── 서브 카테고리 탭 ── */
+    .sub-tabs {
+      display: flex; gap: 0; padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .sub-tabs::-webkit-scrollbar { display: none; }
+    .sub-tab {
+      padding: 10px 14px; font-size: 14px; font-weight: 700;
+      color: var(--secondary); cursor: pointer; position: relative;
+      border: none; background: none; white-space: nowrap; font-family: inherit;
+    }
+    .sub-tab.active { color: var(--black); }
+    .sub-tab.active::after {
+      content: ''; position: absolute; bottom: -1px; left: 8px; right: 8px;
+      height: 2px; background: var(--black); border-radius: 2px;
+    }
+
+    /* ── 검색 ── */
+    .search-bar {
+      margin: 14px 20px 0; position: relative;
+    }
+    .search-bar input {
+      width: 100%; padding: 10px 14px 10px 36px;
+      border: 1px solid var(--border); border-radius: var(--r);
+      background: #F6F8FB; font-size: 13px; font-weight: 500;
+      color: var(--black); outline: none; font-family: inherit;
+    }
+    .search-bar input::placeholder { color: #A0AEC0; }
+    .search-bar input:focus { border-color: var(--primary); background: var(--white); }
+    .search-bar .icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: #A0AEC0; font-size: 13px;
+    }
+
+    /* ── 필터 체크박스 행 ── */
+    .filter-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 20px 0;
+    }
+    .filter-check {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 13px; font-weight: 600; color: var(--secondary); cursor: pointer;
+    }
+    .filter-check input[type="checkbox"] {
+      width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;
+    }
+    .filter-check.active { color: var(--black); }
+    .filter-toggle {
+      margin-left: auto; display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--secondary);
+    }
+    .toggle-switch {
+      width: 36px; height: 20px; border-radius: 10px;
+      background: #E2E8F0; position: relative; cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-switch.on { background: var(--primary); }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 16px; height: 16px; border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15); transition: left .2s;
+    }
+    .toggle-switch.on::after { left: 18px; }
+
+    /* ── 건수 + 정렬 행 ── */
+    .count-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px 10px;
+    }
+    .count-text { font-size: 13px; font-weight: 600; color: var(--secondary); }
+    .sort-area { display: flex; align-items: center; gap: 10px; }
+    .sort-btn {
+      font-size: 12px; font-weight: 700; color: var(--secondary);
+      border: none; background: none; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; gap: 3px;
+    }
+    .sort-btn i { font-size: 10px; }
+    .view-toggle {
+      width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--white); display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--secondary); cursor: pointer;
+    }
+
+    /* ── 스크롤 영역 ── */
+    .scroll-area { flex: 1; overflow-y: auto; background: var(--white); }
+
+    /* ── 그리드 (3열) ── */
+    .course-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px 10px; padding: 0 20px 24px;
+    }
+
+    /* ── 코스 카드 ── */
+    .g-card { cursor: pointer; }
+    .g-card-cover {
+      width: 100%; aspect-ratio: 3/4; border-radius: var(--r);
+      overflow: hidden; position: relative; background: #eee;
+      margin-bottom: 8px;
+    }
+    .g-card-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 배지 (커버 위) */
+    .g-badges {
+      position: absolute; top: 6px; left: 6px; right: 6px;
+      display: flex; flex-wrap: wrap; gap: 3px; z-index: 3;
+    }
+    .g-badge {
+      padding: 2px 6px; border-radius: 4px;
+      font-size: 9px; font-weight: 800; white-space: nowrap;
+      backdrop-filter: blur(4px);
+    }
+    .g-badge.offline { background: rgba(0,0,0,.55); color: #fff; }
+    .g-badge.enrollable { background: rgba(255,255,255,.92); color: var(--success-dark); }
+    .g-badge.not-started { background: rgba(255,25,67,.85); color: #fff; }
+    .g-badge.in-progress { background: rgba(85,105,255,.85); color: #fff; }
+    .g-badge.scheduled { background: rgba(100,116,139,.8); color: #fff; }
+    .g-badge.ended { background: rgba(255,25,67,.12); color: var(--error); border: 1px solid rgba(255,25,67,.25); }
+    .g-badge.completed { background: rgba(255,255,255,.92); color: var(--success-dark); }
+
+    .g-card-title {
+      font-size: 12px; font-weight: 700; color: var(--black);
+      line-height: 1.4; margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .g-card-bottom {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .g-card-bottom .progress {
+      font-size: 11px; font-weight: 700; color: var(--primary);
+      display: flex; align-items: center; gap: 3px;
+    }
+    .g-card-bottom .progress i { font-size: 8px; }
+    .g-card-bottom .info-btn {
+      width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #E2E8F0;
+      background: none; color: #CBD5E1; font-size: 9px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      margin-left: auto;
+    }
+
+    /* ── 상태 텍스트 배지 (카드 하단용) ── */
+    .g-status {
+      font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 3px;
+    }
+    .g-status.enrollable { color: var(--success-dark); border: 1px solid var(--success-dark); background: var(--success-bg); }
+    .g-status.not-started { color: var(--error); border: 1px solid var(--error); background: #FFF5F7; }
+    .g-status.in-progress { color: var(--primary); border: 1px solid var(--primary); background: var(--primary-lighter); }
+    .g-status.scheduled { color: #64748B; border: 1px solid #CBD5E1; background: #F8FAFC; }
+    .g-status.ended { color: #94A3B8; border: 1px solid #E2E8F0; background: #F8FAFC; }
+    .g-status.completed { color: var(--success-dark); border: 1px solid var(--success-dark); background: var(--success-bg); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── 헤더 ── -->
+  <div class="top-header">
+    <button class="btn-back" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+    <h1>직무교육</h1>
+  </div>
+
+  <!-- ── 서브 카테고리 탭 ── -->
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="setSubTab(this)">전체</button>
+    <button class="sub-tab" onclick="setSubTab(this)">프로젝트관리</button>
+    <button class="sub-tab" onclick="setSubTab(this)">데이터분석</button>
+    <button class="sub-tab" onclick="setSubTab(this)">커뮤니케이션</button>
+    <button class="sub-tab" onclick="setSubTab(this)">문제해결</button>
+  </div>
+
+  <!-- ── 검색 ── -->
+  <div class="search-bar">
+    <i class="fa-solid fa-magnifying-glass icon"></i>
+    <input type="text" placeholder="어떤 코스를 찾으세요?">
+  </div>
+
+  <!-- ── 필터 체크박스 ── -->
+  <div class="filter-row">
+    <label class="filter-check"><input type="checkbox"> 수강신청가능</label>
+    <label class="filter-check"><input type="checkbox"> 수강중</label>
+    <div class="filter-toggle">
+      <span>필수</span>
+      <div class="toggle-switch" onclick="this.classList.toggle('on')"></div>
+    </div>
+  </div>
+
+  <!-- ── 건수 + 정렬 ── -->
+  <div class="count-row">
+    <span class="count-text">12개 코스</span>
+    <div class="sort-area">
+      <button class="sort-btn"><i class="fa-solid fa-chevron-down"></i> 추천순</button>
+      <button class="view-toggle"><i class="fa-solid fa-grip"></i></button>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+    <div class="course-grid">
+
+      <!-- 1: 수강 신청 가능 -->
+      <div class="g-card" onclick="location.href='user1.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge enrollable"><i class="fa-solid fa-check" style="font-size:7px;"></i> 신청가능</span>
+          </div>
+        </div>
+        <div class="g-card-title">2026 직무교육 — 프로젝트 관리 심화</div>
+        <div class="g-card-bottom">
+          <span class="g-status enrollable">수강 신청 가능</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 2: 수강 신청 가능 -->
+      <div class="g-card" onclick="location.href='user1.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge enrollable"><i class="fa-solid fa-check" style="font-size:7px;"></i> 신청가능</span>
+          </div>
+        </div>
+        <div class="g-card-title">데이터 기반 의사결정 실습</div>
+        <div class="g-card-bottom">
+          <span class="g-status enrollable">수강 신청 가능</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 3: 수강중 -->
+      <div class="g-card" onclick="location.href='user1.html?status=enrolled'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge in-progress">수강중</span>
+          </div>
+        </div>
+        <div class="g-card-title">ESG 실무 워크숍</div>
+        <div class="g-card-bottom">
+          <span class="progress"><i class="fa-solid fa-play"></i> 66%</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 4: 시작전 -->
+      <div class="g-card" onclick="location.href='user1.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge not-started">시작전</span>
+          </div>
+        </div>
+        <div class="g-card-title">신입사원 OJT 과정</div>
+        <div class="g-card-bottom">
+          <span class="g-status not-started">시작전</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 5: 수강예정 -->
+      <div class="g-card">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge scheduled">수강예정</span>
+          </div>
+        </div>
+        <div class="g-card-title">글로벌 비즈니스 매너</div>
+        <div class="g-card-bottom">
+          <span class="g-status scheduled">수강예정</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 6: 학습 완료 -->
+      <div class="g-card" onclick="location.href='user1-completed.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1560439514-4e9645039924?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge completed"><i class="fa-solid fa-check" style="font-size:7px;"></i> 학습 완료</span>
+          </div>
+        </div>
+        <div class="g-card-title">2025 하반기 리더십 심화</div>
+        <div class="g-card-bottom">
+          <span class="progress"><i class="fa-solid fa-play"></i> 100%</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 7: 수강종료 -->
+      <div class="g-card">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge ended">수강종료</span>
+          </div>
+        </div>
+        <div class="g-card-title">2025 법정의무교육</div>
+        <div class="g-card-bottom">
+          <span class="g-status ended">수강종료</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 8: 신청가능 -->
+      <div class="g-card" onclick="location.href='user1.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge enrollable"><i class="fa-solid fa-check" style="font-size:7px;"></i> 신청가능</span>
+          </div>
+        </div>
+        <div class="g-card-title">커뮤니케이션 스킬 강화</div>
+        <div class="g-card-bottom">
+          <span class="g-status enrollable">수강 신청 가능</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 9: 수강중 -->
+      <div class="g-card" onclick="location.href='user1.html?status=enrolled'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge in-progress">수강중</span>
+          </div>
+        </div>
+        <div class="g-card-title">코칭 리더십 심화 과정</div>
+        <div class="g-card-bottom">
+          <span class="progress"><i class="fa-solid fa-play"></i> 33%</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 10: 신청가능 -->
+      <div class="g-card" onclick="location.href='user1.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge enrollable"><i class="fa-solid fa-check" style="font-size:7px;"></i> 신청가능</span>
+          </div>
+        </div>
+        <div class="g-card-title">디자인 씽킹 마스터클래스</div>
+        <div class="g-card-bottom">
+          <span class="g-status enrollable">수강 신청 가능</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 11: 신청가능 -->
+      <div class="g-card" onclick="location.href='user1.html'">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge enrollable"><i class="fa-solid fa-check" style="font-size:7px;"></i> 신청가능</span>
+          </div>
+        </div>
+        <div class="g-card-title">비즈니스 협상 실전</div>
+        <div class="g-card-bottom">
+          <span class="g-status enrollable">수강 신청 가능</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+      <!-- 12: 수강예정 -->
+      <div class="g-card">
+        <div class="g-card-cover">
+          <img src="https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?w=300&h=400&fit=crop" alt="">
+          <div class="g-badges">
+            <span class="g-badge scheduled">수강예정</span>
+          </div>
+        </div>
+        <div class="g-card-title">AI 활용 업무 자동화</div>
+        <div class="g-card-bottom">
+          <span class="g-status scheduled">수강예정</span>
+          <button class="info-btn"><i class="fa-solid fa-info"></i></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function setSubTab(el) {
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+
+</body>
+</html>

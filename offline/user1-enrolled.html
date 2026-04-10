@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 오프라인 코스 상세</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #5569ff; --primary-lighter: #EEF0FF; --primary-dark: #4454CC;
+      --secondary: #6E759F; --error: #FF1943; --success: #1A7A4A; --success-bg: #E6F4EA;
+      --warning: #E65100; --warning-bg: #FFF3E0;
+      --black: #223354; --body-bg: #f2f5f9; --white: #fff;
+      --border: rgba(34,51,84,.12);
+      --r-sm: 6px; --r: 10px; --r-lg: 16px;
+    }
+    html, body { height: 100%; }
+    body { font-family: 'Pretendard','Inter',sans-serif; font-size: 14px; color: var(--black); background: var(--body-bg); }
+
+    .app {
+      max-width: 390px; margin: 0 auto; min-height: 100vh;
+      background: var(--white); position: relative;
+      box-shadow: 0 0 0 1px var(--border); display: flex; flex-direction: column;
+    }
+    @media (min-width: 768px) {
+      body { background: #e8ecf4; display: flex; align-items: center; justify-content: center; padding: 32px 16px; min-height: 100vh; }
+      .app { border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(34,51,84,.18); overflow: hidden; width: 390px; height: 860px; min-height: auto; }
+    }
+
+    /* ── Nav ── */
+    .nav {
+      display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-back {
+      width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid var(--border);
+      background: var(--white); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--black); font-size: 16px;
+    }
+    .nav-title { font-size: 15px; font-weight: 700; flex: 1; }
+    .nav-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+    }
+
+    .scroll-area { flex: 1; overflow-y: auto; }
+
+    /* ── 내 수강 정보 카드 ── */
+    .enroll-card {
+      margin: 16px; padding: 20px; border-radius: var(--r-lg);
+      background: linear-gradient(135deg, #5569ff 0%, #7B8BFF 100%);
+      color: #fff; position: relative;
+    }
+    .enroll-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(255,255,255,.2); font-size: 11px; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .enroll-status .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; }
+    .enroll-course-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+    .enroll-package { font-size: 13px; font-weight: 600; opacity: .85; margin-bottom: 16px; }
+    .enroll-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .enroll-item {
+      background: rgba(255,255,255,.12); border-radius: 8px; padding: 10px 12px;
+      backdrop-filter: blur(4px);
+    }
+    .enroll-item-label { font-size: 11px; font-weight: 600; opacity: .7; margin-bottom: 2px; }
+    .enroll-item-val { font-size: 14px; font-weight: 800; }
+
+    /* ── 섹션 ── */
+    .section { padding: 20px 16px; border-bottom: 8px solid var(--body-bg); }
+    .section:last-child { border-bottom: none; }
+    .section-title {
+      font-size: 15px; font-weight: 800; color: var(--black); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title i { font-size: 14px; color: var(--secondary); }
+
+    /* ── 회차 리스트 ── */
+    .sess-list { display: flex; flex-direction: column; gap: 0; }
+    .sess-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0; border-bottom: 1px solid rgba(34,51,84,.05);
+    }
+    .sess-item:last-child { border-bottom: none; }
+    .sess-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; flex-shrink: 0;
+    }
+    .sess-num.attended { background: #DBEAFE; color: #1D4ED8; }
+    .sess-num.late { background: #FFF3E0; color: #E65100; }
+    .sess-num.absent { background: #FEF2F2; color: var(--error); }
+    .sess-num.pending { background: var(--body-bg); color: var(--secondary); }
+    .sess-num.current { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(85,105,255,.3); }
+    .sess-info { flex: 1; min-width: 0; }
+    .sess-name { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+    .sess-meta { font-size: 12px; color: var(--secondary); font-weight: 500; display: flex; flex-wrap: wrap; gap: 4px; }
+    .sess-badge {
+      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+    }
+    .sess-badge.attended { background: #DBEAFE; color: #1D4ED8; }
+    .sess-badge.late { background: #FFF3E0; color: #E65100; }
+    .sess-badge.absent { background: #FEF2F2; color: var(--error); }
+    .sess-badge.pending { background: var(--body-bg); color: var(--secondary); }
+    .sess-badge.current { background: var(--primary); color: #fff; }
+    .sess-time {
+      font-size: 11px; color: var(--secondary); margin-top: 2px;
+    }
+    .sess-time.stamp { color: var(--primary); font-weight: 600; }
+
+    /* ── 코스 안내 (접기) ── */
+    .collapse-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; padding: 16px 0;
+    }
+    .collapse-header h4 { font-size: 14px; font-weight: 800; }
+    .collapse-header i { font-size: 12px; color: var(--secondary); transition: transform .2s; }
+    .collapse-header.open i { transform: rotate(180deg); }
+    .collapse-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .collapse-body.open { max-height: 500px; }
+
+    .info-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.03); }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+    .info-label { font-size: 11px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; }
+    .info-val { font-size: 13px; color: var(--black); font-weight: 600; line-height: 1.4; }
+
+    /* ── 일정 변경 / 수강 취소 섹션 ── */
+    .action-section { padding: 20px 16px 16px; }
+    .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .action-btn {
+      height: 48px; border-radius: var(--r); border: 1.5px solid var(--border);
+      background: var(--white); font-size: 14px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all .15s;
+    }
+    .action-btn:hover { background: var(--body-bg); }
+    .action-btn:active { transform: scale(.98); }
+    .action-btn.change { color: var(--black); }
+    .action-btn.cancel { color: var(--error); border-color: rgba(255,25,67,.2); }
+    .action-btn:disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+    .action-notice {
+      margin-top: 10px; padding: 10px 14px; border-radius: 8px;
+      font-size: 12px; font-weight: 600; line-height: 1.5;
+    }
+    .action-notice.info { background: var(--primary-lighter); color: var(--primary-dark); }
+    .action-notice.warn { background: #FEF2F2; color: var(--error); }
+    .action-notice.amber { background: var(--warning-bg); color: var(--warning); }
+
+    /* ── 하단 CTA ── */
+    .bottom-cta {
+      padding: 12px 16px 24px; background: var(--white);
+      border-top: 1px solid var(--border); position: sticky; bottom: 0; z-index: 10;
+    }
+    .btn-primary {
+      width: 100%; height: 54px; border-radius: var(--r);
+      border: none; font-size: 16px; font-weight: 800; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all .15s;
+    }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary.qr { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(85,105,255,.3); }
+    .btn-primary.qr i { font-size: 20px; }
+
+    /* ── 모달 공통 ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 300;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--white); border-radius: var(--r-lg);
+      padding: 28px 24px; width: 100%; max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      animation: popIn .2s ease-out;
+    }
+    @keyframes popIn { from { opacity:0; transform:scale(.93); } to { opacity:1; transform:scale(1); } }
+    .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+    .modal-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 20px; }
+    .modal-btn {
+      height: 48px; border-radius: 8px; border: none; font-size: 14px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-btn.outline { background: var(--body-bg); color: var(--black); border: 1px solid var(--border); }
+    .modal-btn.danger { background: var(--error); color: #fff; }
+    .modal-btn.primary { background: var(--primary); color: #fff; }
+
+    /* ── 바텀시트 (일정 변경) ── */
+    .sheet {
+      position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 390px; max-height: 80vh;
+      background: var(--white); z-index: 301;
+      border-radius: var(--r-lg) var(--r-lg) 0 0;
+      box-shadow: 0 -10px 40px rgba(0,0,0,.15);
+      transition: bottom .3s cubic-bezier(.34,1.2,.64,1);
+      display: flex; flex-direction: column;
+    }
+    .sheet.open { bottom: 0; }
+    .sheet-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 300;
+    }
+    .sheet-backdrop.open { display: block; }
+    .sheet-handle {
+      padding: 12px; display: flex; justify-content: center;
+    }
+    .sheet-handle::after {
+      content: ''; width: 36px; height: 4px; border-radius: 2px; background: #D1D5DB;
+    }
+    .sheet-hdr {
+      padding: 0 20px 16px; border-bottom: 1px solid var(--border);
+    }
+    .sheet-title { font-size: 17px; font-weight: 800; }
+    .sheet-sub { font-size: 13px; color: var(--secondary); margin-top: 4px; }
+    .sheet-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .sheet-footer { padding: 12px 20px 24px; border-top: 1px solid var(--border); }
+
+    /* 패키지 옵션 카드 */
+    .pkg-option {
+      display: flex; align-items: center; gap: 12px; padding: 14px;
+      border: 1.5px solid var(--border); border-radius: var(--r);
+      margin-bottom: 10px; cursor: pointer; transition: all .15s;
+    }
+    .pkg-option:hover { border-color: #CBD5E1; }
+    .pkg-option.selected { border-color: var(--primary); background: var(--primary-lighter); }
+    .pkg-option.disabled { opacity: .5; pointer-events: none; background: var(--body-bg); }
+    .pkg-option.current { border-color: #CBD5E1; background: var(--body-bg); }
+    .pkg-radio {
+      width: 20px; height: 20px; border-radius: 50%; border: 2px solid #CBD5E1;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .pkg-option.selected .pkg-radio { border-color: var(--primary); background: var(--primary); }
+    .pkg-option.selected .pkg-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+    .pkg-info { flex: 1; }
+    .pkg-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .pkg-detail { font-size: 12px; color: var(--secondary); }
+    .pkg-status { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
+    .pkg-status.avail { background: var(--primary-lighter); color: var(--primary); }
+    .pkg-status.full { background: #F1F5F9; color: #94A3B8; }
+    .pkg-status.mine { background: var(--body-bg); color: var(--secondary); }
+
+    /* 취소 사유 */
+    .cancel-textarea {
+      width: 100%; height: 80px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; font-size: 13px; font-family: inherit; resize: none;
+      margin-top: 12px;
+    }
+    .cancel-textarea:focus { outline: none; border-color: var(--primary); }
+
+    /* 결과 화면 */
+    .result-center {
+      text-align: center; padding: 60px 24px;
+    }
+    .result-icon { font-size: 56px; margin-bottom: 16px; }
+    .result-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .result-desc { font-size: 14px; color: var(--secondary); line-height: 1.6; }
+
+    /* Proto 사이드 */
+    .proto-bar { position: fixed; top: 50%; right: 24px; transform: translateY(-50%); z-index: 500; }
+    .proto-chips { display: flex; flex-direction: column; gap: 6px; }
+    .proto-chip {
+      padding: 9px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: none; background: #fff; color: var(--secondary);
+      box-shadow: 0 2px 8px rgba(34,51,84,.08); transition: all .15s; text-align: left;
+    }
+    .proto-chip:hover { transform: translateX(-3px); color: var(--black); }
+    .proto-chip.active { background: var(--primary); color: #fff; }
+    @media (max-width: 900px) { .proto-bar { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- Proto 사이드바 -->
+<div class="proto-bar">
+  <div style="font-size:10px;font-weight:800;color:var(--secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">취소·변경 정책</div>
+  <div class="proto-chips">
+    <button class="proto-chip active" onclick="setPolicy('open')">기한 내 (변경·취소 가능)</button>
+    <button class="proto-chip" onclick="setPolicy('change-expired')">변경 기한 경과</button>
+  </div>
+</div>
+
+<div class="app" id="app-main">
+
+  <!-- ══ Nav ══ -->
+  <div class="nav">
+    <button class="nav-back" onclick="history.back()">←</button>
+    <span class="nav-title">내 코스 상세</span>
+    <span class="nav-badge" style="background:var(--success-bg); color:var(--success);">수강중</span>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- ══ 내 수강 정보 카드 ══ -->
+    <div class="enroll-card">
+      <div class="enroll-status"><span class="dot"></span> 수강중</div>
+      <div class="enroll-course-name">2026 직무교육 —<br>프로젝트 관리 심화</div>
+      <div class="enroll-package">A반 (5월 평일반) · 김민준 강사</div>
+      <div class="enroll-grid">
+        <div class="enroll-item">
+          <div class="enroll-item-label">출석률</div>
+          <div class="enroll-item-val">100% (2/5)</div>
+        </div>
+        <div class="enroll-item">
+          <div class="enroll-item-label">다음 회차</div>
+          <div class="enroll-item-val">D-3 · 4/12</div>
+        </div>
+        <div class="enroll-item">
+          <div class="enroll-item-label">교육 기간</div>
+          <div class="enroll-item-val">3/29 — 4/26</div>
+        </div>
+        <div class="enroll-item">
+          <div class="enroll-item-label">장소</div>
+          <div class="enroll-item-val">본사 대교육장</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 회차별 커리큘럼 + 출석 ══ -->
+    <div class="section">
+      <div class="section-title"><i class="fa-solid fa-list-check"></i> 회차별 커리큘럼</div>
+      <div class="sess-list">
+
+        <div class="sess-item">
+          <div class="sess-num attended">1</div>
+          <div class="sess-info">
+            <div class="sess-name">1회차 · PM 기초와 프레임워크</div>
+            <div class="sess-meta">3/29(토) 09:00–18:00 · 본사 대교육장</div>
+            <div class="sess-time stamp"><i class="fa-solid fa-check" style="font-size:10px;margin-right:3px;"></i> 08:55 출석</div>
+          </div>
+          <span class="sess-badge attended">출석</span>
+        </div>
+
+        <div class="sess-item">
+          <div class="sess-num attended">2</div>
+          <div class="sess-info">
+            <div class="sess-name">2회차 · WBS와 일정 관리</div>
+            <div class="sess-meta">4/5(토) 09:00–18:00 · 본사 대교육장</div>
+            <div class="sess-time stamp"><i class="fa-solid fa-check" style="font-size:10px;margin-right:3px;"></i> 08:58 출석</div>
+          </div>
+          <span class="sess-badge attended">출석</span>
+        </div>
+
+        <div class="sess-item">
+          <div class="sess-num current">3</div>
+          <div class="sess-info">
+            <div class="sess-name">3회차 · 리스크 관리 실습</div>
+            <div class="sess-meta">4/12(토) 09:00–18:00 · 본사 대교육장</div>
+          </div>
+          <span class="sess-badge current">D-3</span>
+        </div>
+
+        <div class="sess-item">
+          <div class="sess-num pending">4</div>
+          <div class="sess-info">
+            <div class="sess-name">4회차 · 이해관계자 커뮤니케이션</div>
+            <div class="sess-meta">4/19(토) 09:00–18:00 · 본사 대교육장</div>
+          </div>
+          <span class="sess-badge pending">D-10</span>
+        </div>
+
+        <div class="sess-item">
+          <div class="sess-num pending">5</div>
+          <div class="sess-info">
+            <div class="sess-name">5회차 · 종합 케이스 스터디</div>
+            <div class="sess-meta">4/26(토) 09:00–18:00 · 본사 대교육장</div>
+          </div>
+          <span class="sess-badge pending">D-17</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ 코스 안내 (접기/펴기) ══ -->
+    <div class="section" style="padding-bottom: 8px;">
+      <div class="collapse-header" id="collapse-toggle" onclick="toggleCollapse()">
+        <h4><i class="fa-solid fa-circle-info" style="color:var(--secondary);margin-right:6px;font-size:13px;"></i> 코스 안내</h4>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+      <div class="collapse-body" id="collapse-body">
+        <div class="info-row">
+          <div class="info-icon">👨‍🏫</div>
+          <div><div class="info-label">강사</div><div class="info-val">김민준 · 프로젝트 관리 전문가</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🏢</div>
+          <div><div class="info-label">장소</div><div class="info-val">한샘 HQ 대교육장 B동 3층</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">📝</div>
+          <div><div class="info-label">코스 소개</div><div class="info-val">PM 직무에서 실제 활용 가능한 프로젝트 관리 방법론과 케이스 스터디를 통해 실전 역량을 강화합니다.</div></div>
+        </div>
+        <div style="height: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- ══ 일정 변경 / 수강 취소 ══ -->
+    <div class="action-section">
+      <div class="action-btns">
+        <button class="action-btn change" id="btn-change" onclick="openChangeSheet()">
+          <i class="fa-solid fa-arrow-right-arrow-left" style="font-size:13px;"></i> 일정 변경
+        </button>
+        <button class="action-btn cancel" id="btn-cancel" onclick="openCancelModal()">
+          <i class="fa-solid fa-xmark" style="font-size:14px;"></i> 수강 취소
+        </button>
+      </div>
+      <div class="action-notice info" id="action-notice">
+        교육 시작 <strong>5일 전</strong>까지 변경, <strong>3일 전</strong>까지 취소 가능합니다.
+      </div>
+    </div>
+
+    <div style="height: 20px;"></div>
+  </div>
+
+  <!-- ══ 하단 CTA ══ -->
+  <div class="bottom-cta">
+    <button class="btn-primary qr"><i class="fa-solid fa-qrcode"></i> QR 출석 체크인</button>
+  </div>
+
+</div>
+
+<!-- ══ 취소 확인 ══ -->
+<div class="app" id="app-cancelled" style="display:none;">
+  <div class="nav">
+    <button class="nav-back" onclick="location.href='user-my.html'">✕</button>
+    <span class="nav-title">취소 완료</span>
+  </div>
+  <div class="scroll-area" style="display:flex; flex-direction:column; justify-content:center;">
+    <div class="result-center">
+      <div class="result-icon" style="filter:grayscale(1);">📭</div>
+      <div class="result-title">수강이 취소되었습니다</div>
+      <div class="result-desc">신청하신 코스 일정이 정상적으로 취소되었습니다.<br>다시 수강하시려면 코스 상세에서 재신청해 주세요.</div>
+    </div>
+  </div>
+  <div class="bottom-cta">
+    <button class="btn-primary qr" style="background:var(--black);" onclick="location.href='user-my.html'">MY로 돌아가기</button>
+  </div>
+</div>
+
+<!-- ══ 일정 변경 시트 ══ -->
+<div class="sheet-backdrop" id="change-backdrop" onclick="closeChangeSheet()"></div>
+<div class="sheet" id="change-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr">
+    <div class="sheet-title">일정 변경</div>
+    <div class="sheet-sub">변경할 패키지(반)를 선택하세요</div>
+  </div>
+  <div class="sheet-body">
+    <div class="pkg-option current">
+      <div class="pkg-radio" style="border-color:#CBD5E1;background:#CBD5E1;"></div>
+      <div class="pkg-info">
+        <div class="pkg-name">A반 (5월 평일반)</div>
+        <div class="pkg-detail">5/1–5/29 · 매주 토 · 5회차</div>
+      </div>
+      <span class="pkg-status mine">현재 수강중</span>
+    </div>
+
+    <div class="pkg-option" id="pkg-b" onclick="selectPkg('pkg-b')">
+      <div class="pkg-radio"></div>
+      <div class="pkg-info">
+        <div class="pkg-name">B반 (5월 주말반)</div>
+        <div class="pkg-detail">5/3–5/31 · 매주 토 · 5회차</div>
+      </div>
+      <span class="pkg-status avail">잔여 8석</span>
+    </div>
+
+    <div class="pkg-option" id="pkg-c" onclick="selectPkg('pkg-c')">
+      <div class="pkg-radio"></div>
+      <div class="pkg-info">
+        <div class="pkg-name">C반 (6월 단일)</div>
+        <div class="pkg-detail">6/1 · 특강 1회차</div>
+      </div>
+      <span class="pkg-status avail">잔여 14석</span>
+    </div>
+
+    <div class="pkg-option disabled">
+      <div class="pkg-radio"></div>
+      <div class="pkg-info">
+        <div class="pkg-name">D반 (6월 주말반)</div>
+        <div class="pkg-detail">6/7–6/14 · 매주 토 · 2회차</div>
+      </div>
+      <span class="pkg-status full">마감</span>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn-primary qr" id="btn-change-confirm" style="background:var(--primary);opacity:.4;pointer-events:none;" onclick="confirmChange()">변경 확정</button>
+  </div>
+</div>
+
+<!-- ══ 수강 취소 모달 ══ -->
+<div class="modal-overlay" id="modal-cancel" onclick="if(event.target===this)closeCancelModal()">
+  <div class="modal-box">
+    <div style="text-align:center;font-size:40px;margin-bottom:12px;">⚠️</div>
+    <div class="modal-title" style="text-align:center;">수강을 취소하시겠습니까?</div>
+    <div style="font-size:13px;color:var(--secondary);text-align:center;line-height:1.5;margin-bottom:12px;">
+      취소 후 재신청은 잔여석이 있는 경우에만 가능합니다.
+    </div>
+    <textarea class="cancel-textarea" placeholder="취소 사유를 입력해 주세요 (선택)"></textarea>
+    <div class="modal-btn-row">
+      <button class="modal-btn outline" onclick="closeCancelModal()">돌아가기</button>
+      <button class="modal-btn danger" onclick="confirmCancel()">취소 확정</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 일정 변경 완료 모달 ══ -->
+<div class="modal-overlay" id="modal-change-done" onclick="if(event.target===this)closeChangeDone()">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">✅</div>
+    <div class="modal-title">일정이 변경되었습니다</div>
+    <div style="font-size:14px;color:var(--primary);font-weight:700;margin-bottom:8px;" id="change-result-text"></div>
+    <div style="font-size:13px;color:var(--secondary);margin-bottom:20px;">새로운 일정에 맞춰 출석해 주세요.</div>
+    <button class="modal-btn primary" style="width:100%;" onclick="closeChangeDone()">확인</button>
+  </div>
+</div>
+
+<script>
+let currentPolicy = 'open';
+let selectedPkgId = null;
+
+/* ── 정책 전환 ── */
+function setPolicy(policy) {
+  currentPolicy = policy;
+  document.querySelectorAll('.proto-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const btnChange = document.getElementById('btn-change');
+  const btnCancel = document.getElementById('btn-cancel');
+  const notice = document.getElementById('action-notice');
+
+  if (policy === 'open') {
+    btnChange.disabled = false;
+    btnCancel.disabled = false;
+    notice.className = 'action-notice info';
+    notice.innerHTML = '교육 시작 <strong>5일 전</strong>까지 변경, <strong>3일 전</strong>까지 취소 가능합니다.';
+  } else if (policy === 'change-expired') {
+    btnChange.disabled = true;
+    btnCancel.disabled = false;
+    notice.className = 'action-notice amber';
+    notice.innerHTML = '⚠️ 일정 변경 기한이 경과했습니다. <strong>취소만 가능</strong>합니다.';
+  }
+}
+
+/* ── 코스 안내 접기/펴기 ── */
+function toggleCollapse() {
+  document.getElementById('collapse-toggle').classList.toggle('open');
+  document.getElementById('collapse-body').classList.toggle('open');
+}
+
+/* ── 일정 변경 시트 ── */
+function openChangeSheet() {
+  selectedPkgId = null;
+  document.querySelectorAll('.pkg-option:not(.current):not(.disabled)').forEach(p => p.classList.remove('selected'));
+  document.getElementById('btn-change-confirm').style.opacity = '.4';
+  document.getElementById('btn-change-confirm').style.pointerEvents = 'none';
+  document.getElementById('change-backdrop').classList.add('open');
+  document.getElementById('change-sheet').classList.add('open');
+}
+function closeChangeSheet() {
+  document.getElementById('change-backdrop').classList.remove('open');
+  document.getElementById('change-sheet').classList.remove('open');
+}
+function selectPkg(id) {
+  selectedPkgId = id;
+  document.querySelectorAll('.pkg-option:not(.current):not(.disabled)').forEach(p => p.classList.remove('selected'));
+  document.getElementById(id).classList.add('selected');
+  document.getElementById('btn-change-confirm').style.opacity = '1';
+  document.getElementById('btn-change-confirm').style.pointerEvents = 'auto';
+}
+function confirmChange() {
+  closeChangeSheet();
+  const names = { 'pkg-b': 'B반 (5월 주말반)', 'pkg-c': 'C반 (6월 단일)' };
+  document.getElementById('change-result-text').textContent = 'A반 → ' + (names[selectedPkgId] || '') + ' 으로 변경';
+  document.getElementById('modal-change-done').classList.add('open');
+}
+function closeChangeDone() {
+  document.getElementById('modal-change-done').classList.remove('open');
+}
+
+/* ── 수강 취소 ── */
+function openCancelModal() {
+  document.getElementById('modal-cancel').classList.add('open');
+}
+function closeCancelModal() {
+  document.getElementById('modal-cancel').classList.remove('open');
+}
+function confirmCancel() {
+  closeCancelModal();
+  document.getElementById('app-main').style.display = 'none';
+  document.getElementById('app-cancelled').style.display = 'flex';
+}
+
+</script>
+
+</body>
+</html>
