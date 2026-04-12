@@ -222,14 +222,6 @@
       { dot:'bg-amber-500', light:'bg-amber-50', text:'text-amber-600', border:'border-amber-200', bar:'bg-amber-500' },
       { dot:'bg-rose-500', light:'bg-rose-50', text:'text-rose-600', border:'border-rose-200', bar:'bg-rose-500' },
     ];
-    const DAY_KO = ['일','월','화','수','목','금','토'];
-    function calDays(y, m) {
-      const first = new Date(y, m-1, 1).getDay();
-      const last  = new Date(y, m, 0).getDate();
-      const days  = [...Array(first).fill(null), ...Array.from({length:last},(_,i)=>i+1)];
-      while (days.length % 7) days.push(null);
-      return days;
-    }
     function padDate(y, m, d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
     function dDayLabel(date, today) {
       const diff = Math.ceil((new Date(date) - new Date(today)) / 86400000);
@@ -307,7 +299,6 @@
       const [search, setSearch] = useState('');
       const [toasts, setToasts] = useState([]);
       const [detailStudent, setDetailStudent] = useState(null);
-      const [calMonth, setCalMonth] = useState(() => parseInt(today.slice(5, 7)));
       const [dismissed, setDismissed] = useState([]);
 
       const pkg = PACKAGES.find(p => p.id === selectedPkg);
@@ -445,7 +436,6 @@
       }, [attendance]);
 
       // 캘린더 데이터
-      const calDaysData = useMemo(() => calDays(2026, calMonth), [calMonth]);
       const sessByDate = useMemo(() => {
         const m = {};
         PACKAGES.forEach(p => p.sessions.forEach(s => {
@@ -542,9 +532,9 @@
 
       /* ── 일반 모드 ── */
       return (
-        <div className="min-h-screen flex flex-col">
+        <div className="h-screen flex flex-col">
           {/* 헤더 */}
-          <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-50 flex-shrink-0">
             <div className="px-8 py-4 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <a href="index.html" className="w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors">
@@ -571,10 +561,10 @@
 
           <div className="flex flex-1 overflow-hidden">
 
-            {/* ── 좌측 사이드바: 슬림 네비게이션 ── */}
-            <aside className="w-[220px] bg-white border-r border-slate-200 overflow-y-auto custom-scrollbar shrink-0 flex flex-col">
+            {/* ── 좌측 사이드바: Fixed height, always-visible actions ── */}
+            <aside className="w-[220px] bg-white border-r border-slate-200 shrink-0 flex flex-col h-full">
               {/* 차수 선택 */}
-              <div className="p-4 border-b border-slate-100">
+              <div className="p-4 border-b border-slate-100 flex-shrink-0">
                 <label className="block text-[11px] font-bold text-slate-400 mb-1.5">차수</label>
                 <select
                   value={selectedPkg}
@@ -585,8 +575,8 @@
                 </select>
               </div>
 
-              {/* 핵심 수치 */}
-              <div className="p-4 border-b border-slate-100 space-y-2.5">
+              {/* 핵심 수치 — 스크롤 영역 */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2.5">
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-slate-400 font-bold">정원</span>
                   <span className="font-bold text-slate-700">{pkg?.capacity}명</span>
@@ -610,23 +600,14 @@
                     <span className="text-slate-400 font-bold">기간</span>
                     <span className="text-slate-600 font-medium">{fmtDateShort(pkg?.startDate)} ~ {fmtDateShort(pkg?.endDate)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span className="text-slate-400 font-bold">장소</span>
-                    <span className="text-slate-600 font-medium text-right max-w-[120px] truncate" title={pkg?.place}>{pkg?.place}</span>
+                  <div className="flex items-start justify-between text-[12px] gap-1">
+                    <span className="text-slate-400 font-bold flex-shrink-0">장소</span>
+                    <span className="text-slate-600 font-medium text-right" title={pkg?.place}>{pkg?.place}</span>
                   </div>
                 </div>
-              </div>
-
-              {/* 액션 버튼 */}
-              <div className="p-4 space-y-2 flex-1">
-                {courseStatus !== 'closed' && (
-                  <button onClick={() => { setActiveTab('attendance'); setLiveMode(true); }}
-                    className="w-full flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-[13px] py-2.5 rounded-xl transition-colors shadow-sm">
-                    <QrCode size={14}/> 라이브 출석
-                  </button>
-                )}
+                {/* 차수 배지 */}
                 {COURSE.enrollMethod === 'assign' && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-[11px] font-bold text-amber-700 flex items-center gap-1.5">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-[11px] font-bold text-amber-700 flex items-center gap-1.5 mt-2">
                     <Users size={12}/> 관리자 강제 할당
                   </div>
                 )}
@@ -637,14 +618,20 @@
                 )}
               </div>
 
-              {/* 종료 버튼 */}
-              {courseStatus !== 'closed' && (
-                <div className="p-4 border-t border-slate-100">
-                  <button className="w-full flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-[13px] py-2.5 rounded-xl transition-colors">
+              {/* 액션 버튼 — 항상 하단 고정 */}
+              <div className="flex-shrink-0 p-4 border-t border-slate-100 space-y-2">
+                {courseStatus !== 'closed' && (
+                  <button onClick={() => { setActiveTab('attendance'); setLiveMode(true); }}
+                    className="w-full flex items-center justify-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-[13px] py-2.5 rounded-xl transition-colors shadow-sm">
+                    <QrCode size={14}/> 라이브 출석
+                  </button>
+                )}
+                {courseStatus !== 'closed' && (
+                  <button className="w-full flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[13px] py-2.5 rounded-xl transition-colors">
                     <Power size={13}/> 종료하기
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </aside>
 
             {/* ── 메인 콘텐츠 ── */}
@@ -662,11 +649,16 @@
 
               <div className="p-8">
 
-                {/* ═══ 요약 탭: 운영 대시보드 ═══ */}
+                {/* ═══ 요약 탭: 운영 대시보드 (3단 구성) ═══ */}
                 {activeTab === 'summary' && (
                   <div className="animate-fadeIn space-y-4">
 
-                    {/* ① 오늘/다음 교육 바 */}
+                    {/* ══ Section 1: 이번 주 캘린더 + 오늘 교육 배너 ══ */}
+                    <WeekCalendarStrip
+                      sessByDate={sessByDate} today={today}
+                      PACKAGES={PACKAGES} getSessionStats={getSessionStats}
+                      onGoAttendance={(pkgId) => { setSelectedPkg(pkgId); setActiveTab('attendance'); }}
+                    />
                     <SummaryTodayBar
                       todaySessions={todaySessions} nextSession={nextSession} today={today}
                       liveMode={liveMode} setLiveMode={setLiveMode} setActiveTab={setActiveTab}
@@ -674,7 +666,14 @@
                       onLiveStart={() => { setLiveMode(true); new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_START' }); }}
                     />
 
-                    {/* ② 알림 칩 */}
+                    {/* ══ Section 2: KPI 핵심 지표 (3-컬럼) ══ */}
+                    <KPIStrip
+                      PACKAGES={PACKAGES} overallRate={overallRate}
+                      totalEnrolled={totalEnrolled} totalCapacity={totalCapacity}
+                      getSessionStats={getSessionStats} today={today}
+                    />
+
+                    {/* 알림 칩 */}
                     {alerts.filter((_,i) => !dismissed.includes(i)).length > 0 && (
                       <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 flex flex-wrap gap-2 items-center">
                         <span className="text-[11px] font-bold text-slate-300 mr-1 flex-shrink-0">주의사항</span>
@@ -684,7 +683,7 @@
                       </div>
                     )}
 
-                    {/* ③ 차수 카드 */}
+                    {/* ══ Section 3: 차수 카드 그리드 + 수료 예측 ══ */}
                     <div className={`grid gap-4 ${PACKAGES.length >= 3 ? 'grid-cols-3' : PACKAGES.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                       {PACKAGES.map((p, pi) => (
                         <SummaryPkgCard
@@ -696,15 +695,7 @@
                       ))}
                     </div>
 
-                    {/* ④ 월별 캘린더 */}
-                    <SummaryCalSection
-                      month={calMonth} days={calDaysData} sessByDate={sessByDate} today={today}
-                      PACKAGES={PACKAGES} getSessionStats={getSessionStats}
-                      onPrev={() => setCalMonth(m => m > 1 ? m - 1 : 12)}
-                      onNext={() => setCalMonth(m => m < 12 ? m + 1 : 1)}
-                    />
-
-                    {/* ⑤ 수료 예측 */}
+                    {/* 수료 예측 */}
                     <SummaryForecast PACKAGES={PACKAGES} getSessionStats={getSessionStats} today={today}/>
 
                   </div>
@@ -1057,6 +1048,180 @@
        대시보드 서브 컴포넌트
     ══════════════════════════════════════ */
 
+    /* ── 이번 주 캘린더 스트립 ── */
+    function WeekCalendarStrip({ sessByDate, today, PACKAGES, getSessionStats, onGoAttendance }) {
+      const todayDate = new Date(today);
+      const dow = todayDate.getDay(); // 0=Sun
+      const monday = new Date(todayDate);
+      monday.setDate(todayDate.getDate() - (dow === 0 ? 6 : dow - 1));
+
+      const DAY_NAMES = ['월','화','수','목','금','토','일'];
+      const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        return {
+          dateStr,
+          dayName: DAY_NAMES[i],
+          dayNum: d.getDate(),
+          month: d.getMonth() + 1,
+          isToday: dateStr === today,
+          isPast: dateStr < today,
+          isSat: i === 5,
+          isSun: i === 6,
+        };
+      });
+
+      const startDay = weekDays[0];
+      const endDay = weekDays[6];
+      const rangeLabel = startDay.month === endDay.month
+        ? `${startDay.month}월 ${startDay.dayNum}일 — ${endDay.dayNum}일`
+        : `${startDay.month}/${startDay.dayNum} — ${endDay.month}/${endDay.dayNum}`;
+
+      return (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar size={14} className="text-indigo-400"/>
+              <span className="text-[14px] font-black text-slate-800">이번 주 교육 일정</span>
+              <span className="text-[12px] text-slate-400 font-medium">{rangeLabel}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {PACKAGES.map((p, pi) => {
+                const c = PKG_COLORS[pi % PKG_COLORS.length];
+                return (
+                  <div key={p.id} className={`flex items-center gap-1 text-[11px] font-bold ${c.text} ${c.light} border ${c.border} px-2 py-0.5 rounded-md`}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{p.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="grid grid-cols-7 divide-x divide-slate-100">
+            {weekDays.map((day) => {
+              const sessions = sessByDate[day.dateStr] || [];
+              return (
+                <div key={day.dateStr}
+                  className={`p-2.5 min-h-[96px] ${day.isToday ? 'bg-indigo-50/70' : day.isPast ? 'bg-slate-50/40' : ''}`}>
+                  {/* 요일 + 날짜 */}
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className={`text-[10px] font-bold ${day.isSun ? 'text-rose-400' : day.isSat ? 'text-blue-400' : 'text-slate-400'}`}>
+                      {day.dayName}
+                    </span>
+                    <span className={`w-5 h-5 rounded-full text-[12px] font-black flex items-center justify-center leading-none ${
+                      day.isToday ? 'bg-indigo-500 text-white' :
+                      day.isPast ? 'text-slate-300' :
+                      day.isSun ? 'text-rose-400' : day.isSat ? 'text-blue-400' : 'text-slate-700'
+                    }`}>{day.dayNum}</span>
+                  </div>
+                  {/* 교육 이벤트 */}
+                  <div className="space-y-1">
+                    {sessions.map(sess => {
+                      const pkgIdx = PACKAGES.findIndex(p => p.id === sess.pkgId);
+                      const c = PKG_COLORS[pkgIdx >= 0 ? pkgIdx % PKG_COLORS.length : 0];
+                      const isDone = sess.date <= today;
+                      const ss = isDone ? getSessionStats(sess.id, sess.pkgId) : null;
+                      return (
+                        <button key={sess.id}
+                          onClick={() => onGoAttendance(sess.pkgId)}
+                          className={`w-full text-left px-2 py-1 rounded-md flex flex-col gap-0.5 transition-opacity hover:opacity-70
+                            ${isDone ? `${c.light} ${c.text} opacity-60` : `${c.light} ${c.text}`}`}>
+                          <span className="text-[10px] font-black truncate leading-tight">{sess.pkgName}</span>
+                          <span className="text-[9px] font-semibold opacity-70 leading-tight">{sess.name} · {sess.startTime}</span>
+                          {ss && <span className="text-[9px] font-black">출석 {ss.rate}%</span>}
+                        </button>
+                      );
+                    })}
+                    {sessions.length === 0 && (
+                      <div className="text-[10px] text-slate-200 py-1 text-center">—</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    /* ── KPI 핵심 지표 3-컬럼 ── */
+    function KPIStrip({ PACKAGES, overallRate, totalEnrolled, totalCapacity, getSessionStats, today }) {
+      let atRisk = 0;
+      PACKAGES.forEach(p => {
+        const done = p.sessions.filter(s => s.date <= today);
+        if (done.length === 0) return;
+        atRisk += done.reduce((sum, s) => sum + getSessionStats(s.id, p.id).absent, 0);
+      });
+      atRisk = Math.min(atRisk, totalEnrolled);
+      const fillPct = totalCapacity > 0 ? Math.round(totalEnrolled / totalCapacity * 100) : 0;
+
+      return (
+        <div className="grid grid-cols-3 gap-3">
+          {/* 전체 수강 인원 */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+              <Users size={20} className="text-indigo-500"/>
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold text-slate-400 mb-0.5">전체 수강 인원</div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[26px] font-black text-slate-900 leading-none">{totalEnrolled}</span>
+                <span className="text-[13px] font-bold text-slate-400">/ {totalCapacity}명</span>
+              </div>
+              <div className="mt-1.5 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-400 rounded-full" style={{ width: `${fillPct}%` }}/>
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5 font-semibold">{fillPct}% 충원</div>
+            </div>
+          </div>
+
+          {/* 전체 평균 출석률 */}
+          <div className={`border rounded-2xl p-4 flex items-center gap-4 ${
+            overallRate > 0 && overallRate < 75 ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'
+          }`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              overallRate >= 75 ? 'bg-emerald-50' : overallRate > 0 ? 'bg-amber-100' : 'bg-slate-50'
+            }`}>
+              <BarChart3 size={20} className={overallRate >= 75 ? 'text-emerald-500' : overallRate > 0 ? 'text-amber-500' : 'text-slate-300'}/>
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold text-slate-400 mb-0.5">전체 평균 출석률</div>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-[26px] font-black leading-none ${
+                  overallRate >= 75 ? 'text-emerald-600' : overallRate > 0 ? 'text-amber-500' : 'text-slate-300'
+                }`}>{overallRate > 0 ? overallRate : '—'}</span>
+                {overallRate > 0 && <span className="text-[13px] font-bold text-slate-400">%</span>}
+              </div>
+              <div className={`text-[10px] mt-0.5 font-semibold ${
+                overallRate >= 75 ? 'text-emerald-500' : overallRate > 0 ? 'text-amber-500' : 'text-slate-300'
+              }`}>{overallRate === 0 ? '아직 진행된 회차 없음' : overallRate >= 75 ? '수료 기준(75%) 충족' : '수료 기준(75%) 미달'}</div>
+            </div>
+          </div>
+
+          {/* 수료 위험 인원 */}
+          <div className={`border rounded-2xl p-4 flex items-center gap-4 ${
+            atRisk > 0 ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200'
+          }`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              atRisk > 0 ? 'bg-rose-100' : 'bg-slate-50'
+            }`}>
+              <AlertTriangle size={20} className={atRisk > 0 ? 'text-rose-500' : 'text-slate-300'}/>
+            </div>
+            <div className="min-w-0">
+              <div className={`text-[11px] font-bold mb-0.5 ${atRisk > 0 ? 'text-rose-400' : 'text-slate-400'}`}>수료 위험 인원</div>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-[26px] font-black leading-none ${atRisk > 0 ? 'text-rose-600' : 'text-slate-300'}`}>{atRisk}</span>
+                <span className={`text-[13px] font-bold ${atRisk > 0 ? 'text-rose-400' : 'text-slate-300'}`}>명</span>
+              </div>
+              <div className={`text-[10px] mt-0.5 font-semibold ${atRisk > 0 ? 'text-rose-400' : 'text-slate-300'}`}>
+                {atRisk > 0 ? '결석 발생 — 수강 탭 확인 필요' : '이상 없음'}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function SummaryTodayBar({ todaySessions, nextSession, today, liveMode, setActiveTab, COURSE, onLiveStart }) {
       const hasTodaySess = todaySessions.length > 0;
       if (hasTodaySess) {
@@ -1232,79 +1397,6 @@
           <div className="text-[10px] font-bold text-slate-400 mb-1">{label}</div>
           <div className={`text-[20px] font-black leading-none ${color}`}>
             {value}<span className="text-[11px] font-bold ml-0.5">{unit}</span>
-          </div>
-        </div>
-      );
-    }
-
-    function SummaryCalSection({ month, days, sessByDate, today, PACKAGES, getSessionStats, onPrev, onNext }) {
-      return (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <Calendar size={14} className="text-slate-400"/>
-              <span className="text-[14px] font-black text-slate-800">2026년 {month}월 교육 일정</span>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {PACKAGES.map((p, pi) => {
-                const c = PKG_COLORS[pi % PKG_COLORS.length];
-                return (
-                  <div key={p.id} className={`flex items-center gap-1.5 text-[11px] font-bold ${c.text} ${c.light} border ${c.border} px-2.5 py-1 rounded-lg`}>
-                    <div className={`w-2 h-2 rounded-full ${c.dot}`}/>{p.name}
-                  </div>
-                );
-              })}
-              <div className="flex gap-1">
-                <button onClick={onPrev} className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronLeft size={13}/></button>
-                <button onClick={onNext} className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronRight size={13}/></button>
-              </div>
-            </div>
-          </div>
-          {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 border-b border-slate-100">
-            {DAY_KO.map((d, i) => (
-              <div key={d} className={`py-2 text-center text-[11px] font-bold ${i===0?'text-rose-400':i===6?'text-blue-400':'text-slate-400'}`}>{d}</div>
-            ))}
-          </div>
-          {/* 날짜 그리드 */}
-          <div className="grid grid-cols-7">
-            {days.map((day, i) => {
-              if (!day) return <div key={`e${i}`} className="min-h-[76px] border-b border-r border-slate-50 bg-slate-50/30"/>;
-              const dateStr = padDate(2026, month, day);
-              const isToday = dateStr === today;
-              const isPast = dateStr < today;
-              const sessions = sessByDate[dateStr] || [];
-              const dow = i % 7;
-              const isSun = dow === 0, isSat = dow === 6;
-              return (
-                <div key={day}
-                  className={`min-h-[76px] p-1.5 border-b border-r border-slate-50 ${isToday ? 'bg-indigo-50/80' : ''} ${isSat ? 'border-r-0' : ''}`}>
-                  <div className={`w-6 h-6 text-[11px] font-bold flex items-center justify-center rounded-full mb-1 ${
-                    isToday ? 'bg-indigo-500 text-white' :
-                    isSun ? 'text-rose-400' : isSat ? 'text-blue-400' : 'text-slate-500'
-                  }`}>{day}</div>
-                  <div className="space-y-0.5">
-                    {sessions.map((sess, si) => {
-                      const pkgIdx = PACKAGES.findIndex(p => p.id === sess.pkgId);
-                      const c = PKG_COLORS[pkgIdx >= 0 ? pkgIdx % PKG_COLORS.length : 0];
-                      const isDone = sess.date <= today;
-                      const ss = isDone ? getSessionStats(sess.id, sess.pkgId) : null;
-                      return (
-                        <div key={sess.id}
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${c.light} ${c.text} ${isDone ? 'opacity-70' : ''}`}>
-                          {isDone
-                            ? <CheckCircle size={9}/>
-                            : <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`}/>
-                          }
-                          <span className="truncate flex-1">{sess.pkgName} {sess.name}</span>
-                          {ss && <span className="flex-shrink-0 ml-auto">{ss.rate}%</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       );
