@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스 — 운영 케이스</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Pretendard"', '"Roboto"', '"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            indigo: {
+              50: '#EEF0FF', 100: '#E0E4FF', 200: '#C7CDFF', 300: '#9BA8FF',
+              400: '#7B8AFF', 500: '#5569FF', 600: '#4454CC', 700: '#3340A6',
+              800: '#2A3587', 900: '#000C57',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.25s ease-out forwards; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-[#f2f5f9] text-slate-800 font-sans antialiased min-h-screen custom-scrollbar">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState } from 'https://esm.sh/react@18.2.0';
+    import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+    import * as Lucide from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0';
+
+    const { Users, Calendar, MapPin, Clock, AlertTriangle, ChevronLeft, BookOpen,
+            Building2, Zap, ArrowRight, CheckCircle, AlertCircle, Info } = Lucide;
+
+    const FREQ_BADGE = {
+      '매우 높음': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      '높음':     'bg-blue-100 text-blue-700 border-blue-200',
+      '중간':     'bg-amber-100 text-amber-700 border-amber-200',
+    };
+
+    const CASES = [
+      {
+        id: 1,
+        title: '하루 집합교육',
+        structure: '1차수 · 1회차',
+        freq: '매우 높음',
+        icon: Calendar,
+        color: 'indigo',
+        desc: '가장 흔한 패턴. 단일 차수, 단일 회차로 하루 안에 완결되는 교육.',
+        stories: [
+          {
+            label: '사례 A',
+            title: '영업팀 고객응대 스킬 교육',
+            bg: '영업팀 신규 입사자 12명 대상. 분기마다 반복 운영하는 표준 교육. 강사는 사내 강사 고정.',
+            schedule: '2026-11-05 (수) 09:00~18:00 / 강남 HQ 3층 대회의실',
+            enroll: '관리자 강제 할당 (대상자 명단 사전 확정)',
+            completion: '출석 1회',
+            action: 'QR 출석 화면 띄워놓고 입장 시 스캔, 종료 후 미확인 3명 수동 처리 후 회차 마감',
+            requirements: ['강제 할당 모드', '회차 마감 일괄 처리', '미확인→결석 일괄 전환'],
+            gap: null,
+          },
+          {
+            label: '사례 B',
+            title: '전사 보안 인식 교육',
+            bg: '전 직원 대상이지만 한 번에 다 모을 수 없어 부서별로 쪼개서 진행. 이번엔 개발본부 45명.',
+            schedule: '2026-11-12 (수) 14:00~17:00 / 판교 오피스 세미나실',
+            enroll: '자율 신청 — 개발본부 인원 중 미신청자 리마인드 발송',
+            completion: '출석 1회',
+            action: '입장 시 QR 스캔, 자리 비운 2명 조퇴 처리, 회차 마감 클릭',
+            requirements: ['자율 신청 + 잔여석 표시', '수동 상태 변경 (조퇴)', '회차 마감'],
+            gap: null,
+          },
+        ],
+      },
+      {
+        id: 2,
+        title: '지역 분반 동시 운영',
+        structure: 'N차수 · 각 1회차',
+        freq: '높음',
+        icon: MapPin,
+        color: 'blue',
+        desc: '동일 교육을 여러 지역에서 같은 날 동시에 진행. 본사에서 통합 현황 모니터링.',
+        stories: [
+          {
+            label: '사례 A',
+            title: '전국 매장 점장 CS 교육',
+            bg: '전국 150개 매장 점장 대상. 서울/부산/광주 3개 권역으로 나눠 같은 날 동시 진행. 강사는 권역별 별도.',
+            schedule: '2026-11-20 (목) 10:00~17:00 / 1차수: 서울 HQ (60명) · 2차수: 부산 지사 (50명) · 3차수: 광주 지사 (40명)',
+            enroll: '관리자 강제 할당 (권역별 그룹 배정)',
+            completion: '출석 1회',
+            action: '각 지사 담당자가 현지에서 QR 운영. 본사 관리자는 요약 탭에서 3개 차수 출석률 비교.',
+            requirements: ['차수별 장소 개별 설정', '요약 탭 차수별 비교 테이블', '차수별 담당자 분리'],
+            gap: null,
+          },
+          {
+            label: '사례 B',
+            title: '제조업 현장직 안전교육',
+            bg: '공장 3곳(수원/구미/울산) 현장직 전원 대상. 공장별로 같은 교육을 각자 진행. 본사 교육팀이 통합 현황 확인 필요.',
+            schedule: '2026-12-03 (수) 08:00~12:00 / 1차수: 수원 (120명) · 2차수: 구미 (90명) · 3차수: 울산 (75명)',
+            enroll: '관리자 강제 할당 (공장별 그룹 배정)',
+            completion: '출석 1회',
+            action: '공장 안전팀이 현지 운영. 본사 HRD가 전체 수료율 취합해 경영진 보고.',
+            requirements: ['차수 걸친 전체 수료율 집계', '전체 미수료자 리스트 확인'],
+            gap: '차수 걸친 수료율 집계 뷰 미구현',
+          },
+        ],
+      },
+      {
+        id: 3,
+        title: '다회차 심화과정',
+        structure: '1차수 · 3~5회차',
+        freq: '중간',
+        icon: BookOpen,
+        color: 'violet',
+        desc: '주 1회씩 여러 주에 걸쳐 이어지는 심화 교육. 누적 출석률이 수료 기준이 되는 경우 많음.',
+        stories: [
+          {
+            label: '사례 A',
+            title: '팀장급 리더십 스쿨 (4회차)',
+            bg: '팀장급 20명 대상 리더십 집중 과정. 4주 연속 금요일 오전. 참여율 낮으면 수료 불인정.',
+            schedule: '11/07 · 11/14 · 11/21 · 11/28 (매주 금요일) 09:00~13:00 / 4회차',
+            enroll: '관리자 강제 할당',
+            completion: '4회차 중 3회 이상 출석 (75% 이상)',
+            action: '매 회차마다 QR 출석. 4회차 종료 후 수강 탭에서 개인별 출석률 수동 계산.',
+            requirements: ['회차별 출석 이력 누적', '개인별 다회차 출석률 계산'],
+            gap: '최소 출석률 기반 수료 조건 설정 미구현 → 수동 확인 필요',
+          },
+          {
+            label: '사례 B',
+            title: '데이터 분석 실습 (3회차)',
+            bg: '기획/마케팅팀 15명 대상. 3주 연속 수요일 저녁. 실습 위주라 빠지면 따라가기 어려움.',
+            schedule: '11/05 · 11/12 · 11/19 (매주 수요일) 19:00~22:00 / 3회차',
+            enroll: '자율 신청 (선착순 15명)',
+            completion: '3회차 전체 출석 필수',
+            action: '매 회차 출석 체크. 결석자 발생 시 즉시 연락해 보충 방안 협의.',
+            requirements: ['자율 신청 잔여석 표시', '회차별 출석 현황 누적 조회'],
+            gap: null,
+          },
+        ],
+      },
+      {
+        id: 4,
+        title: '기수제 신입 온보딩',
+        structure: 'N차수 · 복수 회차 · 강제 할당',
+        freq: '중간',
+        icon: Users,
+        color: 'emerald',
+        desc: '입사 기수별로 묶어 집중 온보딩 진행. 기수 정체성이 강하고 전 회차 참여가 원칙.',
+        stories: [
+          {
+            label: '사례 A',
+            title: '대기업 공채 신입 온보딩',
+            bg: '상반기 공채 신입 80명. 입사 첫 2주 동안 집합 교육. "26년 상반기 1기"로 불리며 기수 개념 강함.',
+            schedule: '2026-03-02~03-13 (2주) / 10회차 / 80명',
+            enroll: '관리자 강제 할당 (입사 기수 그룹)',
+            completion: '전 회차 출석 (불참 시 보충 과정 이수)',
+            action: '매일 아침 QR 출석. 지각/조퇴 세밀하게 기록. 10일치 출석 데이터 인사팀 보고.',
+            requirements: ['다회차 출석 이력 누적', '개인별 출석 상세 조회', '출석 데이터 export'],
+            gap: null,
+          },
+          {
+            label: '사례 B',
+            title: '스타트업 분기별 온보딩',
+            bg: '분기마다 5~15명씩 입사. 규모가 작아 분기별로 묶어서 3일 온보딩 진행.',
+            schedule: 'Q1~Q4 / 각 3회차 / 5~15명',
+            enroll: '관리자 강제 할당',
+            completion: '3회차 전체 출석',
+            action: '소규모라 QR 없이 수동 처리도 많음. 회차 마감 후 수료 확인.',
+            requirements: ['소규모 강제 할당', '수동 출석 처리 편의성'],
+            gap: null,
+          },
+        ],
+      },
+      {
+        id: 5,
+        title: '법정의무교육',
+        structure: 'N차수 · 1회차 · 수료율 100% 목표',
+        freq: '높음',
+        icon: AlertTriangle,
+        color: 'rose',
+        desc: '전 직원 100% 수료가 목표. 미수료자 추적과 리마인드가 핵심. 법적 리스크 직결.',
+        stories: [
+          {
+            label: '사례 A',
+            title: '직장 내 괴롭힘 예방 교육',
+            bg: '연 1회 법정 의무. 전 직원 230명 대상. 부서별로 나눠 8개 차수로 운영. 미수료자 리스크 높음.',
+            schedule: '11월 한 달간 / 8개 차수 (부서별, 각 20~35명) / 각 2시간',
+            enroll: '관리자 강제 할당 (부서 그룹 배정)',
+            completion: '출석 1회',
+            action: '8개 차수 걸쳐 전체 수료율 100% 달성 모니터링. 미수료자 추출해 리마인드 발송.',
+            requirements: ['차수 걸친 전체 수료율 집계', '미수료자 명단 추출'],
+            gap: '전체 대상자 중 미수료자 추출 뷰 미구현 → 수동 취합 필요',
+          },
+          {
+            label: '사례 B',
+            title: '개인정보 보호 교육',
+            bg: '개인정보보호법 개정으로 연 2회로 늘어남. 오피스 출근자 대상 오프라인. 4개 차수 집중 운영.',
+            schedule: '12월 집중 운영 / 4개 차수 (층별/팀별, 각 40~60명)',
+            enroll: '관리자 강제 할당',
+            completion: '출석 1회',
+            action: '4차수 종료 후 미수료자 명단 추출 → HR팀 전달 → 개별 연락.',
+            requirements: ['차수별 수료 현황', '전체 미수료자 리스트 export'],
+            gap: '차수 걸친 수료율 집계 뷰 미구현',
+          },
+        ],
+      },
+      {
+        id: 6,
+        title: '오전/오후 분반',
+        structure: '2차수 · 각 1회차 · 같은 날 같은 장소',
+        freq: '중간',
+        icon: Clock,
+        color: 'amber',
+        desc: '인원이 많거나 업무 공백을 막아야 할 때 같은 교육을 오전/오후로 나눠 반복 진행.',
+        stories: [
+          {
+            label: '사례 A',
+            title: '콜센터 CS 교육 교대 운영',
+            bg: '콜센터 상담원 60명. 전원 동시 자리 비울 수 없어 오전/오후 각 30명으로 나눠 진행.',
+            schedule: '1차수 오전: 09:00~12:00 (30명) · 2차수 오후: 13:00~16:00 (30명) — 같은 날, 같은 장소',
+            enroll: '관리자 강제 할당 (근무 교대 스케줄 기준)',
+            completion: '출석 1회',
+            action: '오전 회차 마감 → 오후 차수로 전환. QR 코드 갱신 확인 (같은 장소라 혼선 주의).',
+            requirements: ['같은 날 차수 시각적 구분', '차수 빠른 전환', 'QR 차수별 독립'],
+            gap: '같은 날 차수 시각적 구분 장치 미구현',
+          },
+          {
+            label: '사례 B',
+            title: '영업사원 신제품 교육',
+            bg: '영업사원 40명. 오전에 신제품 교육, 오후에 동일 내용 다른 조. 강사 동일, 장소 동일.',
+            schedule: '1차수 오전: 10:00~12:30 (20명) · 2차수 오후: 14:00~16:30 (20명) — 같은 날, 같은 장소',
+            enroll: '자율 신청 (오전/오후 중 택 1)',
+            completion: '출석 1회',
+            action: '오전 차수 마감 → 오후 차수 QR 새로 열기. 잔여석 실시간 확인.',
+            requirements: ['차수별 잔여석 표시', '오전/오후 신청 현황 동시 확인'],
+            gap: null,
+          },
+        ],
+      },
+    ];
+
+    const GAPS = [
+      { text: '최소 출석률 기반 수료 조건 (예: "3/4회 이상")', cases: '케이스 3A, 4', priority: '높음' },
+      { text: '전체 대상자 중 미수료자 추출 뷰', cases: '케이스 5', priority: '높음' },
+      { text: '같은 날 차수 시각적 구분 표시', cases: '케이스 6A', priority: '중간' },
+      { text: '차수 걸친 전체 수료율 집계', cases: '케이스 2B, 5B', priority: '중간' },
+      { text: '개인별 다회차 출석 이력 요약', cases: '케이스 3, 4', priority: '중간' },
+    ];
+
+    const COLOR_MAP = {
+      indigo: { header: 'bg-indigo-600', light: 'bg-indigo-50', border: 'border-indigo-200', icon: 'bg-indigo-100 text-indigo-600', badge: 'bg-indigo-600 text-white', tab: 'border-indigo-500 text-indigo-600' },
+      blue:   { header: 'bg-blue-600', light: 'bg-blue-50', border: 'border-blue-200', icon: 'bg-blue-100 text-blue-600', badge: 'bg-blue-600 text-white', tab: 'border-blue-500 text-blue-600' },
+      violet: { header: 'bg-violet-600', light: 'bg-violet-50', border: 'border-violet-200', icon: 'bg-violet-100 text-violet-600', badge: 'bg-violet-600 text-white', tab: 'border-violet-500 text-violet-600' },
+      emerald:{ header: 'bg-emerald-600', light: 'bg-emerald-50', border: 'border-emerald-200', icon: 'bg-emerald-100 text-emerald-600', badge: 'bg-emerald-600 text-white', tab: 'border-emerald-500 text-emerald-600' },
+      rose:   { header: 'bg-rose-600', light: 'bg-rose-50', border: 'border-rose-200', icon: 'bg-rose-100 text-rose-600', badge: 'bg-rose-600 text-white', tab: 'border-rose-500 text-rose-600' },
+      amber:  { header: 'bg-amber-500', light: 'bg-amber-50', border: 'border-amber-200', icon: 'bg-amber-100 text-amber-600', badge: 'bg-amber-500 text-white', tab: 'border-amber-500 text-amber-600' },
+    };
+
+    const Row = ({ label, value, highlight }) => (
+      <div className={`flex gap-3 py-2.5 border-b border-slate-100 last:border-0 ${highlight ? 'bg-rose-50 -mx-4 px-4 rounded' : ''}`}>
+        <span className="text-[12px] font-bold text-slate-400 w-[88px] shrink-0 pt-0.5">{label}</span>
+        <span className="text-[13px] text-slate-700 leading-relaxed flex-1">{value}</span>
+      </div>
+    );
+
+    const CaseCard = ({ c }) => {
+      const [active, setActive] = useState(0);
+      const story = c.stories[active];
+      const col = COLOR_MAP[c.color];
+      const Icon = c.icon;
+
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+          {/* 카드 헤더 */}
+          <div className={`${col.header} px-5 py-4 text-white`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                  <Icon size={18}/>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[11px] font-bold text-white/70">케이스 {c.id}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${FREQ_BADGE[c.freq]} bg-white/90`}>{c.freq}</span>
+                  </div>
+                  <h3 className="text-[16px] font-black leading-tight">{c.title}</h3>
+                </div>
+              </div>
+              <span className="text-[11px] font-bold bg-white/20 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0">{c.structure}</span>
+            </div>
+            <p className="text-[12px] text-white/75 mt-2.5 leading-relaxed">{c.desc}</p>
+          </div>
+
+          {/* 사례 탭 */}
+          <div className="flex border-b border-slate-100">
+            {c.stories.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                className={`flex-1 py-2.5 text-[13px] font-bold transition-colors border-b-2
+                  ${active === i ? `${col.tab} bg-slate-50` : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+              >
+                {s.label} — {s.title}
+              </button>
+            ))}
+          </div>
+
+          {/* 사례 내용 */}
+          <div className="p-4 flex-1 fade-in" key={active}>
+            <Row label="배경" value={story.bg}/>
+            <Row label="일정/차수" value={story.schedule}/>
+            <Row label="신청 방식" value={story.enroll}/>
+            <Row label="수료 조건" value={story.completion}/>
+            <Row label="관리자 액션" value={story.action}/>
+            <div className="flex gap-3 py-2.5 border-b border-slate-100">
+              <span className="text-[12px] font-bold text-slate-400 w-[88px] shrink-0 pt-0.5">시스템 요구</span>
+              <div className="flex flex-wrap gap-1.5 flex-1">
+                {story.requirements.map((r, i) => (
+                  <span key={i} className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${col.light} ${col.border} text-slate-700`}>{r}</span>
+                ))}
+              </div>
+            </div>
+            {story.gap && (
+              <div className="mt-3 flex items-start gap-2 bg-rose-50 border border-rose-200 rounded-xl px-3.5 py-2.5">
+                <AlertCircle size={14} className="text-rose-500 mt-0.5 shrink-0"/>
+                <div>
+                  <span className="text-[11px] font-black text-rose-600 block mb-0.5">설계 갭 발견</span>
+                  <span className="text-[12px] text-rose-700">{story.gap}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => (
+      <div className="min-h-screen">
+        {/* 헤더 */}
+        <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+          <div className="max-w-[1400px] mx-auto px-8 py-4 flex items-center gap-4">
+            <a href="admin-index.html" className="w-8 h-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center hover:bg-slate-200 transition-colors">
+              <ChevronLeft size={18}/>
+            </a>
+            <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center shadow-sm">
+              <BookOpen size={16}/>
+            </div>
+            <div>
+              <h1 className="text-[17px] font-black text-slate-900 leading-none mb-0.5">오프라인 코스 — 운영 케이스</h1>
+              <p className="text-[12px] text-slate-400 font-medium">Phase 1 실제 운영 시나리오 · 케이스 6개 · 사례 12개</p>
+            </div>
+            <div className="ml-auto flex items-center gap-3">
+              {['매우 높음', '높음', '중간'].map(f => (
+                <span key={f} className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${FREQ_BADGE[f]}`}>
+                  현업 빈도 {f}
+                </span>
+              ))}
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-[1400px] mx-auto px-8 py-10">
+
+          {/* 인트로 배너 */}
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-6 py-5 mb-8 flex items-start gap-4">
+            <div className="w-10 h-10 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-center shrink-0">
+              <Info size={18} className="text-indigo-600"/>
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-slate-800 mb-1">이 페이지는 시스템 설계 검증용 케이스 문서입니다.</p>
+              <p className="text-[13px] text-slate-500 leading-relaxed">
+                Phase 1 오프라인 전용 운영에서 실제로 발생하는 6가지 패턴을 현업 스토리로 구체화했습니다.
+                각 케이스의 "시스템 요구사항"과 "설계 갭"이 개발 우선순위의 근거가 됩니다.
+              </p>
+            </div>
+          </div>
+
+          {/* 케이스 그리드 */}
+          <div className="grid grid-cols-2 gap-6 mb-10">
+            {CASES.map(c => <CaseCard key={c.id} c={c}/>)}
+          </div>
+
+          {/* 설계 갭 요약 */}
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-rose-600 px-6 py-4 flex items-center gap-2 text-white">
+              <AlertTriangle size={18}/>
+              <h2 className="text-[15px] font-black">운영 케이스에서 발견된 설계 갭</h2>
+              <span className="ml-auto text-[12px] bg-white/20 px-2.5 py-1 rounded-lg font-bold">미구현 항목 {GAPS.length}개</span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {GAPS.map((g, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+                  <div className="w-6 h-6 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-[11px] font-black shrink-0">{i+1}</div>
+                  <div className="flex-1">
+                    <p className="text-[14px] font-bold text-slate-800">{g.text}</p>
+                    <p className="text-[12px] text-slate-400 mt-0.5">발견 케이스: {g.cases}</p>
+                  </div>
+                  <span className={`text-[11px] font-black px-2.5 py-1 rounded-full border whitespace-nowrap
+                    ${g.priority === '높음' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+                    우선순위 {g.priority}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-slate-50 border-t border-slate-100 px-6 py-3 flex items-center gap-2">
+              <ArrowRight size={13} className="text-slate-400"/>
+              <span className="text-[12px] text-slate-500 font-medium">우선순위 높음 항목은 admin1.html 섹션 4 수료 조건 및 admin1-1.html 요약 탭 개선으로 연결됩니다.</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+
+    createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>

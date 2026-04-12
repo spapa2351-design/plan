@@ -435,8 +435,8 @@
                         <th className="w-10 px-0 py-3"></th>
                         <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[80px]">상태</th>
                         <th className="px-3 py-3 text-[12px] font-bold text-slate-400">코스명</th>
-                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[90px] text-center">수강관리</th>
-                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[100px]">패키지</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[90px] text-center whitespace-nowrap">수강관리</th>
+                        <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[110px] whitespace-nowrap">차수</th>
                         <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[90px]">분류</th>
                         <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[140px]">교육 기간</th>
                         <th className="px-3 py-3 text-[12px] font-bold text-slate-400 w-[70px] text-right">수강 인원</th>
@@ -498,18 +498,18 @@
                               {/* 수강관리 */}
                               <td className="px-3 py-3 text-center">
                                 {course.status === 'active' || course.status === 'closed' ? (
-                                  <a href={`admin1-1.html?courseId=${course.id}`} className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-indigo-100 transition-colors">
+                                  <a href={`admin1-1.html?courseId=${course.id}`} className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 border border-indigo-200 px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-indigo-100 transition-colors whitespace-nowrap">
                                     <Users size={10}/> 수강관리
                                   </a>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-300 border border-slate-200 px-2.5 py-1 rounded-md text-[11px] font-bold cursor-not-allowed" title="퍼블리싱 후 이용 가능">
+                                  <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-300 border border-slate-200 px-2.5 py-1 rounded-md text-[11px] font-bold cursor-not-allowed whitespace-nowrap" title="퍼블리싱 후 이용 가능">
                                     <Users size={10}/> 수강관리
                                   </span>
                                 )}
                               </td>
-                              {/* 패키지 */}
+                              {/* 차수 */}
                               <td className="px-3 py-3">
-                                <button onClick={() => toggleExpand(course.id)} className="inline-flex items-center gap-1 bg-violet-50 text-violet-600 border border-violet-200 px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-violet-100 transition-colors">
+                                <button onClick={() => toggleExpand(course.id)} className="inline-flex items-center gap-1 bg-violet-50 text-violet-600 border border-violet-200 px-2.5 py-1 rounded-md text-[11px] font-bold hover:bg-violet-100 transition-colors whitespace-nowrap">
                                   <Calendar size={10}/> {course.packages.length}개 · {totalSessions}회차
                                 </button>
                               </td>
@@ -543,19 +543,19 @@
                               </td>
                             </tr>
 
-                            {/* ── 확장 행: 패키지 상세 ── */}
+                            {/* ── 확장 행: 차수 상세 ── */}
                             {isExpanded && hasPackages && (
                               <tr className="animate-fadeIn">
                                 <td colSpan="12" className="px-0 py-0">
                                   <div className="bg-[#f8f9fd] border-b border-slate-200 px-12 py-4">
                                     <div className="flex items-center gap-2 mb-3">
-                                      <span className="text-[12px] font-bold text-slate-500">패키지(반) 상세</span>
-                                      <span className="text-[11px] text-slate-400 font-medium">— {course.packages.length}개 패키지 / 총 {totalSessions}회차</span>
+                                      <span className="text-[12px] font-bold text-slate-500">차수 상세</span>
+                                      <span className="text-[11px] text-slate-400 font-medium">— {course.packages.length}개 차수 / 총 {totalSessions}회차</span>
                                     </div>
                                     <table className="w-full">
                                       <thead>
                                         <tr className="text-[11px] font-bold text-slate-400 border-b border-slate-200">
-                                          <th className="text-left py-2 pr-4">패키지명</th>
+                                          <th className="text-left py-2 pr-4">차수명</th>
                                           <th className="text-left py-2 pr-4">기간</th>
                                           <th className="text-left py-2 pr-4">장소</th>
                                           <th className="text-center py-2 pr-4">회차</th>
@@ -591,7 +591,7 @@
                                     </table>
                                     <div className="mt-3 flex items-center gap-2">
                                       <a href={`admin1.html?courseId=${course.id}`} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-1">
-                                        <Edit3 size={10}/> 패키지 편집
+                                        <Edit3 size={10}/> 차수 편집
                                       </a>
                                       {course.status === 'active' || course.status === 'closed' ? (
                                         <a href={`admin1-1.html?courseId=${course.id}`} className="text-[11px] font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1">
