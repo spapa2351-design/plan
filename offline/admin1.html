@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스 등록 (통합 차수 모델)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Pretendard"', '"Roboto"', '"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Helvetica', 'Arial', 'sans-serif'],
+          },
+          colors: {
+            indigo: {
+              50: '#EEF0FF', 100: '#E0E4FF', 200: '#C7CDFF', 300: '#9BA8FF',
+              400: '#7B8AFF', 500: '#5569FF', 600: '#4454CC', 700: '#3340A6',
+              800: '#2A3587', 900: '#000C57', 950: '#000940',
+            },
+          },
+          boxShadow: {
+            card: '0px 9px 16px rgba(159,162,191,.18), 0px 2px 2px rgba(159,162,191,0.32)',
+            'card-sm': '0px 2px 3px rgba(159,162,191,.18), 0px 1px 1px rgba(159,162,191,0.32)',
+          },
+          fontSize: {
+            xs: ['13px', { lineHeight: '1.5' }],
+            sm: ['15px', { lineHeight: '1.5' }],
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(16px); } }
+    .toast-in { animation: slideUp 0.25s ease-out forwards; }
+    .toast-out { animation: slideDown 0.2s ease-in forwards; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator,
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+    .drag-ghost { opacity: 0.35; }
+    .drag-over-opt { border-color: #5569FF !important; box-shadow: 0 0 0 3px rgba(85,105,255,0.2) !important; }
+    .drag-over-sess { border-color: #5569FF !important; background: #EEF0FF !important; }
+  </style>
+</head>
+<body class="bg-[#f2f5f9] text-slate-800 font-sans antialiased overflow-y-auto custom-scrollbar">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useRef, useEffect } from 'https://esm.sh/react@18.2.0';
+    import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+    import * as Lucide from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0';
+
+    const {
+      Plus, Trash2, MapPin, Copy, Calendar, QrCode, Smartphone, X, CheckSquare,
+      Wand2, ChevronLeft, ChevronRight, ChevronUp, User, Users, MousePointerClick, ChevronDown, GripVertical,
+      Save, Send, Clock, Check, AlertTriangle, Eye, FileText, CircleDot
+    } = Lucide;
+
+    const Toggle = ({ active, onClick }) => (
+      <div onClick={onClick} className={`w-10 h-6 rounded-full relative cursor-pointer transition-colors ${active ? 'bg-indigo-600' : 'bg-slate-300'}`}>
+        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm ${active ? 'left-5' : 'left-1'}`}></div>
+      </div>
+    );
+
+    /* ── QR 출석부 모달 ── */
+    const QrModal = ({ session, optionName, courseTitle, onClose }) => {
+      const qrData = `출석체크|${courseTitle}|${optionName}|${session.date}|${session.startTime}~${session.endTime}`;
+      const qrUrl = 'qr-dummy.png';
+      return (
+        <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center animate-fadeIn" onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-[320px] flex flex-col items-center gap-5" onClick={e => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-600 text-[12px] font-bold px-3 py-1 rounded-full mb-3">
+                <QrCode size={12}/> 전용 출석 QR 코드
+              </div>
+              <div className="text-[16px] font-black text-slate-900">{optionName}</div>
+              <div className="text-[13px] text-slate-500 mt-1">{session.date} &nbsp;·&nbsp; {session.startTime} ~ {session.endTime}</div>
+            </div>
+            <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 shadow-inner">
+              <img src={qrUrl} alt="QR Code" className="w-[200px] h-[200px] rounded"/>
+            </div>
+            <p className="text-center text-[12px] text-slate-400 leading-relaxed">
+              학습자가 이 QR을 스캔하면<br/>출석이 자동으로 체크됩니다.
+            </p>
+            <button onClick={onClose} className="w-full py-3 bg-slate-900 text-white rounded-xl text-[14px] font-bold hover:bg-slate-800 transition-colors">닫기</button>
+          </div>
+        </div>
+      );
+    };
+
+    /* ── URL 파라미터로 편집/등록 모드 구분 ── */
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('courseId');
+    const isEditMode = !!courseId;
+
+    /* ── Main App ── */
+    const App = () => {
+      const [courseInfo, setCourseInfo] = useState(isEditMode ? {
+        title: '2026 직무교육 — 프로젝트 관리 심화',
+        category: '직무 역량',
+        instructor: '김민준',
+        instructorDesc: '프로젝트 관리 전문가 · A등급 강사',
+        intro: '',
+        location: '한샘 HQ 대교육장 B동 3층',
+        address: '',
+        traffic: '강남역 3번 출구 도보 5분 거리. 지하 주차장 이용 시 무료 주차권 지급.'
+      } : {
+        title: '',
+        category: '',
+        instructor: '',
+        instructorDesc: '',
+        intro: '',
+        location: '',
+        address: '',
+        traffic: ''
+      });
+
+      const [regPeriod, setRegPeriod] = useState({ start: '2026-04-10T09:00', end: '2026-04-25T18:00' });
+      const [cancelPolicy, setCancelPolicy] = useState({ enabled: false, mode: 'allowed', relativeValue: 3, relativeUnit: 'day' });
+      // mode: 'allowed' = 기한부 취소 가능 | 'blocked' = 취소 불가
+      const [changePolicy, setChangePolicy] = useState({ enabled: false, relativeValue: 5, relativeUnit: 'day' });
+      const [isSelfEnroll, setIsSelfEnroll] = useState(true);
+      const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+      const [selectionRule, setSelectionRule] = useState('single');
+      const [minSelect, setMinSelect] = useState(2);
+      const [maxSelect, setMaxSelect] = useState(3);
+      const [selectedMobileOptions, setSelectedMobileOptions] = useState([]);
+      const [qrModal, setQrModal] = useState(null);
+      const [collapsedOpts, setCollapsedOpts] = useState({});
+      const toggleCollapse = (optId) => setCollapsedOpts(prev => ({ ...prev, [optId]: !prev[optId] }));
+
+      /* ── 코스 상태 & 퍼블리싱 ── */
+      const [courseStatus, setCourseStatus] = useState(isEditMode ? 'published' : 'draft'); // draft | saved | published
+      const [lastSavedAt, setLastSavedAt] = useState(null);
+      const [showPublishModal, setShowPublishModal] = useState(false);
+      const [publishType, setPublishType] = useState('now'); // now | scheduled
+      const [publishSchedule, setPublishSchedule] = useState('');
+      const [toast, setToast] = useState(null); // { type: 'first' | 'repeat', dismissing: false }
+      const toastTimer = useRef(null);
+
+      const statusLabel = { draft: '초안', saved: '임시저장', published: '퍼블리싱됨' };
+      const statusColor = { draft: 'bg-slate-100 text-slate-500 border-slate-200', saved: 'bg-amber-50 text-amber-700 border-amber-200', published: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+
+      const dismissToast = () => {
+        setToast(prev => prev ? { ...prev, dismissing: true } : null);
+        setTimeout(() => setToast(null), 200);
+      };
+
+      const handleSaveDraft = () => {
+        const isFirstSave = courseStatus === 'draft';
+        setCourseStatus('saved');
+        setLastSavedAt(new Date());
+
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        setToast({ type: isFirstSave ? 'first' : 'repeat', dismissing: false });
+
+        if (!isFirstSave) {
+          toastTimer.current = setTimeout(dismissToast, 3000);
+        }
+      };
+
+      const getValidation = () => [
+        { label: '코스명 입력', ok: !!courseInfo.title.trim() },
+        { label: '담당 강사 지정', ok: !!courseInfo.instructor.trim() },
+        { label: '교육 장소 설정', ok: !!courseInfo.location.trim() },
+        { label: '신청 기간 설정', ok: !!regPeriod.start && !!regPeriod.end },
+        { label: '최소 1개 차수 생성', ok: options.length > 0 },
+        { label: '모든 차수에 회차 존재', ok: options.every(o => o.sessions.length > 0) },
+        { label: '모든 회차 날짜/시간 설정', ok: options.every(o => o.sessions.every(s => s.date && s.startTime && s.endTime)) },
+        { label: '수료 조건 최소 1개 설정', ok: completionRules.length > 0 },
+      ];
+
+      const handlePublish = () => {
+        const checks = getValidation();
+        if (checks.some(c => !c.ok)) return;
+        setCourseStatus('published');
+        setShowPublishModal(false);
+        setLastSavedAt(new Date());
+      };
+
+      // 더미 그룹 목록 (실제 환경에서는 API 연동)
+      const allGroups = [
+        { id: 'g1', name: '개발팀', count: 12 },
+        { id: 'g2', name: '디자인팀', count: 8 },
+        { id: 'g3', name: '마케팅팀', count: 15 },
+        { id: 'g4', name: '영업팀', count: 20 },
+        { id: 'g5', name: '인사팀', count: 6 },
+        { id: 'g6', name: '재무팀', count: 9 },
+        { id: 'g7', name: '기획팀', count: 11 },
+      ];
+      const [groupDropdownOptId, setGroupDropdownOptId] = useState(null); // 드롭다운 열린 optId
+      useEffect(() => {
+        const close = () => setGroupDropdownOptId(null);
+        document.addEventListener('click', close);
+        return () => document.removeEventListener('click', close);
+      }, []);
+
+      const handleAddGroup = (optId, group) => {
+        setOptions(options.map(opt => {
+          if (opt.id !== optId) return opt;
+          if ((opt.groups || []).find(g => g.id === group.id)) return opt;
+          const newGroups = [...(opt.groups || []), group];
+          return { ...opt, groups: newGroups, capacity: newGroups.reduce((s, g) => s + g.count, 0) };
+        }));
+        setGroupDropdownOptId(null);
+      };
+      const handleRemoveGroup = (optId, groupId) => {
+        setOptions(options.map(opt => {
+          if (opt.id !== optId) return opt;
+          const newGroups = (opt.groups || []).filter(g => g.id !== groupId);
+          return { ...opt, groups: newGroups, capacity: newGroups.length > 0 ? newGroups.reduce((s, g) => s + g.count, 0) : opt.capacity };
+        }));
+      };
+
+      const [options, setOptions] = useState([
+        { id: 1, name: '11월 01일 교육 신청', capacity: 30, enrolled: 30, startDate: '2026-11-01', endDate: '2026-11-01', place: '', groups: [],
+          sessions: [{ id: 101, name: '1회차', date: '2026-11-01', startTime: '09:00', endTime: '18:00', place: '' }] },
+        { id: 2, name: '11월 02일 교육 신청', capacity: 30, enrolled: 25, startDate: '2026-11-02', endDate: '2026-11-02', place: '', groups: [],
+          sessions: [{ id: 102, name: '1회차', date: '2026-11-02', startTime: '09:00', endTime: '18:00', place: '' }] }
+      ]);
+
+      /* ── 수료 조건 ── */
+      const [completionRules, setCompletionRules] = useState([
+        { id: 'attendance', slot_type: 'attendance', label: '오프라인 출석', required: true, fixed: true,
+          condition: { type: 'any_status', description: '회차 마감 시 출석 또는 지각 상태' } }
+      ]);
+
+      const [activeOptionId, setActiveOptionId] = useState(1);
+      const [showBatchForm, setShowBatchForm] = useState(null); // null | optId
+      const [batchData, setBatchData] = useState({ startDate: '', endDate: '', days: [], startTime: '09:00', endTime: '18:00', place: '' });
+
+      /* ── 차수 드래그앤드롭 ── */
+      const dragOptId = useRef(null);
+      const dragOverOptId = useRef(null);
+      const [draggingOpt, setDraggingOpt] = useState(null);
+      const [dragOverOpt, setDragOverOpt] = useState(null);
+
+      const onOptDragStart = (e, id) => { dragOptId.current = id; setDraggingOpt(id); e.dataTransfer.effectAllowed = 'move'; };
+      const onOptDragOver = (e, id) => { e.preventDefault(); dragOverOptId.current = id; setDragOverOpt(id); };
+      const onOptDrop = (e) => {
+        e.preventDefault();
+        const from = dragOptId.current, to = dragOverOptId.current;
+        if (!from || !to || from === to) { setDraggingOpt(null); setDragOverOpt(null); return; }
+        const arr = [...options];
+        const fi = arr.findIndex(o => o.id === from), ti = arr.findIndex(o => o.id === to);
+        const [rem] = arr.splice(fi, 1); arr.splice(ti, 0, rem);
+        setOptions(arr);
+        dragOptId.current = null; dragOverOptId.current = null;
+        setDraggingOpt(null); setDragOverOpt(null);
+      };
+      const onOptDragEnd = () => { setDraggingOpt(null); setDragOverOpt(null); dragOptId.current = null; dragOverOptId.current = null; };
+
+      /* ── 회차 드래그앤드롭 ── */
+      const dragSessId = useRef(null);
+      const dragOverSessId = useRef(null);
+      const [draggingSess, setDraggingSess] = useState(null);
+      const [dragOverSess, setDragOverSess] = useState(null);
+
+      // dragSessId stores { sessId, optId } to know which package the dragged session belongs to
+      const onSessDragStart = (e, sessId, optId) => { dragSessId.current = { sessId, optId }; setDraggingSess(sessId); e.dataTransfer.effectAllowed = 'move'; };
+      const onSessDragOver = (e, sessId) => { e.preventDefault(); dragOverSessId.current = sessId; setDragOverSess(sessId); };
+      const onSessDrop = (e, targetOptId) => {
+        e.preventDefault();
+        const drag = dragSessId.current;
+        const to = dragOverSessId.current;
+        if (!drag || !to || drag.sessId === to || drag.optId !== targetOptId) { setDraggingSess(null); setDragOverSess(null); return; }
+        setOptions(options.map(opt => {
+          if (opt.id !== drag.optId) return opt;
+          const arr = [...opt.sessions];
+          const fi = arr.findIndex(s => s.id === drag.sessId), ti = arr.findIndex(s => s.id === to);
+          const [rem] = arr.splice(fi, 1); arr.splice(ti, 0, rem);
+          return { ...opt, sessions: arr };
+        }));
+        dragSessId.current = null; dragOverSessId.current = null;
+        setDraggingSess(null); setDragOverSess(null);
+      };
+      const onSessDragEnd = () => { setDraggingSess(null); setDragOverSess(null); dragSessId.current = null; dragOverSessId.current = null; };
+
+      /* ── 옵션 CRUD ── */
+      const handleAddOption = () => {
+        const newId = Date.now();
+        setOptions([...options, { id: newId, name: '새로운 드롭다운 옵션', capacity: 30, enrolled: 0, startDate: '', endDate: '', place: '', groups: [], sessions: [] }]);
+        setActiveOptionId(newId);
+      };
+      const handleRemoveOption = (id) => {
+        if (options.length === 1) return alert('최소 1개의 옵션은 필요합니다.');
+        const next = options.filter(o => o.id !== id);
+        setOptions(next);
+        if (activeOptionId === id) setActiveOptionId(next[0].id);
+      };
+      const handleDuplicateOption = (opt) => {
+        const newId = Date.now();
+        setOptions([...options, { ...opt, id: newId, name: `${opt.name} - 복사본`, sessions: opt.sessions.map((s, i) => ({ ...s, id: newId + i + 1 })) }]);
+        setActiveOptionId(newId);
+      };
+      const handleOptionChange = (id, field, val) => setOptions(options.map(o => o.id === id ? { ...o, [field]: val } : o));
+
+      /* ── 세션 CRUD (optId 명시) ── */
+      const handleAddSession = (optId) => {
+        setOptions(options.map(opt => {
+          if (opt.id !== optId) return opt;
+          const last = opt.sessions[opt.sessions.length - 1];
+          return { ...opt, sessions: [...opt.sessions, { id: Date.now(), name: `${opt.sessions.length + 1}회차`, date: '', startTime: last ? last.startTime : '09:00', endTime: last ? last.endTime : '18:00', place: '' }] };
+        }));
+      };
+      const handleRemoveSession = (sid, optId) => setOptions(options.map(opt => opt.id === optId ? { ...opt, sessions: opt.sessions.filter(s => s.id !== sid) } : opt));
+      const handleSessionChange = (sid, field, val, optId) => setOptions(options.map(opt => opt.id === optId ? { ...opt, sessions: opt.sessions.map(s => s.id === sid ? { ...s, [field]: val } : s) } : opt));
+
+      /* ── 일괄 생성 ── */
+      const toggleBatchDay = (day) => setBatchData(prev => ({ ...prev, days: prev.days.includes(day) ? prev.days.filter(d => d !== day) : [...prev.days, day] }));
+      const handleBatchGenerateSessions = () => {
+        const start = new Date(batchData.startDate), end = new Date(batchData.endDate);
+        const dayMap = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
+        const targetDays = batchData.days.map(d => dayMap[d]);
+        if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end || targetDays.length === 0) return alert('유효한 기간과 요일을 설정해주세요.');
+        const generated = [];
+        let curr = new Date(start);
+        while (curr <= end) {
+          if (targetDays.includes(curr.getDay())) {
+            const y = curr.getFullYear(), m = String(curr.getMonth()+1).padStart(2,'0'), d = String(curr.getDate()).padStart(2,'0');
+            generated.push({ date:`${y}-${m}-${d}`, startTime: batchData.startTime, endTime: batchData.endTime, place: batchData.place });
+          }
+          curr.setDate(curr.getDate() + 1);
+        }
+        if (generated.length === 0) return alert('선택한 요일이 기간 내에 없습니다.');
+        const batchOptId = showBatchForm;
+        setOptions(options.map(opt => opt.id === batchOptId ? { ...opt, sessions: [...opt.sessions, ...generated.map((d, i) => ({ id: Date.now() + i, name: `${opt.sessions.length + i + 1}회차`, ...d }))] } : opt));
+        setShowBatchForm(null);
+      };
+
+      const activeOption = options.find(o => o.id === activeOptionId) || options[0];
+      const activeDays = options.flatMap(o => o.sessions).filter(s => s.date && s.date.startsWith('2026-11-')).map(s => parseInt(s.date.split('-')[2], 10));
+
+      return (
+        <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
+
+          {/* Header */}
+          <header className="bg-white border-b border-slate-200 shrink-0 z-50 shadow-sm">
+            <div className="px-8 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <a href="index.html" className="w-8 h-8 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center hover:bg-slate-200 transition-colors" title="코스 목록">
+                  <ChevronLeft size={18}/>
+                </a>
+                <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold shadow-sm"><MapPin size={18}/></div>
+                <div>
+                  <h1 className="text-lg font-extrabold text-slate-900 leading-none mb-1">{isEditMode ? '오프라인 코스 편집' : '오프라인 코스 개설'}</h1>
+                  <p className="text-[12px] font-semibold text-slate-500">통합 차수 모델 (Unified Package Builder)</p>
+                </div>
+                <span className={`ml-2 px-3 py-1 rounded-full text-[12px] font-bold border flex items-center gap-1.5 ${statusColor[courseStatus]}`}>
+                  <CircleDot size={10}/>
+                  {statusLabel[courseStatus]}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {lastSavedAt && (
+                  <span className="text-[12px] text-slate-400 font-medium mr-1">
+                    마지막 저장: {lastSavedAt.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' })}
+                  </span>
+                )}
+                <button onClick={handleSaveDraft} className="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm">
+                  <Save size={15}/> 임시저장
+                </button>
+                <button onClick={() => setIsPreviewOpen(true)} className="px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-bold hover:bg-slate-600 transition-colors flex items-center gap-1.5 shadow-sm">
+                  <Eye size={15}/> 미리보기
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex-1 flex overflow-hidden">
+
+            {/* Main */}
+            <main className="flex-1 overflow-y-auto custom-scrollbar py-10 space-y-8 animate-fadeIn pb-32">
+              <div className="w-[800px] mx-auto px-0 space-y-8">
+
+              {/* 섹션 1: 기본 정보 */}
+              <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center gap-2">
+                  <div className="w-6 h-6 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                  <h2 className="text-base font-bold text-slate-800">코스 기본 정보</h2>
+                </div>
+                <div className="p-6 space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">코스명 <span className="text-red-500">*</span></label>
+                    <input type="text" value={courseInfo.title} onChange={e => setCourseInfo({...courseInfo, title: e.target.value})} className="w-full border border-slate-300 rounded-lg p-3 text-[15px] focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all" placeholder="예: 2026 직무교육 — 프로젝트 관리 심화"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">상단 표시 방식</label>
+                    <div className="flex gap-3">
+                      <label className="flex items-center gap-2 border border-indigo-500 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg cursor-pointer">
+                        <input type="radio" name="cover" defaultChecked className="w-4 h-4 text-indigo-600"/>
+                        <span className="text-[14px] font-bold">기본 표지</span>
+                      </label>
+                      <label className="flex items-center gap-2 border border-slate-200 px-4 py-2 rounded-lg cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="cover" className="w-4 h-4"/>
+                        <span className="text-[14px] font-bold text-slate-600">사용자 지정 이미지</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">카테고리 분류 <span className="text-red-500">*</span></label>
+                      <select className="w-full border border-slate-300 rounded-lg p-3 text-[14px] focus:border-indigo-500 outline-none bg-white">
+                        <option>직무 역량</option><option>공통/온보딩</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">담당 강사 <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <User size={16} className="absolute left-3 top-3 text-slate-400"/>
+                        <input type="text" value={courseInfo.instructor} onChange={e => setCourseInfo({...courseInfo, instructor: e.target.value})} className="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-3 text-[14px] focus:border-indigo-500 outline-none" placeholder="예: 김민준"/>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">강사 소개 / 등급 <span className="text-slate-400 font-normal">(선택)</span></label>
+                    <input type="text" value={courseInfo.instructorDesc} onChange={e => setCourseInfo({...courseInfo, instructorDesc: e.target.value})} className="w-full border border-slate-300 rounded-lg p-3 text-[14px] focus:border-indigo-500 outline-none" placeholder="예: 프로젝트 관리 전문가 · A등급 강사"/>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">코스 소개</label>
+                    <textarea rows="3" value={courseInfo.intro} onChange={e => setCourseInfo({...courseInfo, intro: e.target.value})} className="w-full border border-slate-300 rounded-lg p-3 text-[14px] focus:border-indigo-500 outline-none resize-none" placeholder="과정의 목표, 대상, 주요 특징 등을 입력하세요."></textarea>
+                  </div>
+                  <div className="pt-6 border-t border-slate-100">
+                    <h4 className="text-[14px] font-bold text-indigo-600 flex items-center gap-1.5 mb-4"><MapPin size={16}/> 오프라인 교육 장소 설정</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[13px] font-bold text-slate-700 mb-1.5">기본 교육 장소명 <span className="text-red-500">*</span></label>
+                        <input type="text" value={courseInfo.location} onChange={e => setCourseInfo({...courseInfo, location: e.target.value})} className="w-full border border-slate-300 rounded-md p-2.5 text-[14px] outline-none focus:border-indigo-500" placeholder="예: 한샘 HQ 대교육장 B동 3층"/>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="block text-[13px] font-bold text-slate-700 mb-1.5">상세 주소 (지도 연동)</label>
+                          <input type="text" value={courseInfo.address} readOnly className="w-full border border-slate-300 bg-slate-50 rounded-md p-2.5 text-[14px] outline-none" placeholder="주소를 검색하세요"/>
+                        </div>
+                        <div className="flex items-end">
+                          <button className="h-[42px] px-4 bg-white border border-slate-300 rounded-md text-[13px] font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50"><MapPin size={14}/> 주소 검색</button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-bold text-slate-700 mb-1.5">교통 / 주차 안내</label>
+                        <textarea rows="2" value={courseInfo.traffic} onChange={e => setCourseInfo({...courseInfo, traffic: e.target.value})} className="w-full border border-slate-300 rounded-md p-2.5 text-[14px] outline-none focus:border-indigo-500 resize-none" placeholder="예: 강남역 3번 출구 도보 5분 거리."></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 섹션 2: 모집 설정 */}
+              <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center gap-2">
+                  <div className="w-6 h-6 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                  <h2 className="text-base font-bold text-slate-800">모집 및 수강 신청 설정</h2>
+                </div>
+                <div className="p-6 space-y-6">
+                  {/* 수강 신청 기간 — 항상 고정 */}
+                  <div>
+                    <label className="block text-[14px] font-bold text-slate-800 mb-1">수강 신청 기간 <span className="text-red-500">*</span></label>
+                    <p className="text-[12px] text-slate-400 mb-3">코스 운영 기간을 설정합니다. 오프라인 코스는 반드시 기간이 지정되어야 합니다.</p>
+                    <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <div className="flex-1">
+                        <label className="block text-[12px] font-bold text-slate-500 mb-1.5">신청 오픈 일시</label>
+                        <input type="datetime-local" value={regPeriod.start} onChange={e => setRegPeriod({...regPeriod, start: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-[14px] outline-none focus:border-indigo-500 text-slate-700 bg-white"/>
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[12px] font-bold text-slate-500 mb-1.5">신청 마감 일시</label>
+                        <input type="datetime-local" value={regPeriod.end} onChange={e => setRegPeriod({...regPeriod, end: e.target.value})} className="w-full border border-slate-300 rounded-lg p-2.5 text-[14px] outline-none focus:border-indigo-500 text-slate-700 bg-white"/>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                  <h3 className="text-[15px] font-bold text-slate-800 mb-4">수강 등록 방식</h3>
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => setIsSelfEnroll(true)}>
+                      <div>
+                        <div className="font-bold text-[15px] text-slate-800">회원이 직접 신청 (자율 수강)</div>
+                        <div className="text-[13px] text-slate-500 mt-0.5">학습자가 모바일 앱/웹에서 직접 일자(옵션)를 선택해 수강을 신청합니다.</div>
+                      </div>
+                      <Toggle active={isSelfEnroll} onClick={e => { e.stopPropagation(); setIsSelfEnroll(!isSelfEnroll); }}/>
+                    </div>
+                    {isSelfEnroll && (
+                      <div className="p-6 bg-white space-y-8 animate-fadeIn">
+                        {/* ── 취소 · 변경 정책 ── */}
+                        <div className="border border-slate-200 rounded-xl overflow-hidden">
+                          <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                            <div className="text-[14px] font-bold text-slate-800">취소 · 일정 변경 정책</div>
+                            <div className="text-[12px] text-slate-500 mt-0.5">신청 후 취소 및 옵션(날짜) 변경에 대한 규칙을 설정합니다.</div>
+                          </div>
+
+                          {/* 수강 취소 정책 */}
+                          <div className="p-4 border-b border-slate-100">
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-rose-400"></div>
+                                <span className="text-[13px] font-bold text-slate-700">수강 취소 정책</span>
+                              </div>
+                              <Toggle active={cancelPolicy.enabled} onClick={() => setCancelPolicy(p => ({...p, enabled: !p.enabled}))}/>
+                            </div>
+
+                            {!cancelPolicy.enabled ? (
+                              <div className="text-[12px] text-slate-400 bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                                설정 안 함 — 신청 마감일 전까지 언제든 취소 가능
+                              </div>
+                            ) : (
+                              <div className="space-y-2.5 animate-fadeIn">
+                                {/* 취소 가능 */}
+                                <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all
+                                  ${cancelPolicy.mode === 'allowed' ? 'border-rose-400 bg-rose-50/50' : 'border-slate-200 hover:border-rose-200 bg-white'}`}>
+                                  <input type="radio" name="cancelMode" checked={cancelPolicy.mode === 'allowed'}
+                                    onChange={() => setCancelPolicy(p => ({...p, mode: 'allowed'}))}
+                                    className="w-4 h-4 accent-rose-500"/>
+                                  <div className="flex-1">
+                                    <div className="text-[13px] font-bold text-slate-800 mb-1">기한부 취소 허용</div>
+                                    {cancelPolicy.mode === 'allowed' && (
+                                      <div className="flex items-center gap-1.5 mt-1.5 animate-fadeIn">
+                                        <span className="text-[12px] text-slate-500 font-semibold shrink-0">교육 시작</span>
+                                        <input
+                                          type="number" min="1" max="365"
+                                          value={cancelPolicy.relativeValue}
+                                          onChange={e => setCancelPolicy(p => ({...p, relativeValue: parseInt(e.target.value) || 1}))}
+                                          onClick={e => e.preventDefault()}
+                                          className="w-14 border border-rose-200 rounded-lg text-center text-[14px] font-black text-rose-600 outline-none focus:border-rose-400 py-1 bg-white"
+                                        />
+                                        <select
+                                          value={cancelPolicy.relativeUnit}
+                                          onChange={e => setCancelPolicy(p => ({...p, relativeUnit: e.target.value}))}
+                                          className="border border-rose-200 rounded-lg px-2 py-1 text-[12px] font-bold text-slate-700 outline-none focus:border-rose-400 bg-white"
+                                        >
+                                          <option value="day">일</option>
+                                          <option value="hour">시간</option>
+                                        </select>
+                                        <span className="text-[12px] text-slate-500 font-semibold shrink-0">전까지 가능</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </label>
+
+                                {/* 취소 불가 */}
+                                <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all
+                                  ${cancelPolicy.mode === 'blocked' ? 'border-slate-700 bg-slate-50' : 'border-slate-200 hover:border-slate-400 bg-white'}`}>
+                                  <input type="radio" name="cancelMode" checked={cancelPolicy.mode === 'blocked'}
+                                    onChange={() => setCancelPolicy(p => ({...p, mode: 'blocked'}))}
+                                    className="w-4 h-4 accent-slate-700"/>
+                                  <div>
+                                    <div className="text-[13px] font-bold text-slate-800">취소 불가</div>
+                                    <div className="text-[12px] text-slate-500 mt-0.5">신청 완료 후 학습자가 직접 취소할 수 없습니다. 관리자만 취소 처리 가능합니다.</div>
+                                  </div>
+                                </label>
+
+                                {cancelPolicy.mode === 'allowed' && (
+                                  <p className="text-[12px] text-rose-500 font-semibold flex items-center gap-1 pt-0.5">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                    기한 이후 취소 요청 시 관리자 승인이 필요합니다.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 일정 변경 제한 */}
+                          <div className="p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                                <span className="text-[13px] font-bold text-slate-700">일정 변경 제한</span>
+                              </div>
+                              <Toggle active={changePolicy.enabled} onClick={() => setChangePolicy(p => ({...p, enabled: !p.enabled}))}/>
+                            </div>
+
+                            {!changePolicy.enabled ? (
+                              <div className="text-[12px] text-slate-400 bg-slate-50 rounded-lg px-3 py-2.5 border border-slate-100">
+                                설정 안 함 — 신청 마감일 전까지 언제든 옵션 변경 가능
+                              </div>
+                            ) : (
+                              <div className="space-y-2.5 animate-fadeIn">
+                                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                                  <span className="text-[12px] text-slate-600 font-semibold shrink-0">교육 시작</span>
+                                  <input
+                                    type="number" min="1" max="365"
+                                    value={changePolicy.relativeValue}
+                                    onChange={e => setChangePolicy(p => ({...p, relativeValue: parseInt(e.target.value) || 1}))}
+                                    className="w-14 border border-amber-300 rounded-lg text-center text-[14px] font-black text-amber-700 outline-none focus:border-amber-500 py-1 bg-white"
+                                  />
+                                  <select
+                                    value={changePolicy.relativeUnit}
+                                    onChange={e => setChangePolicy(p => ({...p, relativeUnit: e.target.value}))}
+                                    className="border border-amber-300 rounded-lg px-2 py-1 text-[12px] font-bold text-slate-700 outline-none focus:border-amber-500 bg-white"
+                                  >
+                                    <option value="day">일</option>
+                                    <option value="hour">시간</option>
+                                  </select>
+                                  <span className="text-[12px] text-slate-600 font-semibold shrink-0">전까지 변경 가능</span>
+                                </div>
+                                <p className="text-[12px] text-amber-600 font-semibold flex items-center gap-1">
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                  기한 이후에는 신청한 옵션(날짜/반)을 변경할 수 없습니다.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[14px] font-bold text-slate-800 mb-3">수강 신청 권한 (그룹 지정) <span className="text-red-500">*</span></label>
+                          <div className="border border-slate-300 rounded-lg p-2.5 flex items-center justify-between bg-white cursor-pointer hover:border-indigo-400 transition-colors">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2.5 py-1 rounded-md text-[13px] font-bold shadow-sm">
+                                전체 그룹 <button className="text-indigo-400 hover:text-indigo-600 bg-white rounded-full p-0.5"><X size={12}/></button>
+                              </span>
+                            </div>
+                            <button className="text-slate-400 hover:text-slate-600"><ChevronDown size={18}/></button>
+                          </div>
+                          <p className="text-[12px] text-slate-500 mt-2">이 오프라인 코스에 수강 신청을 할 수 있는 특정 조직이나 부서를 제한할 수 있습니다.</p>
+                        </div>
+                        <div className="pt-6 border-t border-slate-100">
+                          <label className="block text-[14px] font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <CheckSquare size={16} className="text-emerald-500"/> 학습자 옵션(차수) 선택 규칙
+                          </label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <label className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-all ${selectionRule === 'single' ? 'border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500' : 'border-slate-200 hover:border-indigo-200'}`}>
+                              <input type="radio" name="rule" className="mt-1" checked={selectionRule === 'single'} onChange={() => { setSelectionRule('single'); setSelectedMobileOptions([]); }}/>
+                              <div>
+                                <div className="font-bold text-[14px] text-slate-800 mb-1">단일 선택형 (택 1)</div>
+                                <div className="text-[12px] text-slate-500">학습자는 전체 옵션 중 오직 1개만 선택할 수 있습니다.</div>
+                              </div>
+                            </label>
+                            <label className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition-all ${selectionRule === 'multiple' ? 'border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500' : 'border-slate-200 hover:border-indigo-200'}`}>
+                              <input type="radio" name="rule" className="mt-1" checked={selectionRule === 'multiple'} onChange={() => { setSelectionRule('multiple'); setSelectedMobileOptions([]); }}/>
+                              <div>
+                                <div className="font-bold text-[14px] text-slate-800 mb-1">다중 조합형 (N개 선택)</div>
+                                <div className="text-[12px] text-slate-500 mb-3">학습자가 자율적으로 N개의 옵션을 복수 선택합니다.</div>
+                                {selectionRule === 'multiple' && (
+                                  <div className="flex items-center gap-2 bg-white p-2 rounded border border-slate-200 text-[13px] font-bold text-slate-700 w-max shadow-sm" onClick={e => e.preventDefault()}>
+                                    최대 <input type="number" min="1" value={maxSelect} onChange={e => setMaxSelect(parseInt(e.target.value))} className="w-12 border border-slate-200 rounded text-center outline-none focus:border-indigo-500 py-1"/> 개까지 선택 가능
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className={`p-4 bg-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors ${isSelfEnroll ? 'border-t border-slate-200' : ''}`} onClick={() => setIsSelfEnroll(false)}>
+                      <div>
+                        <div className="font-bold text-[15px] text-slate-800">관리자가 강제 할당 (기수/반 단위)</div>
+                        <div className="text-[13px] text-slate-500 mt-0.5">수강 신청 절차 없이, 관리자가 명단을 엑셀/조직도로 일괄 등록합니다.</div>
+                      </div>
+                      <Toggle active={!isSelfEnroll} onClick={e => { e.stopPropagation(); setIsSelfEnroll(!isSelfEnroll); }}/>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 섹션 3: 옵션(차수) 생성 — 차수 간 드래그앤드롭 */}
+              <section className="bg-white border-2 border-indigo-100 rounded-2xl shadow-md overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                <div className="bg-indigo-50/50 border-b border-indigo-100 px-6 py-4 flex items-center gap-2">
+                  <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-sm">3</div>
+                  <div>
+                    <h2 className="text-[15px] font-bold text-slate-900 leading-tight">선택 옵션(차수) 생성</h2>
+                    <p className="text-[12px] text-slate-600 font-medium">모바일 앱에 노출될 선택지를 만들고 정원을 할당합니다. 우측 인덱스에서 순서를 변경할 수 있습니다.</p>
+                  </div>
+                </div>
+                <div className="p-6 space-y-3 bg-[#f8fafc]">
+                  {options.map((option, optIndex) => {
+                    const isActive = activeOptionId === option.id;
+                    const optGroups = option.groups || [];
+                    const hasGroups = !isSelfEnroll && optGroups.length > 0;
+                    const autoCapacity = optGroups.reduce((s, g) => s + g.count, 0);
+                    const availableGroups = allGroups.filter(g => !optGroups.find(og => og.id === g.id));
+                    const isDropdownOpen = groupDropdownOptId === option.id;
+                    return (
+                      <div
+                        key={option.id}
+                        onClick={() => setActiveOptionId(option.id)}
+                        className={`bg-white border-2 rounded-xl shadow-sm transition-all cursor-pointer
+                          ${isActive ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-200 hover:border-indigo-300'}`}
+                      >
+                        <div className="p-4 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                              {optIndex + 1}
+                            </div>
+                            <input
+                              type="text" value={option.name}
+                              onChange={e => handleOptionChange(option.id, 'name', e.target.value)}
+                              className={`bg-transparent border-b text-[15px] font-bold focus:outline-none px-1 py-1 flex-1 min-w-0
+                                ${isActive ? 'border-indigo-300 text-slate-900' : 'border-transparent text-slate-700'}`}
+                              placeholder="옵션명"
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </div>
+                          <div className="flex items-center gap-4 shrink-0" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] text-slate-500 font-bold">정원</span>
+                              {hasGroups ? (
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-16 border border-emerald-300 bg-emerald-50 rounded px-2 py-1 text-[14px] font-bold text-center text-emerald-700 select-none">
+                                    {autoCapacity}
+                                  </div>
+                                  <span className="text-[11px] text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">자동</span>
+                                </div>
+                              ) : (
+                                <input type="number" value={option.capacity} onChange={e => handleOptionChange(option.id, 'capacity', parseInt(e.target.value))} className="w-16 border border-slate-300 rounded px-2 py-1 text-[14px] font-bold text-center focus:border-indigo-500 outline-none"/>
+                              )}
+                              <span className="text-[13px] text-slate-500">명</span>
+                            </div>
+                            <div className="w-px h-6 bg-slate-200"></div>
+                            <div className="flex gap-1">
+                              <button onClick={() => handleDuplicateOption(option)} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded transition-colors"><Copy size={16}/></button>
+                              <button onClick={() => handleRemoveOption(option.id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors"><Trash2 size={16}/></button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 강제 할당 모드: 그룹 배정 칩 UI */}
+                        {!isSelfEnroll && (
+                          <div className="px-4 pb-3 pt-0" onClick={e => e.stopPropagation()}>
+                            <label className="block text-[11px] font-bold text-slate-400 mb-2 flex items-center gap-1">
+                              <Users size={10}/> 배정 그룹
+                            </label>
+                            <div className="flex flex-wrap gap-1.5 items-center min-h-[32px]">
+                              {/* 그룹 칩들 */}
+                              {optGroups.map(g => (
+                                <span key={g.id} className="inline-flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2.5 py-1 rounded-full text-[13px] font-bold shadow-sm">
+                                  {g.name}
+                                  <span className="text-indigo-400 font-semibold">{g.count}명</span>
+                                  <button onClick={() => handleRemoveGroup(option.id, g.id)} className="text-indigo-300 hover:text-indigo-600 transition-colors">
+                                    <X size={11}/>
+                                  </button>
+                                </span>
+                              ))}
+                              {/* 그룹 추가 버튼 + 드롭다운 */}
+                              <div className="relative">
+                                <button
+                                  onClick={e => { e.stopPropagation(); setGroupDropdownOptId(isDropdownOpen ? null : option.id); }}
+                                  className="inline-flex items-center gap-1 border border-dashed border-slate-300 text-slate-500 hover:border-indigo-400 hover:text-indigo-600 px-2.5 py-1 rounded-full text-[13px] font-bold transition-colors bg-white"
+                                >
+                                  <Plus size={11}/> 그룹 추가
+                                </button>
+                                {isDropdownOpen && (
+                                  <div className="absolute left-0 top-8 z-50 bg-white border border-slate-200 rounded-xl shadow-xl w-48 overflow-hidden animate-fadeIn" onClick={e => e.stopPropagation()}>
+                                    {availableGroups.length > 0 ? availableGroups.map(g => (
+                                      <button
+                                        key={g.id}
+                                        onClick={() => handleAddGroup(option.id, g)}
+                                        className="w-full flex items-center justify-between px-4 py-2.5 text-[13px] font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-b border-slate-50 last:border-0"
+                                      >
+                                        <span>{g.name}</span>
+                                        <span className="text-slate-400 font-semibold">{g.count}명</span>
+                                      </button>
+                                    )) : (
+                                      <div className="px-4 py-3 text-[12px] text-slate-400 text-center">추가할 그룹 없음</div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              {/* 합산 표시 */}
+                              {optGroups.length > 0 && (
+                                <span className="ml-auto text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
+                                  총 {autoCapacity}명
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {/* 시작일 · 종료일 · 개별 장소 */}
+                        <div className="px-4 pb-4 pt-1 grid grid-cols-3 gap-3" onClick={e => e.stopPropagation()}>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 mb-1">시작 날짜</label>
+                            <input
+                              type="date" value={option.startDate || ''}
+                              onChange={e => handleOptionChange(option.id, 'startDate', e.target.value)}
+                              className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-[13px] outline-none focus:border-indigo-400 bg-slate-50 font-medium"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 mb-1">종료 날짜</label>
+                            <input
+                              type="date" value={option.endDate || ''}
+                              onChange={e => handleOptionChange(option.id, 'endDate', e.target.value)}
+                              className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-[13px] outline-none focus:border-indigo-400 bg-slate-50 font-medium"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-400 mb-1">개별 장소</label>
+                            <input
+                              type="text" value={option.place || ''}
+                              onChange={e => handleOptionChange(option.id, 'place', e.target.value)}
+                              placeholder="기본 장소 사용"
+                              className="w-full border border-slate-200 rounded-lg px-2 py-1.5 text-[13px] outline-none focus:border-indigo-400 bg-slate-50 placeholder-slate-300"
+                            />
+                          </div>
+                        </div>
+                        {isActive && (
+                          <div className="bg-indigo-50 px-4 py-2 border-t border-indigo-100 flex justify-between items-center animate-fadeIn rounded-b-xl">
+                            <span className="text-[12px] font-bold text-indigo-600 flex items-center gap-1.5">
+                              <MousePointerClick size={14}/> 우측 패널에서 이 옵션의 상세 일정을 편집 중입니다.
+                            </span>
+                            <span className="text-[12px] text-indigo-500 font-semibold bg-white border border-indigo-200 px-2 py-0.5 rounded">
+                              포함된 일정: {option.sessions.length}개
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="pt-2 text-center">
+                    <button onClick={handleAddOption} className="inline-flex items-center gap-2 bg-white border border-slate-300 text-slate-600 px-6 py-3 rounded-xl font-extrabold text-sm hover:border-indigo-500 hover:text-indigo-600 shadow-sm transition-all">
+                      <Plus size={18}/> + 새로운 선택 옵션 추가
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* 섹션 4: 수료 조건 설정 */}
+              <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-slate-800 text-white rounded-full flex items-center justify-center text-xs font-bold">4</div>
+                    <div>
+                      <h2 className="text-base font-bold text-slate-800">수료 조건 설정</h2>
+                      <p className="text-[12px] text-slate-400 font-medium mt-0.5">조건 미충족 시 학습완료 처리되지 않습니다.</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">Phase 3 블렌디드 확장 가능</span>
+                </div>
+                <div className="p-6 space-y-3">
+                  {completionRules.map(rule => (
+                    <div key={rule.id} className="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <div className={`mt-0.5 w-5 h-5 rounded flex items-center justify-center shrink-0 ${rule.required ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                        <Check size={12} className="text-white"/>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[14px] font-bold text-slate-800">{rule.label}</span>
+                          {rule.required && (
+                            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">필수</span>
+                          )}
+                          {rule.fixed && (
+                            <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Phase 1 고정</span>
+                          )}
+                        </div>
+                        <p className="text-[12px] text-slate-500">완료 기준: {rule.condition.description}</p>
+                      </div>
+                      {!rule.fixed && (
+                        <button onClick={() => setCompletionRules(completionRules.filter(r => r.id !== rule.id))} className="text-slate-300 hover:text-red-400 transition-colors mt-0.5">
+                          <X size={16}/>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Phase 3 예고 — 비활성 슬롯 타입들 */}
+                  <div className="border border-dashed border-slate-200 rounded-xl p-4 space-y-2">
+                    <p className="text-[12px] font-bold text-slate-400 mb-3 flex items-center gap-1.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      블렌디드 코스(Phase 3) 지원 예정 조건
+                    </p>
+                    {[
+                      { label: '온라인 영상', desc: '시청률 N% 이상' },
+                      { label: '온라인 시험', desc: 'N점 이상 / 제출 완료' },
+                      { label: '온라인 설문', desc: '제출 완료' },
+                    ].map(item => (
+                      <div key={item.label} className="flex items-center gap-3 opacity-40 cursor-not-allowed">
+                        <div className="w-5 h-5 rounded border-2 border-slate-300 shrink-0"></div>
+                        <span className="text-[13px] font-semibold text-slate-500">{item.label}</span>
+                        <span className="text-[12px] text-slate-400">— {item.desc}</span>
+                        <span className="ml-auto text-[11px] text-slate-300 font-bold">준비중</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              </div>
+            </main>
+
+            {/* ── 우측 사이드바 ── */}
+            <aside className="w-[500px] bg-white border-l border-slate-200 flex flex-col z-20 shadow-[-10px_0_20px_-10px_rgba(0,0,0,0.05)] shrink-0">
+              <div className="px-6 py-5 border-b border-slate-200 shrink-0 bg-slate-900 text-white">
+                <h3 className="font-bold text-[16px] flex items-center gap-2">
+                  <Calendar size={18} className="text-indigo-400"/> 커리큘럼 관리
+                </h3>
+                <p className="text-[12px] text-slate-400 mt-1">차수별 세부 회차 일정을 구성하고 순서를 조정합니다.</p>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#f4f7fc]">
+
+                {/* 미니 캘린더 */}
+                <div className="bg-white border-b border-slate-200 px-6 py-5 mb-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-3">
+                    <button className="text-slate-400 hover:text-slate-700"><ChevronLeft size={16}/></button>
+                    <div className="font-bold text-slate-800 text-[14px]">2026년 11월</div>
+                    <button className="text-slate-400 hover:text-slate-700"><ChevronRight size={16}/></button>
+                  </div>
+                  <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 mb-1">
+                    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+                  </div>
+                  <div className="grid grid-cols-7 text-center text-[12px] font-semibold gap-y-1">
+                    {[
+                      ...Array.from({ length: 30 }, (_, i) => ({ d: i + 1, active: activeDays.includes(i + 1) })),
+                      {d:1,next:true},{d:2,next:true},{d:3,next:true},{d:4,next:true},{d:5,next:true}
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex justify-center items-center h-6">
+                        <div className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors
+                          ${item.active ? 'bg-indigo-500 text-white font-bold shadow-sm' : item.next ? 'text-slate-300 font-normal' : 'text-slate-700'}`}>
+                          {item.d}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── 커리큘럼 인덱스: 전체 차수 + 회차 나열 ── */}
+                <div className="px-5 pb-6 space-y-4">
+                  {options.map((opt) => {
+                    const isActiveOpt = activeOptionId === opt.id;
+                    const isBatchOpen = showBatchForm === opt.id;
+                    const isCollapsed = !!collapsedOpts[opt.id];
+                    return (
+                      <div
+                        key={opt.id}
+                        draggable
+                        onDragStart={e => onOptDragStart(e, opt.id)}
+                        onDragOver={e => onOptDragOver(e, opt.id)}
+                        onDrop={onOptDrop}
+                        onDragEnd={onOptDragEnd}
+                        className={`bg-white border-2 rounded-xl overflow-hidden shadow-sm transition-all select-none
+                          ${isActiveOpt ? 'border-indigo-400' : 'border-slate-200'}
+                          ${draggingOpt === opt.id ? 'drag-ghost' : ''}
+                          ${dragOverOpt === opt.id && draggingOpt !== opt.id ? 'drag-over-opt' : ''}`}
+                      >
+
+                        {/* 차수 헤더 */}
+                        <div
+                          onClick={() => setActiveOptionId(opt.id)}
+                          className={`px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing
+                            ${isActiveOpt ? 'bg-indigo-50' : 'bg-slate-50 hover:bg-slate-100'}
+                            ${!isCollapsed ? (isActiveOpt ? 'border-b border-indigo-100' : 'border-b border-slate-100') : ''}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <GripVertical size={14} className="text-slate-300 shrink-0"/>
+                            <div>
+                              <div className={`text-[11px] font-bold mb-0.5 ${isActiveOpt ? 'text-indigo-400' : 'text-slate-400'}`}>차수</div>
+                              <div className={`text-[14px] font-black leading-tight ${isActiveOpt ? 'text-indigo-900' : 'text-slate-700'}`}>{opt.name}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${isActiveOpt ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'}`}>
+                              {opt.sessions.length}회차
+                            </span>
+                            <button
+                              onClick={() => { setShowBatchForm(isBatchOpen ? null : opt.id); setActiveOptionId(opt.id); setBatchData({ startDate:'',endDate:'',days:[],startTime:'09:00',endTime:'18:00',place:'' }); }}
+                              className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors
+                                ${isBatchOpen ? 'bg-slate-800 text-white' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'}`}
+                            >
+                              <Wand2 size={11}/> 일괄 셋팅
+                            </button>
+                            {/* 접기/펴기 버튼 */}
+                            <button
+                              onClick={() => toggleCollapse(opt.id)}
+                              className={`w-7 h-7 flex items-center justify-center rounded-lg border transition-colors
+                                ${isCollapsed ? 'bg-slate-200 border-slate-300 text-slate-600' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'}`}
+                            >
+                              {isCollapsed ? <ChevronDown size={13}/> : <ChevronUp size={13}/>}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 접혔을 때 숨김 */}
+                        {!isCollapsed && isBatchOpen && (
+                          <div className="p-4 bg-slate-50 border-b border-slate-200 animate-fadeIn">
+                            <div className="space-y-3 mb-3">
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-600 mb-1">진행 기간</label>
+                                <div className="flex items-center gap-1.5">
+                                  <input type="date" value={batchData.startDate} onChange={e=>setBatchData({...batchData,startDate:e.target.value})} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                  <span className="text-slate-400 text-[12px]">~</span>
+                                  <input type="date" value={batchData.endDate} onChange={e=>setBatchData({...batchData,endDate:e.target.value})} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-[11px] font-bold text-slate-600 mb-1">반복 요일</label>
+                                <div className="flex gap-1">
+                                  {['일','월','화','수','목','금','토'].map(day => (
+                                    <button key={day} onClick={() => toggleBatchDay(day)} className={`w-7 h-7 rounded-full text-[12px] font-bold border transition-all
+                                      ${batchData.days.includes(day) ? 'bg-indigo-500 text-white border-indigo-600' : 'bg-white text-slate-400 border-slate-200'}`}>
+                                      {day}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <div className="flex-1">
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">교육 시간</label>
+                                  <div className="flex items-center gap-1">
+                                    <input type="time" value={batchData.startTime} onChange={e=>setBatchData({...batchData,startTime:e.target.value})} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                    <span className="text-slate-400 text-[12px]">~</span>
+                                    <input type="time" value={batchData.endTime} onChange={e=>setBatchData({...batchData,endTime:e.target.value})} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <label className="block text-[11px] font-bold text-slate-600 mb-1">세부 장소</label>
+                                  <input type="text" value={batchData.place} onChange={e=>setBatchData({...batchData,place:e.target.value})} placeholder="기본 장소" className="w-full border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                </div>
+                              </div>
+                            </div>
+                            <button onClick={handleBatchGenerateSessions} className="w-full py-2 bg-slate-800 text-white rounded-lg text-[13px] font-bold hover:bg-slate-900 transition-colors">
+                              일정 자동 채우기
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 회차 목록 — 차수 내 드래그앤드롭 */}
+                        {!isCollapsed && <div className="p-3 space-y-2 bg-white">
+                          {opt.sessions.length > 0 ? opt.sessions.map((sess, idx) => {
+                            const isDraggingThis = draggingSess === sess.id;
+                            const isDragOver = dragOverSess === sess.id && draggingSess !== sess.id;
+                            return (
+                              <div
+                                key={sess.id}
+                                draggable
+                                onDragStart={e => onSessDragStart(e, sess.id, opt.id)}
+                                onDragOver={e => onSessDragOver(e, sess.id)}
+                                onDrop={e => onSessDrop(e, opt.id)}
+                                onDragEnd={onSessDragEnd}
+                                className={`bg-slate-50 border rounded-lg p-3 transition-all select-none
+                                  ${isDraggingThis ? 'drag-ghost border-slate-200' : 'border-slate-200'}
+                                  ${isDragOver ? 'drag-over-sess' : ''}`}
+                              >
+                                <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-100">
+                                  <div className="text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing shrink-0"><GripVertical size={13}/></div>
+                                  <div className="w-4 h-4 bg-indigo-100 text-indigo-600 rounded flex items-center justify-center text-[10px] font-bold shrink-0">{idx + 1}</div>
+                                  <input
+                                    type="text"
+                                    value={sess.name || ''}
+                                    onChange={e => handleSessionChange(sess.id, 'name', e.target.value, opt.id)}
+                                    placeholder="회차명"
+                                    className="flex-1 text-[13px] font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 outline-none px-1 min-w-0"
+                                  />
+                                  <button
+                                    onClick={() => setQrModal({ session: sess, optionName: opt.name })}
+                                    className="text-[10px] font-bold text-indigo-500 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded flex items-center gap-0.5 hover:bg-indigo-100 transition-colors whitespace-nowrap"
+                                  >
+                                    <QrCode size={9}/> 출석QR
+                                  </button>
+                                  <button onClick={() => handleRemoveSession(sess.id, opt.id)} className="text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13}/></button>
+                                </div>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-12 text-[11px] font-bold text-slate-500 shrink-0">날짜</div>
+                                    <input type="date" value={sess.date} onChange={e => handleSessionChange(sess.id, 'date', e.target.value, opt.id)} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white font-medium"/>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-12 text-[11px] font-bold text-slate-500 shrink-0">시간</div>
+                                    <input type="time" value={sess.startTime} onChange={e => handleSessionChange(sess.id, 'startTime', e.target.value, opt.id)} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                    <span className="text-slate-400 text-[12px]">~</span>
+                                    <input type="time" value={sess.endTime} onChange={e => handleSessionChange(sess.id, 'endTime', e.target.value, opt.id)} className="flex-1 border border-slate-300 rounded p-1.5 text-[12px] outline-none focus:border-indigo-500 bg-white"/>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <div className="text-center py-5 text-[12px] text-slate-400 border border-dashed border-slate-200 rounded-lg">
+                              회차 없음
+                            </div>
+                          )}
+                          <button
+                            onClick={() => handleAddSession(opt.id)}
+                            className="w-full py-2 border-2 border-dashed border-slate-200 rounded-lg text-[13px] font-bold text-slate-400 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-1"
+                          >
+                            <Plus size={13}/> 회차 추가
+                          </button>
+                        </div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-white border-t border-slate-200 p-4 shrink-0 space-y-2">
+                {courseStatus === 'published' ? (
+                  <div className="space-y-2">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shrink-0"><Check size={16} className="text-white"/></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[14px] font-bold text-emerald-800">퍼블리싱 완료</div>
+                        <div className="text-[12px] text-emerald-600">학습자 앱에 공개 중입니다.</div>
+                      </div>
+                      <button onClick={() => setCourseStatus('saved')} className="text-[12px] font-bold text-emerald-600 border border-emerald-300 bg-white px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors shrink-0">
+                        수정 모드
+                      </button>
+                    </div>
+                    <a href={`admin1-1.html${courseId ? '?courseId=' + courseId : ''}`} className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-700 transition-colors text-[14px]">
+                      <Users size={15}/> 수강 관리로 이동
+                    </a>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowPublishModal(true)}
+                    className="w-full bg-[#5c66f2] text-white py-3.5 rounded-xl font-bold shadow-[0_4px_12px_rgba(92,102,242,0.3)] flex items-center justify-center gap-2 hover:bg-[#4a54e1] transition-all text-[15px]"
+                  >
+                    <Send size={16}/> 코스 퍼블리싱
+                  </button>
+                )}
+              </div>
+            </aside>
+          </div>
+
+          {/* 학습자 앱 미리보기 모달 */}
+          {isPreviewOpen && (() => {
+            const fmtDate = (d) => d ? new Date(d + 'T00:00').toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : '';
+            const fmtDateTime = (dt) => dt ? new Date(dt).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : '';
+            return (
+            <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center animate-fadeIn p-4">
+              <div className="w-[340px] h-[720px] bg-white border-[14px] border-slate-800 rounded-[45px] relative overflow-hidden shadow-2xl flex flex-col">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6 bg-slate-800 rounded-b-3xl z-20"></div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar pt-8">
+                  {/* 코스 헤더 */}
+                  <div className="bg-gradient-to-b from-[#eef1ff] to-white px-5 pt-4 pb-5">
+                    {/* 신청 기간 */}
+                    {isSelfEnroll && (
+                      <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 mb-2">
+                        <Calendar size={10}/>
+                        신청 {fmtDateTime(regPeriod.start)} ~ {fmtDateTime(regPeriod.end)}
+                      </div>
+                    )}
+                    {/* 코스명 */}
+                    <h2 className="text-[17px] font-black text-slate-900 leading-snug text-center mb-3">{courseInfo.title || '코스명 미입력'}</h2>
+                    {/* 강사 */}
+                    {courseInfo.instructor && (
+                      <div className="flex items-center justify-center gap-1.5 text-[12px] text-slate-500 font-semibold mb-1">
+                        <User size={11}/>
+                        <span>{courseInfo.instructor}</span>
+                        {courseInfo.instructorDesc && <span className="text-slate-400 font-normal">· {courseInfo.instructorDesc}</span>}
+                      </div>
+                    )}
+                    {/* 장소 */}
+                    {courseInfo.location && (
+                      <div className="flex items-center justify-center gap-1 text-[12px] text-slate-400 font-medium">
+                        <MapPin size={10}/> {courseInfo.location}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 코스 소개 */}
+                  {courseInfo.intro && (
+                    <div className="px-5 py-3 bg-slate-50 border-y border-slate-100">
+                      <p className="text-[12px] text-slate-600 leading-relaxed">{courseInfo.intro}</p>
+                    </div>
+                  )}
+
+                  {/* 교통/주차 */}
+                  {courseInfo.traffic && (
+                    <div className="px-5 py-2.5 border-b border-slate-100 flex gap-2">
+                      <MapPin size={11} className="text-slate-400 mt-0.5 shrink-0"/>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">{courseInfo.traffic}</p>
+                    </div>
+                  )}
+
+                  {/* 신청 영역 */}
+                  <div className="px-5 pb-8 pt-4">
+                    {!isSelfEnroll ? (
+                      /* 강제 할당 모드 */
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                        <div className="text-[14px] font-black text-amber-800 mb-1">관리자 배정 교육</div>
+                        <div className="text-[12px] text-amber-600">담당자가 직접 배정한 교육입니다.<br/>별도 신청 없이 일정을 확인하세요.</div>
+                        {/* 차수 목록 */}
+                        <div className="mt-4 space-y-2 text-left">
+                          {options.map((opt, i) => (
+                            <div key={opt.id} className="bg-white border border-amber-200 rounded-lg p-3">
+                              <div className="text-[13px] font-bold text-slate-800 mb-1">{opt.name}</div>
+                              {(opt.startDate || opt.endDate) && (
+                                <div className="text-[11px] text-slate-500 flex items-center gap-1 mb-1">
+                                  <Calendar size={10}/> {fmtDate(opt.startDate)}{opt.endDate && opt.endDate !== opt.startDate ? ` ~ ${fmtDate(opt.endDate)}` : ''}
+                                </div>
+                              )}
+                              <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                                <MapPin size={10}/> {opt.place || courseInfo.location || '장소 미정'}
+                              </div>
+                              {(opt.groups||[]).length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {(opt.groups||[]).map(g => (
+                                    <span key={g.id} className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">{g.name}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : selectionRule === 'single' ? (
+                      /* 단일 선택 */
+                      <div>
+                        <div className="text-[12px] font-bold text-slate-500 mb-2">교육 일정 선택</div>
+                        <div className="space-y-2">
+                          {options.map((opt) => {
+                            const remaining = opt.capacity - (opt.enrolled || 0);
+                            const isClosed = remaining <= 0;
+                            const place = opt.place || courseInfo.location;
+                            return (
+                              <div key={opt.id} className={`border-2 rounded-xl p-3.5 transition-colors cursor-pointer
+                                ${isClosed ? 'border-slate-200 bg-slate-50 opacity-60' : 'border-slate-800 bg-white active:bg-slate-50'}`}>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className={`text-[14px] font-black leading-tight ${isClosed ? 'text-slate-400' : 'text-slate-900'}`}>{opt.name}</div>
+                                    {(opt.startDate || opt.endDate) && (
+                                      <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                                        <Calendar size={10}/> {fmtDate(opt.startDate)}{opt.endDate && opt.endDate !== opt.startDate ? ` ~ ${fmtDate(opt.endDate)}` : ''}
+                                      </div>
+                                    )}
+                                    {place && <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5"><MapPin size={10}/> {place}</div>}
+                                    {opt.sessions.length > 0 && <div className="text-[11px] text-slate-400 mt-0.5">총 {opt.sessions.length}회차</div>}
+                                  </div>
+                                  <div className="shrink-0">
+                                    {isClosed
+                                      ? <span className="text-[12px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-2 py-1 rounded-lg">마감</span>
+                                      : <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">잔여 {remaining}석</span>
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      /* 다중 선택 */
+                      <div>
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3 text-center">
+                          <span className="text-[12px] font-bold text-indigo-700">최대 {maxSelect}개까지 선택 가능</span>
+                        </div>
+                        <div className="space-y-2">
+                          {options.map(opt => {
+                            const remaining = opt.capacity - (opt.enrolled || 0);
+                            const isClosed = remaining <= 0;
+                            const isSelected = selectedMobileOptions.includes(opt.id);
+                            const place = opt.place || courseInfo.location;
+                            return (
+                              <div key={opt.id}
+                                onClick={() => {
+                                  if (isClosed) return;
+                                  if (isSelected) setSelectedMobileOptions(selectedMobileOptions.filter(id => id !== opt.id));
+                                  else {
+                                    if (selectedMobileOptions.length >= maxSelect) alert(`최대 ${maxSelect}개까지만 선택할 수 있습니다.`);
+                                    else setSelectedMobileOptions([...selectedMobileOptions, opt.id]);
+                                  }
+                                }}
+                                className={`border-2 rounded-xl p-3 flex gap-3 transition-colors
+                                  ${isClosed ? 'bg-slate-50 border-slate-200 cursor-not-allowed opacity-60' : isSelected ? 'border-indigo-600 bg-indigo-50/40 cursor-pointer' : 'border-slate-200 cursor-pointer'}`}
+                              >
+                                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5
+                                  ${isClosed ? 'border-slate-300 bg-slate-100' : isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 bg-white'}`}>
+                                  {isSelected && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-1">
+                                    <span className={`text-[14px] font-black ${isClosed ? 'text-slate-400' : 'text-slate-800'}`}>{opt.name}</span>
+                                    {isClosed
+                                      ? <span className="text-[11px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded shrink-0">마감</span>
+                                      : <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded shrink-0">잔여 {remaining}</span>
+                                    }
+                                  </div>
+                                  {(opt.startDate || opt.endDate) && (
+                                    <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                                      <Calendar size={9}/> {fmtDate(opt.startDate)}{opt.endDate && opt.endDate !== opt.startDate ? ` ~ ${fmtDate(opt.endDate)}` : ''}
+                                    </div>
+                                  )}
+                                  {place && <div className="text-[11px] text-slate-400 flex items-center gap-1"><MapPin size={9}/> {place}</div>}
+                                  {opt.sessions.length > 0 && <div className="text-[11px] text-slate-400">총 {opt.sessions.length}회차</div>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {isSelfEnroll && (
+                      <button className="w-full bg-[#c00000] text-white font-bold py-3.5 rounded-xl mt-4 text-[15px] shadow-sm active:bg-red-800">
+                        교육 신청 확정
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setIsPreviewOpen(false)} className="absolute top-6 right-8 text-white hover:text-slate-300 flex items-center gap-2 font-bold text-lg"><X size={32}/> 닫기</button>
+            </div>
+            );
+          })()}
+
+          {/* QR 출석부 모달 */}
+          {qrModal && (
+            <QrModal
+              session={qrModal.session}
+              optionName={qrModal.optionName}
+              courseTitle={courseInfo.title}
+              onClose={() => setQrModal(null)}
+            />
+          )}
+
+          {/* ── 퍼블리싱 모달 ── */}
+          {showPublishModal && (() => {
+            const checks = getValidation();
+            const allPassed = checks.every(c => c.ok);
+            const errorCount = checks.filter(c => !c.ok).length;
+            return (
+            <div className="fixed inset-0 bg-slate-900/80 z-[200] flex items-center justify-center animate-fadeIn p-4" onClick={() => setShowPublishModal(false)}>
+              <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                {/* 헤더 */}
+                <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-[17px] font-black flex items-center gap-2"><Send size={18}/> 코스 퍼블리싱</h3>
+                      <p className="text-indigo-200 text-[13px] mt-1">아래 항목을 확인 후 학습자에게 공개합니다.</p>
+                    </div>
+                    <button onClick={() => setShowPublishModal(false)} className="text-white/60 hover:text-white transition-colors"><X size={22}/></button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                  {/* 유효성 체크리스트 */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-[14px] font-bold text-slate-800 flex items-center gap-1.5">
+                        <FileText size={14} className="text-slate-400"/> 등록 요건 확인
+                      </h4>
+                      {allPassed
+                        ? <span className="text-[12px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">모두 충족</span>
+                        : <span className="text-[12px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">{errorCount}개 미충족</span>
+                      }
+                    </div>
+                    <div className="space-y-1.5">
+                      {checks.map((c, i) => (
+                        <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-colors
+                          ${c.ok ? 'bg-emerald-50/60 text-emerald-700' : 'bg-rose-50 text-rose-600'}`}>
+                          {c.ok
+                            ? <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0"><Check size={12} className="text-white"/></div>
+                            : <div className="w-5 h-5 bg-rose-400 rounded-full flex items-center justify-center shrink-0"><X size={12} className="text-white"/></div>
+                          }
+                          {c.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 퍼블리싱 방식 */}
+                  {allPassed && (
+                    <div className="animate-fadeIn">
+                      <h4 className="text-[14px] font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                        <Clock size={14} className="text-slate-400"/> 공개 시점
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className={`flex items-center gap-2.5 p-3.5 rounded-xl border-2 cursor-pointer transition-all
+                          ${publishType === 'now' ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-200 hover:border-indigo-200'}`}>
+                          <input type="radio" name="pubType" checked={publishType === 'now'} onChange={() => setPublishType('now')} className="w-4 h-4 accent-indigo-600"/>
+                          <div>
+                            <div className="text-[14px] font-bold text-slate-800">즉시 공개</div>
+                            <div className="text-[12px] text-slate-500 mt-0.5">저장 즉시 학습자에게 노출</div>
+                          </div>
+                        </label>
+                        <label className={`flex items-center gap-2.5 p-3.5 rounded-xl border-2 cursor-pointer transition-all
+                          ${publishType === 'scheduled' ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-200 hover:border-indigo-200'}`}>
+                          <input type="radio" name="pubType" checked={publishType === 'scheduled'} onChange={() => setPublishType('scheduled')} className="w-4 h-4 accent-indigo-600"/>
+                          <div>
+                            <div className="text-[14px] font-bold text-slate-800">예약 공개</div>
+                            <div className="text-[12px] text-slate-500 mt-0.5">지정 일시에 자동 공개</div>
+                          </div>
+                        </label>
+                      </div>
+                      {publishType === 'scheduled' && (
+                        <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 animate-fadeIn">
+                          <label className="block text-[12px] font-bold text-slate-500 mb-1.5">공개 예약 일시</label>
+                          <input
+                            type="datetime-local"
+                            value={publishSchedule}
+                            onChange={e => setPublishSchedule(e.target.value)}
+                            className="w-full border border-slate-300 rounded-lg p-2.5 text-[14px] outline-none focus:border-indigo-500 text-slate-700 bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 경고 */}
+                  {allPassed && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex gap-2.5 animate-fadeIn">
+                      <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0"/>
+                      <div className="text-[12px] text-amber-800 leading-relaxed">
+                        <strong>퍼블리싱 후 주의사항</strong><br/>
+                        · 학습자 앱에 즉시 노출되며, 신청이 시작될 수 있습니다.<br/>
+                        · 공개 후에도 수정은 가능하나, 이미 신청된 학습자에게 변경 알림이 발송됩니다.<br/>
+                        · 차수 삭제 시 해당 신청 건은 자동 취소 처리됩니다.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 푸터 */}
+                <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
+                  <button onClick={() => setShowPublishModal(false)} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                    취소
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { handleSaveDraft(); setShowPublishModal(false); }} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-1.5">
+                      <Save size={14}/> 임시저장만
+                    </button>
+                    <button
+                      onClick={handlePublish}
+                      disabled={!allPassed || (publishType === 'scheduled' && !publishSchedule)}
+                      className={`px-6 py-2.5 rounded-xl text-[14px] font-bold flex items-center gap-1.5 transition-all shadow-sm
+                        ${allPassed && !(publishType === 'scheduled' && !publishSchedule)
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+                    >
+                      <Send size={14}/> {publishType === 'scheduled' ? '예약 퍼블리싱' : '즉시 퍼블리싱'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            );
+          })()}
+
+          {/* ══ 임시저장 토스트 ══ */}
+          {toast && (
+            <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] ${toast.dismissing ? 'toast-out' : 'toast-in'}`}>
+              {toast.type === 'first' ? (
+                /* ── 첫 저장: 강조 토스트 (자동 소멸 없음) ── */
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-card px-6 py-4 flex items-center gap-4 min-w-[420px]">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                    <Check size={20} className="text-emerald-600"/>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[14px] font-bold text-slate-800">코스가 임시저장되었습니다</div>
+                    <div className="text-[12px] text-slate-400 mt-0.5">목록에서 확인하거나 계속 편집할 수 있습니다.</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={dismissToast} className="px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                      계속 편집
+                    </button>
+                    <a href="index.html" className="px-3.5 py-2 bg-indigo-500 text-white rounded-lg text-[13px] font-bold hover:bg-indigo-600 transition-colors">
+                      목록으로 이동
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                /* ── 재저장: 가벼운 토스트 (3초 자동 소멸) ── */
+                <div
+                  className="bg-slate-800 text-white rounded-xl shadow-card px-5 py-3 flex items-center gap-3 min-w-[320px]"
+                  onMouseEnter={() => { if (toastTimer.current) clearTimeout(toastTimer.current); }}
+                  onMouseLeave={() => { toastTimer.current = setTimeout(dismissToast, 2000); }}
+                >
+                  <Check size={16} className="text-emerald-400 shrink-0"/>
+                  <span className="text-[13px] font-bold flex-1">임시저장 완료</span>
+                  <span className="text-[12px] text-slate-400 font-medium">
+                    {lastSavedAt && lastSavedAt.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' })}
+                  </span>
+                  <a href="index.html" className="text-[12px] font-bold text-indigo-300 hover:text-indigo-200 transition-colors ml-1">
+                    목록으로 이동
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App/>);
+  </script>
+</body>
+</html>

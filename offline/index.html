@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오프라인 코스 — 프로토타입</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #5569ff;
+      --black: #223354;
+      --body-bg: #f2f5f9;
+      --white: #ffffff;
+      --border: rgba(34,51,84,.10);
+      --r-lg: 16px;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Pretendard','Inter',sans-serif;
+      font-size: 14px; color: var(--black);
+      background: #e8ecf4;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 32px 16px;
+    }
+
+    .selector {
+      width: 390px; background: var(--white);
+      border-radius: var(--r-lg);
+      box-shadow: 0 20px 60px rgba(34,51,84,.18);
+      overflow: hidden; text-align: center;
+      padding: 48px 32px;
+    }
+
+    .logo {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: linear-gradient(135deg, #5569ff, #7B8BFF);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 24px; color: #fff;
+    }
+
+    h1 { font-size: 22px; font-weight: 900; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .sub { font-size: 13px; color: #6E759F; margin-bottom: 36px; font-weight: 500; }
+
+    .buttons { display: flex; flex-direction: column; gap: 12px; }
+
+    .btn-mode {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 20px; border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--white); cursor: pointer;
+      transition: all .2s; text-align: left;
+      font-family: inherit;
+    }
+    .btn-mode:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 16px rgba(85,105,255,.12);
+      transform: translateY(-2px);
+    }
+    .btn-mode:active { transform: scale(0.98); }
+
+    .btn-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .btn-icon.admin { background: #FFF3E0; color: #E65100; }
+    .btn-icon.user { background: #E8F5E9; color: #1A7A4A; }
+    .btn-icon.cases { background: #EEF2FF; color: #4338CA; }
+
+    .btn-text { flex: 1; }
+    .btn-title { font-size: 15px; font-weight: 800; color: var(--black); margin-bottom: 2px; }
+    .btn-desc { font-size: 11px; color: #6E759F; font-weight: 500; }
+    .btn-arrow { font-size: 14px; color: #CBD5E1; }
+
+    .version {
+      margin-top: 32px; font-size: 11px; color: #A0AEC0; font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+<div class="selector">
+  <div class="logo"><i class="fa-solid fa-graduation-cap"></i></div>
+  <h1>오프라인 코스</h1>
+  <div class="sub">프로토타입 모드를 선택하세요</div>
+
+  <div class="buttons">
+    <button class="btn-mode" onclick="location.href='admin-index.html'">
+      <div class="btn-icon admin"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="btn-text">
+        <div class="btn-title">관리자 모드</div>
+        <div class="btn-desc">코스 등록 · 수강생 관리 · 출석 현황</div>
+      </div>
+      <i class="fa-solid fa-chevron-right btn-arrow"></i>
+    </button>
+
+    <button class="btn-mode" onclick="location.href='home.html'">
+      <div class="btn-icon user"><i class="fa-solid fa-user"></i></div>
+      <div class="btn-text">
+        <div class="btn-title">사용자 모드</div>
+        <div class="btn-desc">홈 · 카테고리 · 코스 상세 · MY</div>
+      </div>
+      <i class="fa-solid fa-chevron-right btn-arrow"></i>
+    </button>
+    <button class="btn-mode" onclick="location.href='cases.html'">
+      <div class="btn-icon cases"><i class="fa-solid fa-list-check"></i></div>
+      <div class="btn-text">
+        <div class="btn-title">운영 케이스</div>
+        <div class="btn-desc">오프라인 코스 운영 시나리오 6종 · 실사례 스토리</div>
+      </div>
+      <i class="fa-solid fa-chevron-right btn-arrow"></i>
+    </button>
+  </div>
+
+  <div class="version">Offline Course Prototype v1.0</div>
+</div>
+
+</body>
+</html>
