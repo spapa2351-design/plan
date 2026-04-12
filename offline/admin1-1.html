@@ -309,6 +309,7 @@
       const [detailStudent, setDetailStudent] = useState(null);
       const [calView, setCalView] = useState('month'); // 'month' | 'week'
       const [calMonth, setCalMonth] = useState(() => parseInt(today.slice(5, 7)));
+      const [calWeekOffset, setCalWeekOffset] = useState(0); // 0=이번 주, ±N주
       const [dismissed, setDismissed] = useState([]);
 
       const pkg = PACKAGES.find(p => p.id === selectedPkg);
@@ -698,60 +699,103 @@
                 ))}
               </div>
 
-              {/* ═══ 요약 탭: 3단 구성 (캘린더 | 차수 블록) ═══ */}
+              {/* ═══ 요약 탭: 좌 대시보드(flex-1) | 우 캘린더(400px) ═══ */}
               {activeTab === 'summary' && (
                 <div className="flex flex-1 overflow-hidden animate-fadeIn">
 
-                  {/* ── 가운데: 캘린더 + 일정표 ── */}
-                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+                  {/* ── 가운데/메인: 운영 대시보드 ── */}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
 
                     {/* 오늘 교육 배너 */}
-                    <div className="px-5 pt-5 pb-0">
-                      <SummaryTodayBar
-                        todaySessions={todaySessions} nextSession={nextSession} today={today}
-                        liveMode={liveMode} setLiveMode={setLiveMode} setActiveTab={setActiveTab}
-                        COURSE={COURSE}
-                        onLiveStart={() => { setLiveMode(true); new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_START' }); }}
-                      />
-                    </div>
+                    <SummaryTodayBar
+                      todaySessions={todaySessions} nextSession={nextSession} today={today}
+                      liveMode={liveMode} setLiveMode={setLiveMode} setActiveTab={setActiveTab}
+                      COURSE={COURSE}
+                      onLiveStart={() => { setLiveMode(true); new BroadcastChannel('offline-demo').postMessage({ type: 'LIVE_MODE_START' }); }}
+                    />
 
                     {/* 알림 칩 */}
                     {alerts.filter((_,i) => !dismissed.includes(i)).length > 0 && (
-                      <div className="px-5 pt-3">
-                        <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex flex-wrap gap-2 items-center">
-                          <span className="text-[11px] font-bold text-slate-300 mr-1 flex-shrink-0">주의사항</span>
-                          {alerts.map((a, i) => dismissed.includes(i) ? null : (
-                            <SummaryAlertChip key={i} alert={a} onClose={() => setDismissed(d => [...d, i])}/>
-                          ))}
-                        </div>
+                      <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex flex-wrap gap-2 items-center">
+                        <span className="text-[11px] font-bold text-slate-300 mr-1 flex-shrink-0">주의사항</span>
+                        {alerts.map((a, i) => dismissed.includes(i) ? null : (
+                          <SummaryAlertChip key={i} alert={a} onClose={() => setDismissed(d => [...d, i])}/>
+                        ))}
                       </div>
                     )}
 
-                    {/* 캘린더 헤더: 월/주 토글 + 네비게이션 */}
-                    <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
-                        {[{ id: 'month', label: '월간' }, { id: 'week', label: '주간' }].map(v => (
-                          <button key={v.id} onClick={() => setCalView(v.id)}
-                            className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${
-                              calView === v.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
-                            }`}>
-                            {v.label}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[14px] font-black text-slate-700">2026년 {calMonth}월</span>
-                        <div className="flex gap-1">
-                          <button onClick={() => setCalMonth(m => m > 1 ? m-1 : 12)}
-                            className="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-500 transition-colors"><ChevronLeft size={13}/></button>
-                          <button onClick={() => setCalMonth(m => m < 12 ? m+1 : 1)}
-                            className="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-500 transition-colors"><ChevronRight size={13}/></button>
-                        </div>
-                      </div>
+                    {/* KPI 핵심 지표 */}
+                    <KPIStrip
+                      PACKAGES={PACKAGES} overallRate={overallRate}
+                      totalEnrolled={totalEnrolled} totalCapacity={totalCapacity}
+                      getSessionStats={getSessionStats} today={today}
+                    />
+
+                    {/* 차수 카드 그리드 */}
+                    <div className={`grid gap-4 ${PACKAGES.length >= 3 ? 'grid-cols-3' : PACKAGES.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      {PACKAGES.map((p, pi) => (
+                        <SummaryPkgCard
+                          key={p.id} pkg={p} pkgIdx={pi} today={today}
+                          getSessionStats={getSessionStats} fmtDateShort={fmtDateShort}
+                          onGoAttendance={() => { setSelectedPkg(p.id); setActiveTab('attendance'); }}
+                        />
+                      ))}
                     </div>
 
+                    {/* 수료 예측 */}
+                    <SummaryForecast PACKAGES={PACKAGES} getSessionStats={getSessionStats} today={today}/>
+
+                  </div>
+
+                  {/* ── 우측: 캘린더 패널 400px ── */}
+                  <div className="w-[400px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
+                    {/* 캘린더 헤더 */}
+                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+                      {/* 월/주 토글 */}
+                      <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+                        {[{ id: 'month', label: '월' }, { id: 'week', label: '주' }].map(v => (
+                          <button key={v.id} onClick={() => setCalView(v.id)}
+                            className={`px-3 py-1.5 rounded-md text-[12px] font-bold transition-all ${
+                              calView === v.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                            }`}>{v.label}</button>
+                        ))}
+                      </div>
+                      {/* 네비게이션 */}
+                      <div className="flex items-center gap-1.5">
+                        {calView === 'month' ? (
+                          <>
+                            <button onClick={() => setCalMonth(m => m > 1 ? m-1 : 12)}
+                              className="w-6 h-6 rounded-md bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronLeft size={12}/></button>
+                            <span className="text-[13px] font-black text-slate-700 w-[80px] text-center">2026년 {calMonth}월</span>
+                            <button onClick={() => setCalMonth(m => m < 12 ? m+1 : 1)}
+                              className="w-6 h-6 rounded-md bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronRight size={12}/></button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => setCalWeekOffset(o => o - 1)}
+                              className="w-6 h-6 rounded-md bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronLeft size={12}/></button>
+                            <span className="text-[12px] font-bold text-slate-600 w-[90px] text-center">
+                              {calWeekOffset === 0 ? '이번 주' : calWeekOffset > 0 ? `+${calWeekOffset}주` : `${calWeekOffset}주`}
+                            </span>
+                            <button onClick={() => setCalWeekOffset(o => o + 1)}
+                              className="w-6 h-6 rounded-md bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors"><ChevronRight size={12}/></button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* 차수 범례 */}
+                    <div className="px-3 py-2 border-b border-slate-50 flex flex-wrap gap-1.5 shrink-0">
+                      {PACKAGES.map((p, pi) => {
+                        const c = PKG_COLORS[pi % PKG_COLORS.length];
+                        return (
+                          <div key={p.id} className={`flex items-center gap-1 text-[10px] font-bold ${c.text} ${c.light} border ${c.border} px-2 py-0.5 rounded-md`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{p.name}
+                          </div>
+                        );
+                      })}
+                    </div>
                     {/* 캘린더 본체 */}
-                    <div className="px-5 pb-5 flex-1">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
                       {calView === 'month' ? (
                         <MonthCalendarGrid
                           month={calMonth} year={2026} days={calDaysData}
@@ -762,6 +806,7 @@
                       ) : (
                         <WeekCalendarStrip
                           sessByDate={sessByDate} today={today}
+                          weekOffset={calWeekOffset}
                           PACKAGES={PACKAGES} getSessionStats={getSessionStats}
                           onGoAttendance={(pkgId) => { setSelectedPkg(pkgId); setActiveTab('attendance'); }}
                         />
@@ -769,13 +814,6 @@
                     </div>
                   </div>
 
-                  {/* ── 오른쪽: 차수 블록 ── */}
-                  <PkgBlockList
-                    PACKAGES={PACKAGES} today={today}
-                    getSessionStats={getSessionStats} fmtDateShort={fmtDateShort}
-                    selectedPkg={selectedPkg} setSelectedPkg={setSelectedPkg}
-                    setActiveTab={setActiveTab}
-                  />
                 </div>
               )}
 
@@ -1132,11 +1170,11 @@
     ══════════════════════════════════════ */
 
     /* ── 이번 주 캘린더 스트립 ── */
-    function WeekCalendarStrip({ sessByDate, today, PACKAGES, getSessionStats, onGoAttendance }) {
+    function WeekCalendarStrip({ sessByDate, today, PACKAGES, getSessionStats, onGoAttendance, weekOffset = 0 }) {
       const todayDate = new Date(today);
       const dow = todayDate.getDay(); // 0=Sun
       const monday = new Date(todayDate);
-      monday.setDate(todayDate.getDate() - (dow === 0 ? 6 : dow - 1));
+      monday.setDate(todayDate.getDate() - (dow === 0 ? 6 : dow - 1) + weekOffset * 7);
 
       const DAY_NAMES = ['월','화','수','목','금','토','일'];
       const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -1163,23 +1201,8 @@
 
       return (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar size={14} className="text-indigo-400"/>
-              <span className="text-[14px] font-black text-slate-800">이번 주 교육 일정</span>
-              <span className="text-[12px] text-slate-400 font-medium">{rangeLabel}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {PACKAGES.map((p, pi) => {
-                const c = PKG_COLORS[pi % PKG_COLORS.length];
-                return (
-                  <div key={p.id} className={`flex items-center gap-1 text-[11px] font-bold ${c.text} ${c.light} border ${c.border} px-2 py-0.5 rounded-md`}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{p.name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* 날짜 범위 레이블 */}
+          <div className="px-3 py-2 border-b border-slate-50 text-[11px] text-slate-400 font-semibold">{rangeLabel}</div>
           <div className="grid grid-cols-7 divide-x divide-slate-100">
             {weekDays.map((day) => {
               const sessions = sessByDate[day.dateStr] || [];
@@ -1227,8 +1250,7 @@
       );
     }
 
-    /* ── [deprecated: merged into sidebar] ── */
-    function _KPIStrip_unused({ PACKAGES, overallRate, totalEnrolled, totalCapacity, getSessionStats, today }) {
+    function KPIStrip({ PACKAGES, overallRate, totalEnrolled, totalCapacity, getSessionStats, today }) {
       let atRisk = 0;
       PACKAGES.forEach(p => {
         const done = p.sessions.filter(s => s.date <= today);
@@ -1528,7 +1550,7 @@
       );
     }
 
-    function _SummaryPkgCard_unused({ pkg, pkgIdx, today, getSessionStats, fmtDateShort, onGoAttendance }) {
+    function SummaryPkgCard({ pkg, pkgIdx, today, getSessionStats, fmtDateShort, onGoAttendance }) {
       const c = PKG_COLORS[pkgIdx % PKG_COLORS.length];
       const doneSessions = pkg.sessions.filter(s => s.date < today);
       const todayOrDone = pkg.sessions.filter(s => s.date <= today);
@@ -1638,7 +1660,7 @@
       );
     }
 
-    function _SummaryForecast_unused({ PACKAGES, getSessionStats, today }) {
+    function SummaryForecast({ PACKAGES, getSessionStats, today }) {
       let totalEnrolled = 0, totalAtRisk = 0;
       PACKAGES.forEach(p => {
         totalEnrolled += p.enrolled;
