@@ -214,7 +214,7 @@
         <div class="legend-item"><div class="legend-dot" style="background:var(--admin)"></div>관리자</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--user)"></div>학습자</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--system)"></div>시스템</div>
-        <div class="legend-item" style="margin-left:12px"><span style="width:6px;height:6px;border-radius:50%;background:#1D4ED8;display:inline-block;margin-right:4px"></span><span style="font-size:11px;">구현됨</span></div>
+        <div class="legend-item" style="margin-left:12px"><span style="width:6px;height:6px;border-radius:50%;background:#1D4ED8;display:inline-block;margin-right:4px"></span><span style="font-size:11px;">기획됨</span></div>
         <div class="legend-item"><span style="width:6px;height:6px;border-radius:50%;background:#C2410C;display:inline-block;margin-right:4px"></span><span style="font-size:11px;">신규 기획</span></div>
     </div>
 
@@ -244,13 +244,14 @@
                         <span class="page-id" style="background:var(--admin)">A-1</span>
                         <span class="page-name">코스 목록</span>
                     </div>
-                    <div class="page-file">index.html</div>
+                    <div class="page-file">index.html · admin-index.html (React)</div>
                     <div class="page-desc">전체 코스 조회 · 필터 · 확장 행(패키지 미니테이블)</div>
                     <div class="subs">
-                        <div class="sub done">사이드바 분류 트리 <span class="badge done">구현됨</span></div>
-                        <div class="sub done">상태 필터 (운영중/임시저장/종료) <span class="badge done">구현됨</span></div>
-                        <div class="sub done">검색 (코스명/강사명) <span class="badge done">구현됨</span></div>
-                        <div class="sub done">확장 행 — 패키지 상세 <span class="badge done">구현됨</span></div>
+                        <div class="sub done">사이드바 분류 트리 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">상태 필터 (운영중/임시저장/종료) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">검색 (코스명/강사명) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">확장 행 — 패키지 상세 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">React 버전 (admin-index.html) <span class="badge done">기획됨</span></div>
                     </div>
                 </div>
 
@@ -262,11 +263,11 @@
                     <div class="page-file">admin1.html</div>
                     <div class="page-desc">기본정보 · 모집설정 · 패키지·회차 커리큘럼</div>
                     <div class="subs">
-                        <div class="sub done">§1 기본 정보 (명칭/강사/장소) <span class="badge done">구현됨</span></div>
-                        <div class="sub done">§2 모집 설정 (자율/강제, 정책) <span class="badge done">구현됨</span></div>
-                        <div class="sub done">§3 패키지 카드 + 커리큘럼 DnD <span class="badge done">구현됨</span></div>
-                        <div class="sub done">퍼블리싱 모달 (7개 요건 검증) <span class="badge done">구현됨</span></div>
-                        <div class="sub done">모바일 미리보기 <span class="badge done">구현됨</span></div>
+                        <div class="sub done">§1 기본 정보 (명칭/강사/장소) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">§2 모집 설정 (자율/강제, 정책) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">§3 패키지 카드 + 커리큘럼 DnD <span class="badge done">기획됨</span></div>
+                        <div class="sub done">퍼블리싱 모달 (7개 요건 검증) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">모바일 미리보기 <span class="badge done">기획됨</span></div>
                     </div>
                 </div>
 
@@ -284,16 +285,32 @@
                         <span class="tab-chip">설문</span>
                     </div>
                     <div class="subs" style="margin-top:8px">
-                        <div class="sub done">요약 탭 — 통계카드 + 바차트 <span class="badge done">구현됨</span></div>
-                        <div class="sub done">수강 탭 — 수강생 테이블 <span class="badge done">구현됨</span></div>
-                        <div class="sub done">출석 탭 — 5종 상태 + 라이브 모드 <span class="badge done">구현됨</span></div>
-                        <div class="sub done">회차 마감 (미확인→결석) <span class="badge done">구현됨</span></div>
+                        <div class="sub done">요약 탭 — 통계카드 + 바차트 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">수강 탭 — 수강생 테이블 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">출석 탭 — 5종 상태 + 라이브 모드 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">회차 마감 (미확인→결석) <span class="badge done">기획됨</span></div>
                     </div>
                 </div>
 
                 <div class="page">
                     <div class="page-head">
-                        <span class="page-id" style="background:#FF6B35">A-4</span>
+                        <span class="page-id" style="background:var(--admin)">A-4</span>
+                        <span class="page-name">코스 운영 대시보드</span>
+                    </div>
+                    <div class="page-file">admin-dashboard.html</div>
+                    <div class="page-desc">코스별 운영 현황 · 월간 캘린더 · 오늘 회차 · 수강 예보</div>
+                    <div class="subs">
+                        <div class="sub done">오늘 교육 TodayBar (시간/장소/강사) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">AlertChip — 정원마감·취소·미확인 알림 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">PackageCard — 패키지별 현황 카드 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">월간 캘린더 + 회차 마킹 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">수강 예보 (Forecast) <span class="badge done">기획됨</span></div>
+                    </div>
+                </div>
+
+                <div class="page">
+                    <div class="page-head">
+                        <span class="page-id" style="background:#FF6B35">A-5</span>
                         <span class="page-name">수강생 일괄 등록</span>
                     </div>
                     <div class="page-file">admin2.html (신규)</div>
@@ -304,6 +321,7 @@
                         <div class="sub new">패키지별 배정 + 정원 초과 경고 <span class="badge new">신규</span></div>
                     </div>
                 </div>
+
 
             </div>
         </div>
@@ -321,15 +339,17 @@
 
                 <div class="page">
                     <div class="page-head">
-                        <span class="page-id" style="background:#FF6B35">L-1</span>
+                        <span class="page-id" style="background:var(--user)">L-1</span>
                         <span class="page-name">코스 탐색 (카탈로그)</span>
                     </div>
-                    <div class="page-file">user-list.html (신규)</div>
-                    <div class="page-desc">신청 가능한 오프라인 코스 목록</div>
+                    <div class="page-file">home.html · category.html · course-list-badges.html</div>
+                    <div class="page-desc">홈 → 카테고리 → 코스 목록 3단계 탐색 플로우</div>
                     <div class="subs">
-                        <div class="sub new">카드형 목록 (표지/제목/잔여석) <span class="badge new">신규</span></div>
-                        <div class="sub new">카테고리 필터 + 키워드 검색 <span class="badge new">신규</span></div>
-                        <div class="sub new">뱃지: 모집중 / 마감임박 / 마감 <span class="badge new">신규</span></div>
+                        <div class="sub done">홈 랜딩 (home.html) — 학습자 진입점 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">카테고리 브라우징 (category.html) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">코스 카드 목록 + 뱃지 (course-list-badges.html) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">뱃지: 모집중 / 마감임박 / 마감 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">키워드 검색 + 필터 <span class="badge done">기획됨</span></div>
                     </div>
                 </div>
 
@@ -341,24 +361,26 @@
                     <div class="page-file">user1.html</div>
                     <div class="page-desc">코스 정보 확인 → 패키지 선택 → 신청</div>
                     <div class="subs">
-                        <div class="sub done">코스 헤더 (기간/장소/강사) <span class="badge done">구현됨</span></div>
-                        <div class="sub done">단일/다중/강제 3가지 모드 <span class="badge done">구현됨</span></div>
-                        <div class="sub done">"교육 신청 확정" 버튼 <span class="badge done">구현됨</span></div>
+                        <div class="sub done">코스 헤더 (기간/장소/강사) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">단일/다중/강제 3가지 모드 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">"교육 신청 확정" 버튼 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">수강 중 상태 (user1-enrolled.html) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">수강 완료 상태 (user1-completed.html) <span class="badge done">기획됨</span></div>
                     </div>
                 </div>
 
                 <div class="page">
                     <div class="page-head">
-                        <span class="page-id" style="background:#FF6B35">L-3</span>
+                        <span class="page-id" style="background:var(--user)">L-3</span>
                         <span class="page-name">내 학습 (마이페이지)</span>
                     </div>
-                    <div class="page-file">user-my.html (신규)</div>
+                    <div class="page-file">user-my.html</div>
                     <div class="page-desc">신청한 코스 현황 · 일정 · 출석 이력</div>
                     <div class="subs">
-                        <div class="sub new">진행 중 코스 카드 (D-day) <span class="badge new">신규</span></div>
-                        <div class="sub new">일정 캘린더 (월간 → 회차) <span class="badge new">신규</span></div>
-                        <div class="sub new">출석 이력 타임라인 <span class="badge new">신규</span></div>
-                        <div class="sub new">완료 코스 + 수료증 <span class="badge new">신규</span></div>
+                        <div class="sub done">진행 중 코스 카드 (D-day) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">일정 캘린더 (월간 → 회차) <span class="badge done">기획됨</span></div>
+                        <div class="sub done">출석 이력 타임라인 <span class="badge done">기획됨</span></div>
+                        <div class="sub done">완료 코스 + 수료증 <span class="badge done">기획됨</span></div>
                     </div>
                 </div>
 
@@ -509,13 +531,14 @@
                 <tr><th>ID</th><th>화면명</th><th>대상</th><th>파일</th><th>상태</th></tr>
             </thead>
             <tbody>
-                <tr><td><b>A-1</b></td><td>코스 목록</td><td>관리자</td><td style="font-family:monospace;font-size:11px">index.html</td><td><span class="st built">구현됨</span></td></tr>
-                <tr><td><b>A-2</b></td><td>코스 빌더</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin1.html</td><td><span class="st built">구현됨</span></td></tr>
-                <tr><td><b>A-3</b></td><td>수강 관리</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin1-1.html</td><td><span class="st built">구현됨</span></td></tr>
-                <tr><td><b>A-4</b></td><td>수강생 일괄 등록</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin2.html</td><td><span class="st new">신규</span></td></tr>
-                <tr style="background:#ECFDF5"><td><b>L-1</b></td><td>코스 탐색</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user-list.html</td><td><span class="st new">신규</span></td></tr>
-                <tr style="background:#ECFDF5"><td><b>L-2</b></td><td>코스 상세/신청</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user1.html</td><td><span class="st built">구현됨</span></td></tr>
-                <tr style="background:#ECFDF5"><td><b>L-3</b></td><td>내 학습</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user-my.html</td><td><span class="st new">신규</span></td></tr>
+                <tr><td><b>A-1</b></td><td>코스 목록</td><td>관리자</td><td style="font-family:monospace;font-size:11px">index.html · admin-index.html</td><td><span class="st built">기획됨</span></td></tr>
+                <tr><td><b>A-2</b></td><td>코스 빌더</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin1.html</td><td><span class="st built">기획됨</span></td></tr>
+                <tr><td><b>A-3</b></td><td>수강 관리</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin1-1.html</td><td><span class="st built">기획됨</span></td></tr>
+                <tr><td><b>A-4</b></td><td>코스 운영 대시보드</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin-dashboard.html</td><td><span class="st built">기획됨</span></td></tr>
+                <tr><td><b>A-5</b></td><td>수강생 일괄 등록</td><td>관리자</td><td style="font-family:monospace;font-size:11px">admin2.html</td><td><span class="st new">신규</span></td></tr>
+                <tr style="background:#ECFDF5"><td><b>L-1</b></td><td>코스 탐색 (홈→카테고리→목록)</td><td>학습자</td><td style="font-family:monospace;font-size:11px">home.html · category.html · course-list-badges.html</td><td><span class="st built">기획됨</span></td></tr>
+                <tr style="background:#ECFDF5"><td><b>L-2</b></td><td>코스 상세/신청</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user1.html · user1-enrolled.html · user1-completed.html</td><td><span class="st built">기획됨</span></td></tr>
+                <tr style="background:#ECFDF5"><td><b>L-3</b></td><td>내 학습</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user-my.html</td><td><span class="st built">기획됨</span></td></tr>
                 <tr style="background:#ECFDF5"><td><b>L-4</b></td><td>QR 출석 체크인</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user-checkin.html</td><td><span class="st new">신규</span></td></tr>
                 <tr style="background:#ECFDF5"><td><b>L-5</b></td><td>신청 변경/취소</td><td>학습자</td><td style="font-family:monospace;font-size:11px">user1.html 모달</td><td><span class="st new">신규</span></td></tr>
                 <tr style="background:#F5F3FF"><td><b>SY-1</b></td><td>알림</td><td>공통</td><td style="font-family:monospace;font-size:11px">공통 기능</td><td><span class="st new">신규</span></td></tr>
@@ -525,7 +548,7 @@
         </table>
     </div>
 
-    <p class="footer">Phase 1 IA v1.0 · 2026-04-09 · 구현됨 4개 + 신규 8개 = 총 12개 · 통계(S-1~S-4)는 Phase 2로 이관</p>
+    <p class="footer">Phase 1 IA v1.1 · 2026-04-13 · 기획됨 8개 + 신규 5개 = 총 13개 · 통계(S-1~S-4)는 Phase 2로 이관</p>
 
 </div>
 </body>
