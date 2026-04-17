@@ -1,0 +1,477 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>차세대 LMS 학습 자료 수정 정책</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}
+body{background:#f5f6f8;color:#1a1a1a;font-size:14px;line-height:1.7;}
+
+/* Top nav */
+.topnav{position:fixed;top:0;left:0;right:0;height:56px;background:#fff;border-bottom:1px solid #e3e5eb;z-index:100;display:flex;align-items:center;padding:0 32px;}
+.topnav .brand{font-size:14px;font-weight:700;}
+.topnav .brand .tag{display:inline-block;background:#8b1e1e;color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;margin-right:10px;letter-spacing:0.5px;font-weight:600;}
+.topnav .meta{margin-left:auto;font-size:12px;color:#6a7080;}
+
+/* Layout */
+.layout{display:flex;margin-top:56px;}
+
+/* Sidebar TOC */
+.toc{width:240px;position:fixed;left:0;top:56px;bottom:0;background:#fff;border-right:1px solid #e3e5eb;padding:24px 0;overflow-y:auto;}
+.toc-title{font-size:11px;color:#8b94a8;padding:0 24px 8px;letter-spacing:1px;}
+.toc a{display:block;padding:8px 24px;color:#4a4f5c;text-decoration:none;font-size:13px;border-left:3px solid transparent;cursor:pointer;}
+.toc a:hover{background:#f8f9fb;color:#1a1a1a;}
+.toc a.active{background:#f0f4ff;color:#1a1a1a;border-left-color:#4a90ff;font-weight:600;}
+.toc .divider{height:1px;background:#eef0f4;margin:12px 24px;}
+
+/* Main */
+.main{margin-left:240px;flex:1;padding:32px 48px;max-width:1000px;}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,#c0392b,#8b1e1e);color:#fff;padding:32px;border-radius:12px;margin-bottom:24px;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;margin-bottom:12px;}
+.hero h1{font-size:26px;margin-bottom:8px;}
+.hero p{opacity:0.9;font-size:13px;}
+.hero .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.2);}
+.hero .m-label{font-size:10px;opacity:0.7;letter-spacing:0.5px;margin-bottom:2px;}
+.hero .m-value{font-size:12px;font-weight:600;}
+.hero .draft-note{margin-top:16px;padding:10px 14px;background:rgba(255,255,255,0.15);border-radius:8px;font-size:12px;border-left:3px solid rgba(255,255,255,0.5);}
+
+/* Section */
+section{background:#fff;border-radius:10px;padding:28px 32px;margin-bottom:20px;border:1px solid #e3e5eb;scroll-margin-top:72px;}
+section h2{font-size:19px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #eef0f4;display:flex;align-items:center;gap:8px;}
+section h2 .num{background:#1a1a1a;color:#fff;font-size:11px;width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
+section h3{font-size:15px;margin:20px 0 10px;color:#2a2f3a;}
+section p{margin:8px 0;color:#4a4f5c;}
+
+/* Principle cards */
+.principles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0;}
+.p-card{background:#f8f9fb;border-radius:8px;padding:14px;border-top:3px solid #4a90ff;}
+.p-card .p-num{font-size:10px;color:#4a90ff;font-weight:700;letter-spacing:1px;}
+.p-card .p-title{font-size:12px;font-weight:700;margin:4px 0 6px;}
+.p-card .p-desc{font-size:11px;color:#6a7080;line-height:1.5;}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eef0f4;vertical-align:top;}
+th{background:#f8f9fb;font-size:12px;color:#4a4f5c;font-weight:600;}
+table.center td,table.center th{text-align:center;}
+table.center td:first-child,table.center th:first-child{text-align:left;}
+
+/* Tabs (dept) */
+.tabs{display:flex;gap:2px;background:#f0f2f5;padding:4px;border-radius:10px;margin-bottom:20px;}
+.tab{flex:1;padding:12px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:#6a7080;border-radius:7px;transition:all 0.15s;}
+.tab:hover{color:#1a1a1a;}
+.tab.active{background:#fff;color:#1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.tab.active.plan{color:#6b21a8;}
+.tab.active.ops{color:#1967d2;}
+.tab.active.sales{color:#1e7a32;}
+.tab.active.dev{color:#c2410c;}
+.pane{display:none;}
+.pane.active{display:block;}
+
+/* Boxes */
+.box{border-radius:8px;padding:14px 18px;margin:12px 0;font-size:13px;}
+.box.blue{background:#e8f0fe;border-left:4px solid #4a90ff;}
+.box.green{background:#e8f5e9;border-left:4px solid #2e7d32;}
+.box.yellow{background:#fff8e1;border-left:4px solid #f59e0b;}
+.box.red{background:#fde8e8;border-left:4px solid #d93025;}
+.box.purple{background:#f3e8ff;border-left:4px solid #6b21a8;}
+
+/* Chips */
+.chip{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600;margin-right:4px;}
+.chip.ok{background:#e8f5e9;color:#2e7d32;}
+.chip.no{background:#f8d7da;color:#721c24;}
+.chip.warn{background:#fff3cd;color:#856404;}
+.chip.info{background:#e8f0fe;color:#1967d2;}
+
+.risk{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;}
+.risk.low{background:#e8f5e9;color:#2e7d32;}
+.risk.mid{background:#fff3cd;color:#856404;}
+.risk.high{background:#f8d7da;color:#721c24;}
+.risk.critical{background:#5a1a1a;color:#fff;}
+
+/* Code */
+.code{background:#1e2330;color:#c5cbd8;padding:16px 20px;border-radius:8px;font-family:Consolas,monospace;font-size:12px;line-height:1.7;white-space:pre;overflow-x:auto;margin:12px 0;}
+
+/* Checklist */
+.checklist{list-style:none;padding:0;}
+.checklist li{padding:6px 0;padding-left:26px;position:relative;font-size:13px;}
+.checklist li::before{content:"☐";position:absolute;left:0;color:#8b94a8;font-size:16px;}
+
+/* Footer */
+.footer{background:#1e2330;color:#c5cbd8;padding:20px 32px;border-radius:10px;font-size:12px;text-align:center;margin-top:20px;}
+.footer strong{color:#fff;}
+
+ul,ol{padding-left:22px;margin:8px 0;}
+li{margin:4px 0;color:#4a4f5c;}
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<nav class="topnav">
+  <div class="brand"><span class="tag">CORE POLICY</span>차세대 LMS 학습 자료 수정 정책</div>
+  <div class="meta">v1.0 초안 · 2026-04-12</div>
+</nav>
+
+<div class="layout">
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-title">목차</div>
+    <a onclick="go('s1')" class="active" id="t-s1">1. 배경과 정합성 원칙</a>
+    <a onclick="go('s2')" id="t-s2">2. 학습 자료 체계</a>
+    <a onclick="go('s3')" id="t-s3">3. 자료별 수정 정책</a>
+    <a onclick="go('s4')" id="t-s4">4. 콘텐츠 라이브러리 구조</a>
+    <a onclick="go('s5')" id="t-s5">5. 데이터 구조</a>
+    <a onclick="go('s6')" id="t-s6">6. 레거시 전환 전략</a>
+    <div class="divider"></div>
+    <div class="toc-title">부서별 실행 요약</div>
+    <a onclick="go('s7')" id="t-s7">7. 기획 · 운영 · 영업 · 개발</a>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <span class="badge">🔴 COMPANY POLICY · 전사 공유</span>
+      <h1>차세대 LMS 학습 자료 수정 정책</h1>
+      <p>전사 공유 문서 · 기획 / 운영 / 영업 / 개발 모든 부서 적용</p>
+      <div class="meta-grid">
+        <div><div class="m-label">문서 등급</div><div class="m-value">🔴 대형 정책 (Core)</div></div>
+        <div><div class="m-label">적용 범위</div><div class="m-value">전사 · 모든 상품</div></div>
+        <div><div class="m-label">변경 권한</div><div class="m-value">제품총괄+법무+교육 3자합의</div></div>
+        <div><div class="m-label">우선순위</div><div class="m-value">P0 · 시스템 설계 근간</div></div>
+      </div>
+      <div class="draft-note">📋 <strong>초안 안내</strong> — 전체 구조와 방향은 확정되었습니다. 일부 세부 기준값(Pass 임계치, 보존 기간 등)은 각 개발 Phase 착수 전 관련 부서와 최종 확정합니다.</div>
+    </div>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2><span class="num">1</span>배경과 정합성 원칙</h2>
+
+      <h3>현재 구조의 한계</h3>
+      <p>현재 운영 중인 커리큘럼-페이지 구조는 학습자가 페이지에 진입하는 순간 진도율을 100%로 처리한다. 이 방식은 다음 문제를 안고 있다.</p>
+      <div class="box red">
+        <ul style="margin:0;">
+          <li>진도율 숫자가 <strong>실제 학습 여부를 반영하지 못함</strong></li>
+          <li>수료율 통계가 <strong>클릭률에 가까움</strong></li>
+          <li>고용보험 환급 감사 시 <strong>학습 사실 증빙 불가</strong></li>
+        </ul>
+      </div>
+
+      <h3>정합성 5원칙 — 모든 설계의 최상위 원칙</h3>
+      <div class="principles">
+        <div class="p-card"><div class="p-num">원칙 1</div><div class="p-title">행위 기반 Pass</div><div class="p-desc">페이지 진입이 아닌 실제 학습 행위에만 Pass 처리</div></div>
+        <div class="p-card"><div class="p-num">원칙 2</div><div class="p-title">불변 기록</div><div class="p-desc">Pass는 수정·삭제 불가. 취소 시 별도 이벤트 추가</div></div>
+        <div class="p-card"><div class="p-num">원칙 3</div><div class="p-title">증거 동반</div><div class="p-desc">시청 시간·점수 등 "왜 Pass인지" 함께 기록</div></div>
+        <div class="p-card"><div class="p-num">원칙 4</div><div class="p-title">Slot 귀속</div><div class="p-desc">기록은 자료가 아닌 목차 자리에 귀속됨</div></div>
+        <div class="p-card"><div class="p-num">원칙 5</div><div class="p-title">집계=캐시</div><div class="p-desc">대시보드 숫자는 원시 이벤트로 재계산 가능</div></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2><span class="num">2</span>학습 자료 체계</h2>
+      <p>학습 자료는 두 계열로 나뉜다. 이 분류가 모든 수정 정책의 출발점이다.</p>
+
+      <h3>📺 소비형 (Consumable) — 보기/읽기만 하는 자료</h3>
+      <table>
+        <tr><th style="width:20%;">유형</th><th>Pass 조건</th><th style="width:15%;">사고 위험</th></tr>
+        <tr><td>영상</td><td>전체 러닝타임의 90% 이상 실질 재생</td><td><span class="risk low">낮음</span></td></tr>
+        <tr><td>글 (아티클)</td><td>스크롤 100% 도달 + 최소 체류 시간</td><td><span class="risk low">낮음</span></td></tr>
+        <tr><td>PDF</td><td>전체 페이지 열람 + 최소 체류 시간</td><td><span class="risk mid">보통</span></td></tr>
+      </table>
+
+      <h3>✍️ 응답형 (Interactive) — 답을 남기는 자료</h3>
+      <table>
+        <tr><th style="width:20%;">유형</th><th>Pass 조건</th><th style="width:15%;">사고 위험</th></tr>
+        <tr><td>설문</td><td>전 문항 응답 후 제출</td><td><span class="risk mid">보통</span></td></tr>
+        <tr><td>퀴즈</td><td>통과 점수 달성</td><td><span class="risk high">높음</span></td></tr>
+        <tr><td>시험</td><td>수료 기준 통과</td><td><span class="risk critical">매우 높음</span></td></tr>
+      </table>
+
+      <div class="box blue">💡 응답형 자료는 응답이 1건이라도 발생하는 순간 <strong>자동 잠금 상태</strong>가 된다.</div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2><span class="num">3</span>자료 유형별 수정 정책</h2>
+
+      <h3>📺 영상 · 글 (공통 2단 구조)</h3>
+      <table>
+        <tr><th style="width:18%;">수정 유형</th><th>적용 범위</th><th>기존 학습자 영향</th></tr>
+        <tr><td><strong>살짝 고치기</strong></td><td>오타, 로고, 이미지 등 내용 불변 수정</td><td>진도율·이어보기 위치 모두 유지</td></tr>
+        <tr><td><strong>크게 바꾸기</strong></td><td>강사 교체, 내용 개정 등 내용 변경</td><td>Pass 유지. 재시청 알림 선택 가능</td></tr>
+      </table>
+
+      <h3>📄 PDF 다운로드 정책</h3>
+      <table>
+        <tr><th style="width:22%;">옵션</th><th>설명</th><th style="width:18%;">증빙</th><th style="width:24%;">권장 대상</th></tr>
+        <tr><td>A. 뷰어 전용</td><td>다운로드 차단, 뷰어 내 열람만</td><td><span class="chip ok">높음</span></td><td>보안 민감 과정</td></tr>
+        <tr><td>B. 다운로드 허용</td><td>편의성 우선, 뷰어 내 Pass만 기록</td><td><span class="chip warn">낮음</span></td><td>사내 일반 교육</td></tr>
+        <tr><td><strong>C. 다운로드 + 퀴즈</strong></td><td>다운로드 허용, Pass는 확인 퀴즈로</td><td><span class="chip ok">높음</span></td><td><strong>고용보험 환급 과정 (권장)</strong></td></tr>
+      </table>
+
+      <h3>📋 설문</h3>
+      <ul>
+        <li><strong>응답 0건 상태</strong>: 자유 수정. 첫 응답 발생 시 자동 잠금</li>
+        <li><strong>뜻 불변 수정</strong>: 오탈자 등. 운영자 체크박스 선언 시 허용</li>
+        <li><strong>뜻 변경 수정</strong>: 시스템 차단. 새 버전(v2) 발행만 허용</li>
+      </ul>
+
+      <h3>🧩 퀴즈</h3>
+      <ul>
+        <li><strong>선지 오타</strong>: 뜻 불변 수정. 재채점 없음</li>
+        <li><strong>정답 오류</strong>: 전원 재채점. 합격 전환 정책 사전 확정 필수</li>
+        <li><strong>문제 교체</strong>: 기존 Pass 유지. 옛 문제 응답 스냅샷 영구 보존</li>
+      </ul>
+
+      <h3>🎓 시험 (가장 엄격)</h3>
+      <div class="box red">
+        <ul style="margin:0;">
+          <li>응시 시작 후 수정 시도 → <strong>완전 잠금</strong></li>
+          <li>정답 긴급 수정 → 최고관리자 + 사유 + <strong>2인 승인</strong></li>
+          <li>응답 보존 기간 → <strong>최소 5년</strong> (고용보험 환급 기준, 법무 확인 사항)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2><span class="num">4</span>콘텐츠 라이브러리 구조</h2>
+      <p>콘텐츠 라이브러리는 회사가 보유한 모든 학습 자료의 <strong>단일 원본 저장소</strong>다. 자료는 라이브러리에 단 한 번만 저장되고, 여러 코스·슬롯에서 참조(Link)해서 사용한다.</p>
+
+      <h3>업로드 경로 — 두 경로, 하나의 저장소</h3>
+      <table>
+        <tr><th style="width:25%;">경로</th><th>특징</th><th>적합 상황</th></tr>
+        <tr><td><strong>A. 라이브러리 선 업로드</strong></td><td>콘텐츠팀이 미리 쌓아두고 코스 기획 시 선택</td><td>여러 코스에서 재사용할 자료</td></tr>
+        <tr><td><strong>B. 코스 인덱싱 중 업로드</strong></td><td>슬롯 생성과 동시에 업로드 (자동 라이브러리 등록)</td><td>해당 코스 전용 자료</td></tr>
+      </table>
+      <div class="box blue">💡 두 경로 모두 <strong>최종 저장소는 하나</strong>다. UX만 두 가지, 데이터 구조는 통일.</div>
+
+      <h3>자료 상태 (Status)</h3>
+      <table>
+        <tr><th style="width:20%;">상태</th><th>정의</th><th style="width:20%;">수정 가능 여부</th></tr>
+        <tr><td>🟦 Draft</td><td>업로드됐으나 어떤 슬롯에도 미연결</td><td>자유 수정</td></tr>
+        <tr><td>🟩 Published</td><td>1개 이상 슬롯에 연결, 학습자 노출 중</td><td>유형별 정책 적용</td></tr>
+        <tr><td>⬜ Archived</td><td>모든 슬롯 연결 해제됨. 과거 기록 보존용</td><td>수정 불가</td></tr>
+      </table>
+      <div class="box yellow">📌 <strong>상태 전환 규칙</strong> — 첫 슬롯 연결 시 Draft→Published / 마지막 슬롯 해제 시 Published→Archived / Archived 자료는 영구 보존 (삭제 불가)</div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2><span class="num">5</span>데이터 구조 (개발팀 참고)</h2>
+      <p>모든 핵심 테이블은 <strong>INSERT ONLY</strong>로 운영한다. 기록은 쌓이기만 하며 지워지지 않는다.</p>
+
+<div class="code">asset                      (라이브러리의 자료 원본)
+  id / type                (video | article | pdf | survey | quiz | exam)
+  status                   (draft | published | archived)
+  version_label
+  uploaded_by / uploaded_at
+  has_responses            ← 응답형 자료의 Freeze 트리거
+
+slot                       (커리큘럼의 목차 자리)
+  id / course_id / order / slot_name
+
+slot_asset_binding         (INSERT ONLY — 연결 이력)
+  slot_id / asset_id / asset_version
+  bound_at / unbound_at
+
+pass_event                 (INSERT ONLY — 통과 이벤트)
+  user_id / slot_id
+  asset_id + version
+  pass_type / evidence (JSON)
+  occurred_at
+
+response_snapshot          (응답형 전용, INSERT ONLY)
+  user_id / slot_id / asset_id + version
+  question_snapshot (JSON)
+  user_answer / scored_result
+
+asset_change_log           (INSERT ONLY — 변경 이력)
+  asset_id / changed_by / change_type
+  before / after / reason_text
+  approved_by              (시험 정답 수정 시 필수)</div>
+
+      <div class="box purple">
+        <strong>API 공통 규칙</strong>
+        <ul style="margin:6px 0 0;">
+          <li>응답형 자료는 <code>has_responses = true</code> 시 수정 API <code>423 Locked</code> 응답</li>
+          <li>예외 허용은 <code>change_type=minor</code> + 운영자 명시적 승인 토큰 필요</li>
+          <li>시험 정답 수정은 최고 관리자 권한 + 2인 승인 워크플로</li>
+          <li>모든 변경은 감사 로그에 영구 기록</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2><span class="num">6</span>레거시 전환 전략</h2>
+      <p>기존의 "페이지 열람 = 100%" 기록은 차세대 정합성 기준을 충족하지 못하지만, 학습자의 기존 수료 이력을 무효화하지 않는다. <strong>명시적 라벨링 방식</strong>으로 공존시킨다.</p>
+
+      <h3>전환 규칙</h3>
+      <ul>
+        <li>기존 Pass 기록은 <code>evidence_type = 'legacy_page_view'</code>로 이관</li>
+        <li>리포트에서 <strong>구버전 수료자</strong>와 <strong>신버전 수료자</strong> 구분 표시</li>
+        <li>신규 오픈 과정부터 차세대 기준(행위 기반 Pass) 적용</li>
+        <li>고객사 보고서에 두 기준 혼재 시 반드시 라벨 구분</li>
+      </ul>
+
+      <div class="box yellow">💬 <strong>영업·교육 커뮤니케이션</strong> — 고객사가 "이전 학습자 수료율이 왜 다르게 보이는가" 질문 시, 신구 기준 차이 설명 가능해야 함. 공통 설명 스크립트 별도 제공.</div>
+    </section>
+
+    <!-- 7 부서별 -->
+    <section id="s7">
+      <h2><span class="num">7</span>부서별 실행 요약</h2>
+
+      <div class="tabs">
+        <div class="tab plan active" onclick="dept('plan')">🟪 기획 (PM)</div>
+        <div class="tab ops" onclick="dept('ops')">🟦 운영</div>
+        <div class="tab sales" onclick="dept('sales')">🟩 영업</div>
+        <div class="tab dev" onclick="dept('dev')">🟧 개발</div>
+      </div>
+
+      <!-- PM -->
+      <div class="pane active" id="d-plan">
+        <div class="box purple"><strong>역할</strong> — 본 정책의 해석자이자 자료 유형 추가 시 원칙 준수 책임. 세부 기준값 확정 및 부서 간 이견 조율 담당.</div>
+
+        <h3>현행 초안 기준값</h3>
+        <div class="box yellow">📌 아래 기준값은 현재 초안 상태입니다. 각 Phase 착수 전 교육·법무팀과 최종 확인합니다.</div>
+        <table>
+          <tr><th style="width:30%;">항목</th><th>현재 초안 기준</th><th style="width:18%;">확정 단계</th></tr>
+          <tr><td>설문 응답 수집 중 수정 허용 범위</td><td>뜻 불변 수정 한정 (운영자 체크박스 선언)</td><td>Phase 2</td></tr>
+          <tr><td>퀴즈 재채점 시 기존 합격자 처리</td><td>합격 유지 + 재채점 결과 알림 발송</td><td>Phase 2</td></tr>
+          <tr><td>시험 응답 보존 기간</td><td>최소 5년 (고용보험 환급 기준)</td><td>Phase 3</td></tr>
+          <tr><td>PDF 다운로드 정책</td><td>고용보험 환급 과정: C안 (다운로드+퀴즈)</td><td>Phase 2</td></tr>
+          <tr><td>영상 Pass 기준</td><td>90% 실질 재생 (스킵 구간 제외)</td><td>Phase 1</td></tr>
+        </table>
+
+        <h3>체크리스트</h3>
+        <ul class="checklist">
+          <li>5대 정합성 원칙을 모든 하위 기획서 최상단에 명시</li>
+          <li>자료 유형 추가 시 소비형/응답형 분류 판단</li>
+          <li>세부 기준값 변경 시 관련 부서 사전 공유</li>
+        </ul>
+      </div>
+
+      <!-- Ops -->
+      <div class="pane" id="d-ops">
+        <div class="box blue"><strong>역할</strong> — 라이브러리 관리, 자료 수정, 슬롯 연결 실무. 운영자 UI 내 선택지에 대한 정확한 판단.</div>
+        <h3>상황별 행동 규칙</h3>
+        <table>
+          <tr><th style="width:35%;">상황</th><th>행동</th></tr>
+          <tr><td>영상 오타·로고 수정</td><td>"살짝 고치기" 선택 → 진도율 유지</td></tr>
+          <tr><td>영상 전면 교체</td><td>"크게 바꾸기" 선택 → 재시청 알림 옵션 확인</td></tr>
+          <tr><td>설문 응답 수집 중 오타 발견</td><td>"뜻 불변 수정" 체크박스 신중 선택</td></tr>
+          <tr><td>설문 질문 뜻 변경 필요</td><td>수정 시도 금지. 새 버전(v2) 발행</td></tr>
+          <tr><td>퀴즈 정답 오류 발견</td><td>재채점 영향 규모 확인 후 실행</td></tr>
+          <tr><td>시험 수정 필요</td><td>최고 관리자 에스컬레이션</td></tr>
+        </table>
+        <div class="box red">
+          <strong>특히 조심할 것</strong>
+          <ul style="margin:6px 0 0;">
+            <li>"뜻 불변 수정" 체크박스 거짓 선언 → <strong>감사 대상</strong></li>
+            <li>"크게 바꾸기" 시 미완료자 진도율 초기화 옵션 반드시 확인</li>
+            <li>시험·수료 관련 건은 법무·교육팀 사전 확인 필수</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sales -->
+      <div class="pane" id="d-sales">
+        <div class="box green"><strong>역할</strong> — 고객사에 본 정책을 일관되게 전달. 계약서·제안서에 과잉 약속 방지.</div>
+        <h3>고객 질문 표준 답변</h3>
+        <table>
+          <tr><th style="width:42%;">고객 질문</th><th>표준 답변</th></tr>
+          <tr><td>자료 수정하면 수강생 기록 날아가나요?</td><td>목차 기반 기록 보존 구조로 진도율 유지됩니다.</td></tr>
+          <tr><td>영상 오타 발견 시 재배포해야 하나요?</td><td>전체 재배포 없이 즉시 반영 가능합니다.</td></tr>
+          <tr><td>시험 답안이 나중에 필요하면요?</td><td>최소 5년 보존. 고용보험 환급 감사 대응 가능합니다.</td></tr>
+          <tr><td>우리 정책에 맞게 바꿀 수 있나요?</td><td>일부 설정만 조정 가능. 법적 영역은 표준 고정입니다.</td></tr>
+          <tr><td>기존 학습자 수료 이력은 어떻게 되나요?</td><td>기존 수료 이력은 전부 유지됩니다. 신구 기준 구분 표시 방식으로 공존합니다.</td></tr>
+          <tr><td>다른 LMS와 뭐가 다른가요?</td><td>자료 교체 시 진도율이 초기화되지 않고, 응답 스냅샷으로 과거 시험 증빙이 가능합니다. 고용보험 감사 대응 구조도 내장되어 있습니다.</td></tr>
+        </table>
+        <div class="box red">
+          <strong>🚫 계약 시 금지 문구</strong>
+          <ul style="margin:6px 0 0;">
+            <li>"시험 정답을 자유롭게 고쳐드립니다" <span class="chip no">금지</span></li>
+            <li>"수료자 판정을 나중에 바꿔드립니다" <span class="chip no">금지</span></li>
+            <li>"답안 보존 기간을 줄여 비용을 낮춰드립니다" <span class="chip no">금지</span></li>
+          </ul>
+        </div>
+        <h3>⚡ 경쟁 차별점</h3>
+        <ul>
+          <li><strong>슬롯 기반 진도율 보존</strong> — 타 LMS는 자료 교체 시 진도율 초기화 사례 많음. 차세대 LMS는 목차(슬롯) 단위로 기록이 귀속되어 자료 교체와 무관하게 유지.</li>
+          <li><strong>응답 스냅샷 영구 보존</strong> — 수년 전 시험 문항과 학습자 응답을 그대로 증빙 가능. 분쟁·감사 대응 강점.</li>
+          <li><strong>고용보험 환급 감사 대응 구조 내장</strong> — 증빙 로직이 시스템 레벨에 설계되어 있어 고객사 별도 작업 불필요.</li>
+          <li><strong>부분 수정·즉시 반영</strong> — 영상 오류 발견 시 전체 재배포 없이 해당 영상만 교체. 운영 부담 최소화.</li>
+        </ul>
+      </div>
+
+      <!-- Dev -->
+      <div class="pane" id="d-dev">
+        <div class="box yellow"><strong>역할</strong> — 본 정책의 기술적 구현. 정합성 5원칙이 시스템 레벨에서 강제되도록 설계.</div>
+        <h3>핵심 구현 원칙</h3>
+        <ul>
+          <li>모든 Pass 기록은 <strong>이벤트 소싱</strong> (UPDATE 금지, INSERT ONLY)</li>
+          <li>응답형 자료의 Freeze 로직을 API 게이트웨이 레벨에서 강제</li>
+          <li>감사 로그는 별도 저장소·별도 백업 주기 적용</li>
+          <li>응답 스냅샷은 그 시점 문항·선지 전체를 JSON으로 저장</li>
+        </ul>
+        <h3>Phase별 개발 범위</h3>
+        <table>
+          <tr><th style="width:18%;">Phase</th><th>범위</th><th>핵심 구현 포인트</th></tr>
+          <tr><td><strong>Phase 1</strong></td><td>오프라인 코스 중심. 영상·글·PDF의 Minor/Major 수정</td><td>asset 상태 전환 로직, slot_asset_binding INSERT ONLY 스키마, pass_event 재생률 기반 트리거</td></tr>
+          <tr><td><strong>Phase 2</strong></td><td>온라인 코스 확장. 응답형 자료(설문·퀴즈·시험) 전면 적용</td><td>has_responses Freeze 트리거, 423 Locked API 응답, response_snapshot 저장, 퀴즈 재채점 워크플로</td></tr>
+          <tr><td><strong>Phase 3</strong></td><td>블렌디드. 시험 2인 승인, 고용보험 환급 연동</td><td>2인 승인 워크플로 UI, 감사 로그 외부 내보내기, 고용보험 API 연동 레이어</td></tr>
+        </table>
+        <h3>체크리스트</h3>
+        <ul class="checklist">
+          <li>INSERT ONLY 테이블 스키마 리뷰</li>
+          <li>Freeze API 응답(423 Locked) 통합 테스트</li>
+          <li>응답 스냅샷 저장 로직 검증</li>
+          <li>감사 로그 별도 저장소 분리 확인</li>
+        </ul>
+      </div>
+    </section>
+
+
+<div class="footer">
+      <strong>본 문서는 대형 정책이다.</strong> 개별 팀이 단독으로 해석을 변경하거나 예외를 적용할 수 없다.<br>
+      해석에 의문이 있을 경우 기획(PM)을 통해 확인한다.
+    </div>
+
+  </main>
+</div>
+
+<script>
+function go(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('t-'+id).classList.add('active');
+}
+function dept(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('d-'+id).classList.add('active');
+}
+// scroll spy
+window.addEventListener('scroll',()=>{
+  const sections=['s1','s2','s3','s4','s5','s6','s7'];
+  let current='s1';
+  sections.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && el.getBoundingClientRect().top<=120) current=id;
+  });
+  document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));
+  const t=document.getElementById('t-'+current);
+  if(t) t.classList.add('active');
+});
+</script>
+</body>
+</html>
