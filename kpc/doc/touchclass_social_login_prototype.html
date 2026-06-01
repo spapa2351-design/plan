@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPC 한국생산성본부 소셜 로그인 — 인터랙티브 프로토타입</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef0f3; --grid:#e4e7ec; --paper:#ffffff; --ink:#1f2733; --ink-2:#5b6573;
+    --muted:#98a1ae; --line:#d4d9e0; --line-2:#c2c9d2; --ph:#e7eaef; --ph-2:#dfe3e9;
+    --accent:#1E6B57; --accent-soft:#e4eee9; --accent-line:#bcd9cf;
+    --note:#2563EB; --note-soft:#eaf0fe; --note-line:#c7d8fb;
+    --warn:#BE6438; --warn-soft:#f6e6da; --warn-line:#ebcdb9;
+    --brand:#1868DB;
+    --sans:'Pretendard',-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.5;}
+  .material-symbols-rounded{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; vertical-align:middle;}
+
+  /* ===== layout ===== */
+  .app{display:grid; grid-template-columns:430px 1fr; min-height:100vh;}
+  /* ----- left control panel ----- */
+  .panel{background:var(--paper); border-right:1px solid var(--line); padding:30px 28px 40px; overflow-y:auto; height:100vh; position:sticky; top:0;}
+  .kicker{font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:800;}
+  h1{font-size:22px; font-weight:800; letter-spacing:-.02em; margin:7px 0 8px; line-height:1.25;}
+  .intro{font-size:13.5px; color:var(--ink-2); margin:0 0 22px;}
+
+  .block-t{font-size:12px; font-weight:800; letter-spacing:.04em; color:var(--ink-2); text-transform:uppercase; margin:24px 0 10px; display:flex; align-items:center; gap:7px;}
+  .block-t .material-symbols-rounded{font-size:17px; color:var(--accent);}
+
+  /* scenario picker */
+  .cases{display:flex; flex-direction:column; gap:8px;}
+  .case-btn{display:flex; align-items:center; gap:12px; text-align:left; width:100%; border:1.5px solid var(--line); background:#fff; border-radius:12px; padding:12px 14px; cursor:pointer; transition:.15s; font-family:inherit;}
+  .case-btn:hover{border-color:var(--line-2); background:#fafbfc;}
+  .case-btn.on{border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 1px var(--accent);}
+  .case-btn .cn{flex:none; width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px;}
+  .case-btn[data-case="0"] .cn{background:var(--warn-soft); color:#7a3d1f;}
+  .case-btn[data-case="1"] .cn{background:var(--accent-soft); color:var(--accent);}
+  .case-btn[data-case="2"] .cn{background:var(--note-soft); color:#1d4ed8;}
+  .case-btn .ct{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .case-btn .cd{font-size:12px; color:var(--ink-2); margin-top:2px;}
+
+  /* flow map */
+  .flow{margin-top:4px;}
+  .fstep{display:flex; gap:12px; align-items:flex-start; padding:2px 0;}
+  .fstep .rail{display:flex; flex-direction:column; align-items:center; flex:none;}
+  .fstep .node{width:26px; height:26px; border-radius:50%; border:2px solid var(--line-2); background:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:var(--muted); transition:.2s;}
+  .fstep .bar{width:2px; flex:1; min-height:18px; background:var(--line-2); margin:2px 0;}
+  .fstep:last-child .bar{display:none;}
+  .fstep .ftxt{padding:2px 0 14px; font-size:13.5px; color:var(--muted); font-weight:600; transition:.2s;}
+  .fstep .ftxt small{display:block; font-weight:500; font-size:11.5px; color:var(--muted); margin-top:1px;}
+  .fstep.done .node{border-color:var(--accent); background:var(--accent); color:#fff;}
+  .fstep.done .bar{background:var(--accent);}
+  .fstep.done .ftxt{color:var(--ink-2);}
+  .fstep.active .node{border-color:var(--accent); background:#fff; color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+  .fstep.active .ftxt{color:var(--ink); font-weight:800;}
+
+  /* explain card */
+  .explain{background:var(--note-soft); border:1px solid var(--note-line); border-left:4px solid var(--note); border-radius:11px; padding:14px 16px; margin-top:8px;}
+  .explain .et{font-size:13px; font-weight:800; color:#1d4ed8; display:flex; align-items:center; gap:7px; margin-bottom:6px;}
+  .explain .et .material-symbols-rounded{font-size:18px;}
+  .explain p{margin:0; font-size:13px; color:var(--ink-2); line-height:1.6;}
+  .explain code{background:#fff; border:1px solid var(--note-line); padding:1px 6px; border-radius:5px; font-size:11.5px; color:#1d4ed8;}
+
+  .controls{display:flex; gap:8px; margin-top:18px;}
+  .ctrl{flex:1; display:flex; align-items:center; justify-content:center; gap:7px; border:1.5px solid var(--line-2); background:#fff; border-radius:10px; padding:10px; font-size:13px; font-weight:700; color:var(--ink-2); cursor:pointer; font-family:inherit; transition:.15s;}
+  .ctrl:hover{background:#fafbfc; color:var(--ink);}
+  .ctrl .material-symbols-rounded{font-size:18px;}
+
+  /* ----- right preview stage ----- */
+  .stage{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; height:100vh; overflow-y:auto;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px); background-size:26px 26px;}
+  .stage-cap{position:absolute; top:24px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--ink-2); background:#fff; border:1px solid var(--line); border-radius:100px; padding:6px 16px; display:flex; align-items:center; gap:8px; box-shadow:0 1px 2px rgba(31,39,51,.05);}
+  .stage-cap .material-symbols-rounded{font-size:16px; color:var(--accent);}
+  .stage-cap b{color:var(--ink);}
+
+  /* phone */
+  .phone{width:300px; flex:none; background:#0e1320; border-radius:38px; padding:10px; box-shadow:0 22px 50px rgba(31,39,51,.22);}
+  .phone.ext{background:#3a3f4a;}
+  .screen{background:var(--paper); border-radius:28px; overflow:hidden; height:600px; display:flex; flex-direction:column; position:relative;}
+  .notch{height:26px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .notch::after{content:''; width:90px; height:6px; border-radius:100px; background:#0e1320; opacity:.22;}
+  .scr-body{padding:18px 20px 22px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; animation:fade .3s ease;}
+  .ext .scr-body{background:#fff;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+  .tap{cursor:pointer; transition:transform .1s, box-shadow .12s, filter .12s;}
+  .tap:hover{filter:brightness(.98);}
+  .tap:active{transform:scale(.985);}
+  .tap.cta{animation:pulse 2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(30,107,87,.38);}70%{box-shadow:0 0 0 9px rgba(30,107,87,0);}100%{box-shadow:0 0 0 0 rgba(30,107,87,0);}}
+
+  /* wireframe primitives */
+  .wf-logo{height:34px; width:110px; border-radius:8px; background:var(--ph); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px; font-weight:700; margin:10px auto 4px;}
+  .scr-title{font-size:18px; font-weight:800; text-align:center; margin:14px 0 3px;}
+  .scr-cap{font-size:12px; color:var(--muted); text-align:center; margin-bottom:18px;}
+  .wf-btn{display:flex; align-items:center; justify-content:center; gap:10px; height:48px; border-radius:11px; border:1.5px solid var(--line-2); background:#fff; font-size:14px; font-weight:600; color:var(--ink); margin:9px 0;}
+  .wf-btn .badge{width:22px; height:22px; border-radius:5px; background:#fff; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex:none;}
+  .wf-btn.g .badge{color:#4285F4;} .wf-btn.ms .badge{color:#00A4EF;}
+  .wf-btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .wf-btn.ghost{background:transparent; border-color:var(--line); color:var(--ink-2); font-weight:500; height:44px;}
+  .wf-btn.sm{height:44px; font-size:13.5px;}
+  .divider{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11.5px; margin:14px 0 10px;}
+  .divider::before,.divider::after{content:''; height:1px; background:var(--line); flex:1;}
+  .wf-input{height:44px; border-radius:10px; border:1px dashed var(--line-2); background:#fafbfc; display:flex; align-items:center; padding:0 13px; color:var(--muted); font-size:13px; margin:8px 0;}
+  .spacer{flex:1;}
+  .foot-note{font-size:11px; color:var(--muted); text-align:center; margin-top:14px;}
+
+  .ext-tag{font-size:11px; font-weight:700; color:#7a3d1f; background:var(--warn-soft); border:1px solid var(--warn-line); border-radius:100px; padding:4px 11px; align-self:center; margin-bottom:14px; display:inline-flex; gap:6px; align-items:center;}
+  .ext-tag .material-symbols-rounded{font-size:15px;}
+  .acct{display:flex; align-items:center; gap:12px; padding:13px 12px; border:1px solid var(--line); border-radius:11px; margin:9px 0; background:#fff;}
+  .acct .av{width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#cfd6df,#e7eaef); flex:none;}
+  .acct .ai{flex:1;}
+  .acct .nm{font-size:13px; font-weight:700; color:var(--ink);}
+  .acct .em{font-size:11.5px; color:var(--muted);}
+
+  .state-ic{width:60px; height:60px; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:30px auto 14px;}
+  .state-ic.warn{background:var(--warn-soft); color:var(--warn);}
+  .state-ic .material-symbols-rounded{font-size:32px;}
+  .state-t{font-size:17px; font-weight:800; text-align:center;}
+  .state-d{font-size:12.5px; color:var(--ink-2); text-align:center; margin:7px 16px 0; line-height:1.55;}
+
+  .org-card{display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:12px; padding:13px 12px; margin:9px 0; background:#fff;}
+  .org-card.recent{border-color:var(--accent-line); background:var(--accent-soft);}
+  .org-card .ologo{width:42px; height:42px; border-radius:10px; background:linear-gradient(135deg,#d7dde4,#eef0f3); flex:none; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:10px; font-weight:800;}
+  .org-card .oi{flex:1; min-width:0;}
+  .org-card .on{font-size:14px; font-weight:700; color:var(--ink);}
+  .org-card .orole{display:inline-block; font-size:10.5px; color:var(--ink-2); background:#fff; border:1px solid var(--line); border-radius:100px; padding:1px 9px; margin-top:4px;}
+  .org-card.recent .orole{background:#fff;}
+  .recent-tag{font-size:10.5px; font-weight:800; color:var(--accent); letter-spacing:.03em; margin:4px 0 5px; display:flex; align-items:center; gap:4px;}
+  .recent-tag .material-symbols-rounded{font-size:14px;}
+  .chev{color:var(--muted); flex:none;}
+
+  .toast{display:flex; align-items:flex-start; gap:10px; background:#0e1320; color:#fff; border-radius:12px; padding:12px 14px; font-size:12.5px; line-height:1.45; margin-bottom:14px; animation:drop .4s ease;}
+  @keyframes drop{from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:none;}}
+  .toast .material-symbols-rounded{color:#8fd3c0; font-size:20px; flex:none;}
+  .home-app-top{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .home-app-top .ol{width:30px; height:30px; border-radius:8px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:9px; font-weight:800;}
+  .home-app-top .nm{font-size:13px; font-weight:800;}
+  .banner{height:54px; border-radius:12px; background:linear-gradient(120deg,var(--accent),#2c8a72); margin-bottom:12px;}
+  .home-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  .home-tile{height:70px; border-radius:11px; background:var(--ph-2);}
+  .home-list{display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--line);}
+  .home-list .th{width:46px; height:34px; border-radius:7px; background:var(--ph); flex:none;}
+  .home-list .ll{flex:1;}
+  .home-list .l1{height:9px; width:70%; background:var(--ph-2); border-radius:5px; margin-bottom:6px;}
+  .home-list .l2{height:7px; width:40%; background:var(--ph); border-radius:5px;}
+
+  .done-pill{position:absolute; bottom:16px; left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; font-size:11.5px; font-weight:700; padding:6px 14px; border-radius:100px; display:flex; gap:6px; align-items:center; box-shadow:0 6px 16px rgba(30,107,87,.35);}
+  .done-pill .material-symbols-rounded{font-size:16px;}
+
+  /* case groups (edge) */
+  .case-grp{font-size:11px; font-weight:800; letter-spacing:.05em; color:var(--muted); text-transform:uppercase; margin:18px 0 8px;}
+  .case-grp:first-child{margin-top:0;}
+  .case-btn .cn.edge{background:var(--warn-soft); color:var(--warn);}
+  .case-btn .cn.info{background:var(--note-soft); color:var(--note);}
+  .case-btn .cn .material-symbols-rounded{font-size:19px;}
+  /* login banner (cancelled) */
+  .banner-msg{display:flex; gap:9px; align-items:flex-start; background:var(--warn-soft); border:1px solid var(--warn-line); border-radius:11px; padding:11px 13px; font-size:12.5px; color:#7a3d1f; margin-bottom:14px; animation:drop .4s ease;}
+  .banner-msg .material-symbols-rounded{font-size:18px; color:var(--warn); flex:none;}
+  .state-ic.note{background:var(--note-soft); color:var(--note);}
+
+  /* ===== realistic login (Atlassian-style, 터치클래스 branded) ===== */
+  .brand{display:flex; align-items:center; justify-content:center; gap:9px; margin:8px 0 2px;}
+  .brand .bmark{width:30px; height:30px; border-radius:8px; background:var(--brand); color:#fff; display:flex; align-items:center; justify-content:center;}
+  .brand .bmark .material-symbols-rounded{font-size:20px;}
+  .brand .bname{font-size:21px; font-weight:800; letter-spacing:-.02em; color:#172b4d;}
+  .lg-title{font-size:15.5px; font-weight:700; text-align:center; color:#172b4d; margin:18px 0 20px;}
+  .flabel{font-size:12px; font-weight:600; color:#44546f; margin-bottom:5px;}
+  .flabel .req{color:#e34935; margin-left:2px;}
+  .finput{height:42px; border:1px solid #8590a2; border-radius:4px; padding:0 11px; font-size:13px; color:#172b4d; display:flex; align-items:center; background:#fff;}
+  .finput.ph{color:#7a869a;}
+  .remember{display:flex; align-items:center; gap:8px; margin:13px 0 16px; font-size:13px; color:#44546f;}
+  .remember .box{width:15px; height:15px; border:2px solid #8590a2; border-radius:3px; flex:none;}
+  .remember .ii{width:16px; height:16px; border-radius:50%; background:#8270db; color:#fff; display:flex; align-items:center; justify-content:center;}
+  .remember .ii .material-symbols-rounded{font-size:11px;}
+  .btn-continue{height:44px; background:var(--brand); color:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700;}
+  .or-line{text-align:center; font-size:12.5px; font-weight:600; color:#44546f; margin:18px 0 10px;}
+  .prov-btn{height:46px; border:1px solid #8590a2; border-radius:4px; background:#fff; display:flex; align-items:center; justify-content:center; gap:11px; font-size:14px; font-weight:700; color:#172b4d; margin:8px 0;}
+  .prov-btn svg{flex:none;}
+  .lg-links{text-align:center; font-size:13px; margin:16px 0 4px;}
+  .lg-links a{color:#0c66e4; text-decoration:none; font-weight:600; cursor:pointer;}
+  .lg-links .sep{color:#8590a2; margin:0 7px;}
+  .lg-foot{border-top:1px solid #ebedf0; margin-top:14px; padding-top:14px; text-align:center;}
+  .lg-foot .fname{font-size:13px; font-weight:800; color:#44546f; letter-spacing:.03em;}
+  .lg-foot .fsub{font-size:11px; color:#7a869a; margin-top:4px;}
+
+  /* ===== IdP (외부) — 주소창 + 계정 선택 ===== */
+  .urlbar{display:flex; align-items:center; gap:7px; background:#eef0f3; border-radius:8px; padding:7px 11px; font-size:11.5px; color:#44546f; margin-bottom:16px;}
+  .urlbar .material-symbols-rounded{font-size:14px; color:#1a7f37;}
+  /* google */
+  .gc-bar{display:flex; align-items:center; gap:9px; padding-bottom:13px; border-bottom:1px solid #ebedf0; margin-bottom:18px; font-size:12.5px; color:#5f6368; font-weight:500;}
+  .gc-title{font-size:21px; font-weight:400; color:#202124; line-height:1.3;}
+  .gc-sub{font-size:13px; color:#5f6368; margin:6px 0 18px;}
+  .gc-sub b{color:#1a73e8; font-weight:500;}
+  .gc-acct{display:flex; align-items:center; gap:13px; padding:11px 6px; border-radius:8px;}
+  .gc-acct:hover{background:#f1f3f4;}
+  .gc-acct .av{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; font-weight:600; flex:none;}
+  .gc-acct .nm{font-size:14px; font-weight:500; color:#202124;}
+  .gc-acct .em{font-size:12.5px; color:#5f6368;}
+  .gc-acct.dim{opacity:.38;}
+  .gc-other{display:flex; align-items:center; gap:13px; padding:13px 6px; border-top:1px solid #ebedf0; margin-top:6px; color:#202124; font-size:14px; font-weight:500;}
+  .gc-other .material-symbols-rounded{color:#5f6368;}
+  .gc-foot{font-size:11px; color:#5f6368; margin-top:auto; padding-top:16px; line-height:1.5;}
+  /* microsoft */
+  .ms-head{display:flex; align-items:center; gap:9px; font-size:16px; font-weight:600; color:#1b1b1b; margin-bottom:18px;}
+  .ms-title{font-size:15px; font-weight:600; color:#1b1b1b; margin-bottom:10px;}
+  .ms-acct{display:flex; align-items:center; gap:11px; padding:12px 4px; border-bottom:1px solid #ebedf0;}
+  .ms-acct .av{width:32px; height:32px; border-radius:50%; background:#742774; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex:none;}
+  .ms-acct .nm{font-size:13.5px; font-weight:600; color:#1b1b1b;}
+  .ms-acct .em{font-size:12px; color:#605e5c;}
+  .ms-acct.dim{opacity:.38;}
+
+  /* ===== KPC login (첫 화면) ===== */
+  .statusbar{display:flex; justify-content:space-between; align-items:center; padding:4px 22px 0; font-size:13px; font-weight:700; color:#1b1b1b; flex:none;}
+  .statusbar .sb-r{display:flex; gap:5px; align-items:center;}
+  .statusbar .sb-r .material-symbols-rounded{font-size:16px;}
+  .kpc-logo{text-align:center;}
+  .kpc-mark{display:block; font-weight:900; color:#E2231A; letter-spacing:-.06em; line-height:1;}
+  .kpc-sub{display:block; font-weight:700; color:#3a3a3a; margin-top:6px; letter-spacing:.06em;}
+  .kpc-input{height:46px; border-bottom:1px solid #e3e3e3; display:flex; align-items:center; font-size:14px; color:#b5b5b5;}
+  .kpc-login{height:54px; background:#eef0f3; color:#9aa0a8; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; margin:18px 0 14px;}
+  .soc-card{height:56px; background:#f5f6f8; border-radius:12px; display:flex; align-items:center; gap:13px; padding:0 18px; margin:9px 0; font-size:14px;}
+  .soc-card .soc-ic{width:26px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .soc-card .soc-lb{font-weight:700; color:#3a3a3a; flex:1;}
+  .soc-card .soc-lb.bold{flex:none; width:100%; text-align:center; font-size:15px; color:#1b1b1b;}
+  .soc-card.apple{justify-content:center;}
+  .soc-card .soc-ar{color:#9aa0a8; font-size:20px;}
+  .kakao-sq{width:26px; height:26px; border-radius:7px; background:#FEE500; display:flex; align-items:center; justify-content:center;}
+  .kakao-sq .material-symbols-rounded{font-size:16px; color:#3C1E1E;}
+  .kpc-forgot{text-align:center; font-size:12.5px; color:#9aa0a8; text-decoration:underline; margin-top:16px;}
+  .kpc-foot{text-align:center; font-size:12px; font-weight:700; color:#3a3a3a; margin-top:18px;}
+
+  /* kakao IdP */
+  .kk-head{display:flex; flex-direction:column; align-items:center; gap:11px; margin:6px 0 18px;}
+  .kk-logo{width:52px; height:52px; border-radius:16px; background:#FEE500; display:flex; align-items:center; justify-content:center;}
+  .kk-logo .material-symbols-rounded{font-size:30px; color:#3C1E1E;}
+  .kk-title{font-size:15px; font-weight:700; color:#1b1b1b; text-align:center; line-height:1.4;}
+  .kk-acct{display:flex; align-items:center; gap:12px; border:1px solid #ebedf0; border-radius:12px; padding:13px; margin:6px 0 16px;}
+  .kk-acct .av{width:38px; height:38px; border-radius:50%; background:#FEE500; color:#3C1E1E; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex:none;}
+  .kk-acct .nm{font-size:13.5px; font-weight:700; color:#1b1b1b;}
+  .kk-acct .em{font-size:12px; color:#7a869a;}
+  .kk-btn{height:48px; background:#FEE500; color:#1b1b1b; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14.5px; font-weight:700;}
+  .kk-link{text-align:center; font-size:13px; color:#5f6368; margin-top:14px; text-decoration:underline;}
+
+  /* apple IdP */
+  .ap-head{display:flex; flex-direction:column; align-items:center; gap:12px; margin:14px 0 18px;}
+  .ap-title{font-size:16px; font-weight:700; color:#1b1b1b; text-align:center; line-height:1.4;}
+  .ap-row{display:flex; justify-content:space-between; align-items:center; padding:14px 2px; border-bottom:1px solid #ebedf0; font-size:13.5px;}
+  .ap-row .k{color:#86868b;} .ap-row .v{color:#1b1b1b; font-weight:600;}
+  .ap-note{font-size:11.5px; color:#86868b; margin:12px 0 0; line-height:1.5;}
+  .ap-btn{height:48px; background:#000; color:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; margin-top:18px;}
+  .ap-cancel{text-align:center; font-size:14px; color:#0c66e4; margin-top:14px;}
+
+  @media (max-width:980px){
+    .app{grid-template-columns:1fr;}
+    .panel{height:auto; position:static; border-right:none; border-bottom:1px solid var(--line);}
+    .stage{height:auto; min-height:auto; padding:40px 20px 60px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= LEFT : CONTROL ================= -->
+  <aside class="panel">
+    <div class="kicker">KPC 한국생산성본부 · 소셜 로그인</div>
+    <h1>인터랙티브 프로토타입</h1>
+    <p class="intro">케이스를 고르고, 오른쪽 화면을 <b>직접 탭</b>해 흐름을 따라가 보세요. 인증 후 “들어갈 수 있는 조직” 개수에 따라 결과가 달라집니다.</p>
+
+    <div class="block-t"><span class="material-symbols-rounded">tune</span>케이스 선택</div>
+    <div class="cases" id="cases"></div>
+
+    <div class="block-t"><span class="material-symbols-rounded">route</span>흐름 지도</div>
+    <div class="flow" id="flow"></div>
+
+    <div class="explain" id="explain"></div>
+
+    <div class="controls">
+      <button class="ctrl" id="btnRestart"><span class="material-symbols-rounded">replay</span>처음부터</button>
+      <button class="ctrl" id="btnPrev"><span class="material-symbols-rounded">undo</span>이전 단계</button>
+    </div>
+  </aside>
+
+  <!-- ================= RIGHT : PREVIEW ================= -->
+  <main class="stage">
+    <div class="stage-cap" id="cap"><span class="material-symbols-rounded">touch_app</span><span id="capTxt"></span></div>
+    <div class="phone" id="phone">
+      <div class="screen" id="screen"></div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  // ============ scenarios ============
+  // tail = flow-map nodes AFTER [login, idp]  (each: [stepKey, title, sub])
+  // idp  = how the IdP screen diverges:  undefined(정상) | 'cancel' | 'error' | 'noemail' | 'personal'
+  // result = step processing auto-advances to (정상/매칭 단계 엣지)
+  const SC = {
+    // ----- 정상 흐름 -----
+    '0':{grp:'happy', n:'0',  ic:'person_off',   t:'들어갈 조직 0개', d:'등록 안 됨 / 소셜 꺼짐', result:'empty',
+         tail:[['processing','후보 조직 산출','서버 계산'],['empty','안내 화면','후보 0개']]},
+    '1':{grp:'happy', n:'1',  ic:'bolt',         t:'조직 1개 소속', d:'선택 없이 바로 진입 (가장 흔함)', result:'home',
+         tail:[['processing','후보 조직 산출','서버 계산'],['home','바로 진입','+ 계정 연결 안내']]},
+    '2':{grp:'happy', n:'2+', ic:'apartment',    t:'여러 조직 소속', d:'조직 선택 후 진입', result:'orgselect',
+         tail:[['processing','후보 조직 산출','서버 계산'],['orgselect','조직 선택','최근 조직 상단'],['home','진입','선택한 조직 홈']]},
+
+    // ----- 엣지 · 인증 전 (매칭 전에 갈림) -----
+    'cancel':{grp:'edge', ic:'cancel',         t:'사용자가 인증 취소', d:'IdP 동의·로그인 취소', idp:'cancel',
+         tail:[['cancelled','로그인으로 복귀','취소 안내']]},
+    'idperror':{grp:'edge', ic:'cloud_off',    t:'IdP 오류·타임아웃', d:'네트워크 / IdP 장애', idp:'error',
+         tail:[['authError','오류 안내','다시 시도']]},
+    'noemail':{grp:'edge', ic:'mark_email_unread', t:'이메일 미검증·미제공', d:'email_verified=false', idp:'noemail',
+         tail:[['noEmail','연결 보류','이메일 확인 필요']]},
+    'personal':{grp:'edge', ic:'corporate_fare', t:'개인 계정 차단', d:'회사(work/school)만 허용', idp:'personal',
+         tail:[['rejectPersonal','차단 안내','회사 계정 요청']]},
+
+    // ----- 엣지 · 매칭 단계 (인증 후 갈림) -----
+    'mismatch':{grp:'edge', ic:'person_search', t:'이메일 불일치', d:'IdP 이메일 ≠ 등록 이메일', result:'mismatch',
+         tail:[['processing','후보 조직 산출','서버 계산'],['mismatch','못 찾음 안내','관리자 문의']]},
+    'socialoff':{grp:'edge', ic:'toggle_off',  t:'소셜 꺼진 조직', d:'가입했지만 조직이 소셜 OFF', result:'socialOff',
+         tail:[['processing','후보 조직 산출','서버 계산'],['socialOff','안내','비밀번호 로그인']]},
+    'inactive':{grp:'edge', ic:'do_not_disturb_on', t:'비활성·퇴사 계정', d:'관리자가 비활성화', result:'inactive',
+         tail:[['processing','후보 조직 산출','서버 계산'],['inactive','차단 안내','관리자 문의']]},
+    'linked':{grp:'edge', ic:'link_off',       t:'이미 연결된 소셜', d:'(issuer,sub) 다른 계정에 물림', result:'alreadyLinked',
+         tail:[['processing','후보 조직 산출','서버 계산'],['alreadyLinked','충돌 안내','관리자 확인']]},
+    'confirm':{grp:'edge', ic:'join', info:true, t:'기존 계정 연결 확인', d:'검증 이메일=기존 계정 → 1단계 확인(보수안)', result:'confirmLink',
+         tail:[['processing','후보 조직 산출','서버 계산'],['confirmLink','연결 확인','사용자 동의'],['home','진입','연결 후 입장']]},
+  };
+
+  const state = { scenario:'1', step:'login', history:[], provider:'google' };
+
+  // ---- brand logos (SVG) ----
+  function googleG(sz){ return `<svg viewBox="0 0 48 48" width="${sz}" height="${sz}"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`; }
+  function msSquares(sz){ return `<svg viewBox="0 0 21 21" width="${sz}" height="${sz}"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>`; }
+  function appleLogo(sz){ sz=sz||26; return `<svg width="${sz}" height="${Math.round(sz*1.22)}" viewBox="0 0 814 1000" fill="#000"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.2z"/></svg>`; }
+  function brand(mb, size){ size=size||24; return `<div class="brand" style="margin-bottom:${mb||2}px"><div class="kpc-logo"><span class="kpc-mark" style="font-size:${size}px">kpc</span><span class="kpc-sub" style="font-size:${Math.round(size*0.32)}px">한국생산성본부</span></div></div>`; }
+
+  // ============ explanations (left card) ============
+  const EXPLAIN = {
+    login:{t:'1. 로그인 화면', p:'소셜 버튼을 탭하세요. 아직 “누구”인지 모르기 때문에 <b>조직을 먼저 묻지 않습니다.</b>'},
+    idp:{t:'2. IdP 인증 (외부)', p:'터치클래스 밖, Google·Microsoft 화면입니다. 비밀번호·2단계 인증·계정 잠금은 <b>IdP가 책임</b>집니다.'},
+    processing:{t:'3. 후보 조직 산출', p:'인증 완료 — <b>이제 신원을 압니다.</b> <code>가입된 조직 ∩ 소셜 켠 조직</code>을 계산합니다.'},
+    empty:{t:'결과 · 후보 0개', p:'들어갈 조직이 없어 <b>막히는 게 정상</b>(자동 가입 안 함). 사번 전용 등 소셜을 끈 조직도 여기로.'},
+    orgselect:{t:'결과 · 후보 2개 이상', p:'로고·조직명·역할 카드, <b>최근 조직을 맨 위</b>에. 공용 PC 대비 <b>자동 진입은 안 하고</b> 노출만.'},
+    home:{t:s=>s.scenario==='1'?'결과 · 후보 1개':(s.scenario==='confirm'?'연결 후 진입':'진입 완료'),
+          p:s=>s.scenario==='1'
+            ?'후보 1개라 <b>선택 화면을 건너뛰고</b> 곧장 입장. <b>최초 1회</b>만 “계정 연결됨” 안내 한 줄.'
+            :s.scenario==='confirm'?'사용자가 연결에 동의한 뒤 입장. 이후엔 소셜로 바로 로그인됩니다.'
+            :'선택한 조직 홈으로 진입. 다음부터는 “최근 조직”이 맨 위에 떠 한 번에 들어갑니다.'},
+    // --- 엣지 · 인증 전 ---
+    cancelled:{t:'엣지 · 인증 취소', p:'사용자가 IdP 동의/로그인을 취소·거부. <b>에러처럼 빨갛게 띄우지 않고</b> 조용히 로그인으로 되돌립니다.'},
+    authError:{t:'엣지 · IdP 오류·타임아웃', p:'네트워크나 Google/MS 장애 — <b>우리 잘못이 아닐 수 있음.</b> “잠시 후 다시”로 안내하고 재시도 경로 제공.'},
+    noEmail:{t:'엣지 · 이메일 미검증/미제공', p:'<code>email_verified=false</code>거나 이메일 권한 거부. 미검증 이메일로 기존 계정에 붙이면 <b>사전 탈취 위험</b> → 자동 연결 금지, 관리자 경로로.'},
+    rejectPersonal:{t:'엣지 · 개인 계정 차단', p:'회사(work/school) 계정만 허용하는 조직. MS는 <code>tid</code>, Google은 <code>hd</code>로 회사 계정 판별. <b>회사 계정을 골랐다면 정상 진입.</b>'},
+    // --- 엣지 · 매칭 단계 ---
+    mismatch:{t:'엣지 · 이메일 불일치', p:'관리자가 등록한 이메일과 실제 IdP 이메일이 달라 후보를 못 찾음. “0개”와 달리 <b>“이메일이 다를 수 있다”</b>는 보완 안내가 필요.'},
+    socialOff:{t:'엣지 · 소셜 꺼진 조직', p:'가입은 됐지만 그 조직 정책이 <b>비밀번호만 허용.</b> 후보에서 제외하고 비밀번호 로그인으로 유도.'},
+    inactive:{t:'엣지 · 비활성·퇴사 계정', p:'IdP에선 살아 있어도 터치클래스에서 비활성(퇴사·정지). <b>즉시 차단</b>, 관리자 문의.'},
+    alreadyLinked:{t:'엣지 · 이미 연결된 소셜', p:'이 <code>(issuer, sub)</code>가 다른 계정에 물려 있음. 계정 가로채기 방지 위해 <b>자동 재연결 금지</b>, 관리자 확인.'},
+    confirmLink:{t:'비교용 · 연결 확인 1단계(보수안)', p:'검증 이메일이 기존 비번 계정과 일치할 때 “자동연결” 대신 <b>“확인 1단계”.</b> 우리 1차 결정은 <b>자동연결</b>(1개 케이스 참고) — 이건 대안 비교용.'},
+  };
+
+  const CAP = {
+    login:'Google 또는 Microsoft 버튼을 탭하세요',
+    idp:'계정을 탭해 인증하세요',
+    processing:'후보 조직을 확인하는 중…',
+    empty:'후보 0개 — 안내 화면', orgselect:'들어갈 조직을 탭하세요', home:'진입 완료',
+    cancelled:'로그인이 취소됐어요', authError:'인증 오류', noEmail:'이메일 확인 필요',
+    rejectPersonal:'개인 계정 차단', mismatch:'계정을 못 찾음', socialOff:'비밀번호 로그인만',
+    inactive:'비활성 계정', alreadyLinked:'계정 연결 충돌', confirmLink:'연결할지 선택하세요'
+  };
+
+  // ============ screen renderers ============
+  function loginScreen(cancelled){
+    const banner = cancelled
+      ? `<div class="banner-msg"><span class="material-symbols-rounded">info</span><div><b>로그인이 취소됐어요.</b> 다시 시도해 주세요.</div></div>` : '';
+    return `<div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span class="sb-r"><span class="material-symbols-rounded">signal_cellular_alt</span><span class="material-symbols-rounded">wifi</span><span class="material-symbols-rounded">battery_full</span></span></div>
+    <div class="scr-body">
+      ${banner}
+      <div style="height:30px"></div>
+      ${brand(0,40)}
+      <div style="height:40px"></div>
+      <div class="kpc-input">아이디 또는 이메일</div>
+      <div class="kpc-input">비밀번호</div>
+      <div class="kpc-login">로그인</div>
+      <div class="soc-card tap" data-act="idp" data-prov="kakao"><span class="soc-ic"><span class="kakao-sq"><span class="material-symbols-rounded">chat_bubble</span></span></span><span class="soc-lb">카카오 로그인 하기</span><span class="soc-ar material-symbols-rounded">arrow_forward</span></div>
+      <div class="soc-card tap cta" data-act="idp" data-prov="google"><span class="soc-ic">${googleG(22)}</span><span class="soc-lb">구글 로그인 하기</span><span class="soc-ar material-symbols-rounded">arrow_forward</span></div>
+      <div class="soc-card tap" data-act="idp" data-prov="microsoft"><span class="soc-ic">${msSquares(20)}</span><span class="soc-lb">Microsoft 로그인 하기</span><span class="soc-ar material-symbols-rounded">arrow_forward</span></div>
+      <div class="soc-card apple tap" data-act="idp" data-prov="apple"><span class="soc-lb bold">애플로 시작하기</span></div>
+      <div class="kpc-forgot">비밀번호를 잊으셨나요?</div>
+      <div class="spacer"></div>
+      <div class="kpc-foot">이용약관 · 개인정보처리방침</div>
+    </div>`;
+  }
+
+  function idpScreen(){
+    const mode = SC[state.scenario].idp;
+    const cancel = mode==='cancel';
+    const primary = mode==='error' ? 'authError' : mode==='noemail' ? 'noEmail' : mode==='personal' ? 'rejectPersonal' : 'processing';
+    const foot = {
+      personal:'이 케이스: <b>회사 계정만 허용</b> — 개인 계정이면 차단됩니다 (구글·MS 정책).',
+      noemail:'이 케이스: 검증된 이메일 없이 인증됩니다.',
+      error:'이 케이스: 인증 도중 IdP 오류가 발생합니다.'
+    };
+    const p = state.provider;
+    if(p==='kakao')     return kakaoIdp(mode, cancel, primary, foot);
+    if(p==='apple')     return appleIdp(mode, cancel, primary, foot);
+    if(p==='microsoft') return msIdp(mode, cancel, primary, foot);
+    return googleIdp(mode, cancel, primary, foot);
+  }
+
+  function googleIdp(mode, cancel, primary, foot){
+    let coT=primary, peT=primary, coOn=true, peOn=true, cta='co';
+    if(cancel){ coOn=false; peOn=false; cta='cancel'; }
+    else if(mode==='personal'){ peT='rejectPersonal'; coOn=false; cta='pe'; }
+    const gc=(on,t,isCta,initial,bg,nm,em)=>
+      `<div class="gc-acct ${on?'tap':''} ${on?'':'dim'} ${on&&isCta?'cta':''}" ${on?`data-act="${t}"`:''}>
+         <div class="av" style="background:${bg}">${initial}</div><div><div class="nm">${nm}</div><div class="em">${em}</div></div></div>`;
+    return `<div class="notch"></div><div class="scr-body">
+      <div class="urlbar"><span class="material-symbols-rounded">lock</span>accounts.google.com</div>
+      <div class="gc-bar">${googleG(16)} Google 계정으로 로그인</div>
+      <div class="gc-title">계정을 선택하세요</div>
+      <div class="gc-sub"><b>한국생산성본부</b>(으)로 이동</div>
+      ${gc(coOn,coT,cta==='co','김','#1a73e8','김생산','kpc.kim@company.com')}
+      ${gc(peOn,peT,cta==='pe','개','#db4437','김생산 (개인)','kpc.kim@gmail.com')}
+      ${ cancel
+          ? `<div class="gc-other tap cta" data-act="cancelled"><span class="material-symbols-rounded">close</span>취소하고 돌아가기</div>`
+          : `<div class="gc-other"><span class="material-symbols-rounded">person</span>다른 계정 사용</div>` }
+      <div class="gc-foot">${foot[mode]||'계속하면 이름·이메일·프로필을 한국생산성본부와 공유합니다.'}</div>
+    </div>`;
+  }
+
+  function msIdp(mode, cancel, primary, foot){
+    let coT=primary, peT=primary, coOn=true, peOn=true, cta='co';
+    if(cancel){ coOn=false; peOn=false; cta='cancel'; }
+    else if(mode==='personal'){ peT='rejectPersonal'; coOn=false; cta='pe'; }
+    const ms=(on,t,isCta,initial,nm,em)=>
+      `<div class="ms-acct ${on?'tap':''} ${on?'':'dim'} ${on&&isCta?'cta':''}" ${on?`data-act="${t}"`:''}>
+         <div class="av">${initial}</div><div><div class="nm">${nm}</div><div class="em">${em}</div></div></div>`;
+    return `<div class="notch"></div><div class="scr-body">
+      <div class="urlbar"><span class="material-symbols-rounded">lock</span>login.microsoftonline.com</div>
+      <div class="ms-head">${msSquares(20)} Microsoft</div>
+      <div class="ms-title">계정 선택</div>
+      ${ms(coOn,coT,cta==='co','김','김생산','kpc.kim@company.com')}
+      ${ms(peOn,peT,cta==='pe','개','김생산 (개인)','kpc.kim@outlook.com')}
+      ${ cancel
+          ? `<div class="ms-acct tap cta" data-act="cancelled" style="border-bottom:none"><div class="av" style="background:#605e5c"><span class="material-symbols-rounded" style="font-size:17px">close</span></div><div><div class="nm">취소하고 돌아가기</div></div></div>`
+          : `<div class="ms-acct" style="border-bottom:none"><div class="av" style="background:#0067b8"><span class="material-symbols-rounded" style="font-size:17px">add</span></div><div><div class="nm">다른 계정 사용</div></div></div>` }
+      <div class="gc-foot">${foot[mode]||'계속하면 이름·이메일을 한국생산성본부와 공유합니다.'}</div>
+    </div>`;
+  }
+
+  function kakaoIdp(mode, cancel, primary, foot){
+    return `<div class="notch"></div><div class="scr-body">
+      <div class="urlbar"><span class="material-symbols-rounded">lock</span>accounts.kakao.com</div>
+      <div class="kk-head"><div class="kk-logo"><span class="material-symbols-rounded">chat_bubble</span></div><div class="kk-title">한국생산성본부에<br>카카오계정으로 로그인</div></div>
+      <div class="kk-acct"><div class="av">김</div><div><div class="nm">김생산</div><div class="em">kpc.kim@kakao.com</div></div></div>
+      ${ cancel
+          ? `<div class="kk-link tap cta" data-act="cancelled">취소하고 돌아가기</div>`
+          : `<div class="kk-btn tap cta" data-act="${primary}">전체 동의하고 계속하기</div><div class="kk-link">다른 카카오계정으로 로그인</div>` }
+      <div class="spacer"></div>
+      <div class="gc-foot">${foot[mode]||'카카오에서 닉네임·이메일을 한국생산성본부와 공유합니다.'}</div>
+    </div>`;
+  }
+
+  function appleIdp(mode, cancel, primary, foot){
+    const hide = mode==='noemail';
+    return `<div class="notch"></div><div class="scr-body">
+      <div class="urlbar"><span class="material-symbols-rounded">lock</span>appleid.apple.com</div>
+      <div class="ap-head">${appleLogo(30)}<div class="ap-title">‘한국생산성본부’ 앱에서<br>Apple로 로그인</div></div>
+      <div class="ap-row"><span class="k">이름</span><span class="v">김생산</span></div>
+      <div class="ap-row"><span class="k">이메일</span><span class="v">${hide?'••••@privaterelay.appleid.com':'kpc.kim@icloud.com'}</span></div>
+      ${ hide ? `<div class="ap-note">‘내 이메일 가리기’가 켜져 있어 실제 이메일 대신 임의 주소가 전달됩니다.</div>` : '' }
+      ${ cancel
+          ? `<div class="ap-cancel tap cta" data-act="cancelled">취소</div>`
+          : `<div class="ap-btn tap cta" data-act="${primary}">계속</div>` }
+      <div class="spacer"></div>
+      <div class="ap-note">${foot[mode]||'Apple ID로 한국생산성본부에 로그인합니다.'}</div>
+    </div>`;
+  }
+
+  function processingScreen(){
+    return `<div class="notch"></div>
+      <div class="scr-body" style="align-items:center;justify-content:center;">
+        <div style="width:46px;height:46px;border-radius:50%;border:4px solid var(--accent-soft);border-top-color:var(--accent);animation:rot .8s linear infinite;"></div>
+        <div style="margin-top:20px;font-size:14px;font-weight:700;">후보 조직을 확인하는 중…</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted);text-align:center;">가입된 조직 ∩ 소셜 켠 조직</div>
+      </div><style>@keyframes rot{to{transform:rotate(360deg)}}</style>`;
+  }
+
+  function orgselectScreen(){
+    return `<div class="notch"></div><div class="scr-body">
+      <div class="scr-title" style="margin-top:6px;">조직 선택</div>
+      <div class="scr-cap">어느 조직으로 들어갈까요?</div>
+      <div class="recent-tag"><span class="material-symbols-rounded">history</span>최근 사용</div>
+      <div class="org-card recent tap cta" data-act="home"><div class="ologo">A</div><div class="oi"><div class="on">A 기업 연수원</div><span class="orole">수강생</span></div><span class="material-symbols-rounded chev">chevron_right</span></div>
+      <div style="height:10px"></div>
+      <div class="org-card tap" data-act="home"><div class="ologo">B</div><div class="oi"><div class="on">B 아카데미</div><span class="orole">강사</span></div><span class="material-symbols-rounded chev">chevron_right</span></div>
+      <div class="org-card tap" data-act="home"><div class="ologo">C</div><div class="oi"><div class="on">C 평생교육원</div><span class="orole">수강생</span></div><span class="material-symbols-rounded chev">chevron_right</span></div>
+      <div class="spacer"></div>
+      <div class="foot-note">최근 조직은 맨 위 노출만 · 자동 진입 안 함</div>
+    </div>`;
+  }
+
+  function homeScreen(){
+    const showToast = state.scenario==='1' || state.scenario==='confirm';
+    const toast = `<div class="toast"><span class="material-symbols-rounded">link</span><div><b>기존 계정을 연결했어요.</b><br>다음부터 이 방식으로 바로 로그인됩니다.</div></div>`;
+    return `<div class="notch"></div><div class="scr-body">
+      ${showToast?toast:''}
+      <div class="home-app-top"><div class="ol">A</div><div class="nm">A 기업 연수원</div></div>
+      <div class="banner"></div>
+      <div class="home-grid"><div class="home-tile"></div><div class="home-tile"></div></div>
+      <div class="home-list"><div class="th"></div><div class="ll"><div class="l1"></div><div class="l2"></div></div></div>
+      <div class="home-list"><div class="th"></div><div class="ll"><div class="l1" style="width:60%"></div><div class="l2"></div></div></div>
+      <div class="home-list" style="border-bottom:none"><div class="th"></div><div class="ll"><div class="l1" style="width:80%"></div><div class="l2"></div></div></div>
+    </div>
+    <div class="done-pill"><span class="material-symbols-rounded">check_circle</span>학습 시작</div>`;
+  }
+
+  // generic block / 안내 화면
+  function block(color, icon, title, desc, btns){
+    const b = btns.map(x=>
+      `<div class="wf-btn ${x.primary?'primary':'ghost'} sm ${x.act?'tap':''} ${x.cta?'cta':''}" ${x.act?`data-act="${x.act}"`:''}>
+        ${x.icon?`<span class="material-symbols-rounded" style="font-size:18px;${x.primary?'':'color:var(--ink-2)'}">${x.icon}</span>`:''}${x.label}</div>`).join('');
+    return `<div class="notch"></div><div class="scr-body">
+      ${brand(2)}
+      <div class="state-ic ${color}"><span class="material-symbols-rounded">${icon}</span></div>
+      <div class="state-t">${title}</div>
+      <div class="state-d">${desc}</div>
+      <div class="spacer"></div>${b}
+    </div>`;
+  }
+
+  function screenHTML(){
+    switch(state.step){
+      case 'login':      return loginScreen(false);
+      case 'cancelled':  return loginScreen(true);
+      case 'idp':        return idpScreen();
+      case 'processing': return processingScreen();
+      case 'orgselect':  return orgselectScreen();
+      case 'home':       return homeScreen();
+      case 'empty':      return block('warn','person_off','등록된 교육이 없어요','이 계정으로 연결된 조직을 찾지 못했습니다.',
+                           [{label:'관리자에게 문의',icon:'mail'},{label:'다른 계정으로 로그인',act:'login',cta:true},{label:'비밀번호로 로그인',act:'login'}]);
+      case 'authError':  return block('warn','cloud_off','잠시 후 다시 시도해주세요','인증 서버 응답이 지연되거나 오류가 발생했어요.',
+                           [{label:'다시 시도',act:'login',cta:true,icon:'refresh'},{label:'비밀번호로 로그인',act:'login'}]);
+      case 'noEmail':    return block('warn','mark_email_unread','이메일 확인이 필요해요','Google·Microsoft가 검증한 이메일이 없어 기존 계정에 안전하게 연결할 수 없어요.',
+                           [{label:'관리자에게 문의',icon:'mail'},{label:'비밀번호로 로그인',act:'login',cta:true}]);
+      case 'rejectPersonal': return block('warn','corporate_fare','회사 계정으로 로그인해주세요','이 조직은 회사(work/school) 계정만 허용해요. 개인 계정은 사용할 수 없어요.',
+                           [{label:'회사 계정으로 다시',act:'login',cta:true,icon:'badge'},{label:'비밀번호로 로그인',act:'login'}]);
+      case 'mismatch':   return block('warn','person_search','계정을 찾지 못했어요','소셜 이메일이 등록된 이메일과 다를 수 있어요. 관리자에게 확인해 주세요.',
+                           [{label:'관리자에게 문의',icon:'mail'},{label:'다른 계정으로 로그인',act:'login',cta:true},{label:'비밀번호로 로그인',act:'login'}]);
+      case 'socialOff':  return block('warn','toggle_off','이 조직은 비밀번호 로그인만 써요','소속 조직이 소셜 로그인을 사용하지 않도록 설정했어요.',
+                           [{label:'비밀번호로 로그인',act:'login',cta:true,icon:'password'}]);
+      case 'inactive':   return block('warn','do_not_disturb_on','사용할 수 없는 계정이에요','계정이 비활성화(퇴사·정지)되었어요. 관리자에게 문의해 주세요.',
+                           [{label:'관리자에게 문의',icon:'mail'},{label:'다른 계정으로 로그인',act:'login',cta:true}]);
+      case 'alreadyLinked': return block('warn','link_off','이미 다른 계정에 연결돼 있어요','이 소셜 계정은 다른 터치클래스 계정과 연결되어 있어요. 관리자에게 확인해 주세요.',
+                           [{label:'관리자에게 문의',icon:'mail'},{label:'다른 계정으로 로그인',act:'login',cta:true}]);
+      case 'confirmLink': return block('note','join','기존 계정을 찾았어요','검증된 이메일이 기존 계정과 일치해요. 이 소셜 로그인을 연결할까요?',
+                           [{label:'연결하고 진입',act:'home',primary:true,cta:true,icon:'link'},{label:'지금은 안 할래요',act:'login'}]);
+    }
+    return '';
+  }
+
+  // ============ flow map ============
+  function flowNodes(){
+    const base=[['login','로그인 화면','소셜 버튼 탭'],['idp','IdP 인증','외부 · Google/MS']];
+    return base.concat(SC[state.scenario].tail).map(a=>({k:a[0],t:a[1],s:a[2]}));
+  }
+  function renderFlow(){
+    const nodes = flowNodes();
+    let idx = nodes.findIndex(n=>n.k===state.step);
+    if(idx===-1) idx = 0;
+    document.getElementById('flow').innerHTML = nodes.map((n,i)=>{
+      const cls = i<idx ? 'done' : (i===idx ? 'active' : '');
+      const mark = i<idx ? '<span class="material-symbols-rounded" style="font-size:15px">check</span>' : (i+1);
+      return `<div class="fstep ${cls}">
+        <div class="rail"><div class="node">${mark}</div><div class="bar"></div></div>
+        <div class="ftxt">${n.t}<small>${n.s}</small></div></div>`;
+    }).join('');
+  }
+
+  function renderExplain(){
+    const e = EXPLAIN[state.step];
+    const box = document.getElementById('explain');
+    if(!e){ box.style.display='none'; return; }
+    box.style.display='block';
+    const t = typeof e.t==='function'? e.t(state): e.t;
+    const p = typeof e.p==='function'? e.p(state): e.p;
+    box.innerHTML = `<div class="et"><span class="material-symbols-rounded">lightbulb</span>${t}</div><p>${p}</p>`;
+  }
+
+  function capText(){
+    if(state.step==='idp'){
+      const m = SC[state.scenario].idp, p = state.provider;
+      if(m==='cancel') return '“취소/취소하고 돌아가기”를 탭하세요';
+      if(m==='personal' && (p==='google'||p==='microsoft')) return '개인 계정을 탭해보세요';
+      if(p==='kakao' || p==='apple') return '“계속 / 동의하고 계속하기”를 탭하세요';
+      return '계정을 탭해 인증하세요';
+    }
+    return CAP[state.step] || '';
+  }
+  function renderCap(){
+    document.getElementById('capTxt').innerHTML = capText();
+    document.getElementById('phone').classList.toggle('ext', state.step==='idp');
+  }
+
+  function render(){
+    document.getElementById('screen').innerHTML = screenHTML();
+    renderFlow(); renderExplain(); renderCap();
+    if(state.step==='processing'){
+      setTimeout(()=>{ if(state.step==='processing') go(SC[state.scenario].result, true); }, 1100);
+    }
+  }
+  function go(step, silent){
+    if(!silent) state.history.push(state.step);
+    state.step = step;
+    render();
+  }
+
+  // ============ case selector ============
+  function renderCases(){
+    const groups=[
+      {label:'정상 흐름', keys:['0','1','2']},
+      {label:'엣지 케이스 · 인증 전', keys:['cancel','idperror','noemail','personal']},
+      {label:'엣지 케이스 · 매칭 단계', keys:['mismatch','socialoff','inactive','linked','confirm']},
+    ];
+    let html='';
+    groups.forEach(g=>{
+      html += `<div class="case-grp">${g.label}</div>`;
+      g.keys.forEach(k=>{
+        const c=SC[k], happy=c.grp==='happy';
+        const cnClass = happy ? '' : (c.info ? 'info' : 'edge');
+        const cnInner = happy ? c.n : `<span class="material-symbols-rounded">${c.ic}</span>`;
+        html += `<button class="case-btn ${state.scenario===k?'on':''}" data-case="${k}">
+          <span class="cn ${cnClass}">${cnInner}</span>
+          <span><span class="ct">${c.t}</span><span class="cd">${c.d}</span></span></button>`;
+      });
+    });
+    const box = document.getElementById('cases');
+    box.innerHTML = html;
+    box.querySelectorAll('.case-btn').forEach(b=>b.addEventListener('click', ()=>{
+      state.scenario = b.getAttribute('data-case');
+      state.step='login'; state.history=[];
+      renderCases(); render();
+    }));
+  }
+
+  // ============ wiring ============
+  document.getElementById('screen').addEventListener('click', e=>{
+    const el = e.target.closest('[data-act]');
+    if(!el) return;
+    const prov = el.getAttribute('data-prov');
+    if(prov) state.provider = prov;
+    go(el.getAttribute('data-act'));
+  });
+  document.getElementById('btnRestart').addEventListener('click', ()=>{ state.step='login'; state.history=[]; render(); });
+  document.getElementById('btnPrev').addEventListener('click', ()=>{ if(state.history.length){ state.step=state.history.pop(); render(); } });
+
+  renderCases();
+  render();
+</script>
+</body>
+</html>
