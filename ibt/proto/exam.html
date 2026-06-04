@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>응시 · 오늘의 커피 테이스팅</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .exam-grid { display:grid; gap:20px; align-items:start; }
+  @media(min-width:1024px){ .exam-grid{ grid-template-columns: 1.4fr 1fr; } }
+  .answer-card { position: sticky; top: 80px; }
+  .ans { width:100%; min-height:300px; border:1px solid var(--grey-200); border-radius:12px; padding:14px; font:inherit; line-height:1.7; resize:vertical; }
+  .ans:focus{ outline:none; border-color:var(--green-700); box-shadow:0 0 0 3px var(--green-50); }
+  .qstep { display:flex; gap:12px; padding:11px 0; }
+  .qstep + .qstep{ border-top:1px solid var(--grey-100); }
+  .qstep .no{ flex:none;width:24px;height:24px;border-radius:9999px;background:var(--green-50);color:var(--green-800);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center; }
+  .qstep b{ color:var(--grey-900); }
+  /* 과제 작성 가이드 체크리스트 (안내) */
+  .gl { display:flex; gap:10px; padding:8px 0; align-items:flex-start; }
+  .gl + .gl{ border-top:1px solid var(--grey-100); }
+  .gl .o { flex:none; width:20px;height:20px;border-radius:9999px;border:2px solid var(--grey-300);margin-top:1px; }
+  .gl .gx { font-size:13.5px; }
+  /* 사진 첨부 (선택 · 증빙) */
+  .photo-grid { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .photo-thumb { width:80px;height:80px;border-radius:10px;background:var(--grey-100);border:1px solid var(--grey-200);display:flex;align-items:center;justify-content:center;color:var(--grey-400);position:relative; }
+  .photo-thumb .material-symbols-rounded { font-size:28px; }
+  .photo-thumb .x { position:absolute;top:-7px;right:-7px;width:19px;height:19px;border-radius:50%;background:#3b4350;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1; }
+  .photo-add { width:80px;height:80px;border-radius:10px;border:1.5px dashed var(--grey-300);background:var(--surface);color:var(--grey-500);font:inherit;font-size:11.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer; }
+  .photo-add:hover { border-color:var(--green-700);color:var(--green-700); }
+  .photo-add .material-symbols-rounded { font-size:22px; }
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <span class="material-symbols-rounded" style="color:var(--green-700)">local_cafe</span>
+  <span class="title">오늘의 커피 테이스팅</span>
+  <span class="crumb">· 문항 1 / 1</span>
+  <span class="spacer"></span>
+  <span class="autosave"><span class="material-symbols-rounded" id="saveIcon">cloud_done</span> <span id="saveTxt">방금 저장됨</span></span>
+  <span class="timer" id="timer"><span class="material-symbols-rounded">timer</span><span class="mono" id="clock">30:00</span></span>
+  <button class="btn btn-primary btn-lg" onclick="submit()"><span class="material-symbols-rounded">send</span> 제출하기</button>
+</div>
+
+<div class="page exam-grid">
+
+  <!-- 좌: 문제 + 가이드 + 자료 -->
+  <div>
+    <div class="card card-pad" style="margin-bottom:20px">
+      <span class="badge badge-green">서술형 수행과제</span>
+      <h2 style="font-size:19px;margin:10px 0 6px">오늘의 커피를 테이스팅하고 향미를 표현하세요</h2>
+      <p class="muted">브루드 커피(오늘의 커피)를 직접 시음하고, 내부 자료를 활용해 향·맛·바디·로스팅 단계를 센서리 언어로 서술합니다.</p>
+
+      <div class="divider"></div>
+      <div class="card-title" style="font-size:14px;margin-bottom:2px"><span class="material-symbols-rounded" style="color:var(--green-700);font-size:18px">format_list_numbered</span> 작성가이드</div>
+      <div class="qstep"><span class="no">1</span><div><b>준비</b> — 브루드 커피와 내부 자료를 준비합니다.</div></div>
+      <div class="qstep"><span class="no">2</span><div><b>Smell</b> (아로마 맡기) — 향을 깊게 흡입하고 내부 자료를 참고해 기록합니다.</div></div>
+      <div class="qstep"><span class="no">3</span><div><b>Slurp</b> (후루룩 마시기) — 공기와 함께 강하게 흡입해 향을 입안 전체로 퍼뜨립니다.</div></div>
+      <div class="qstep"><span class="no">4</span><div><b>Locate</b> (머금고 즐기기) — 입에 머금고 혀 전체로 굴려 맛·질감을 느낍니다.</div></div>
+      <div class="qstep"><span class="no">5</span><div><b>Describe</b> (표현하기) — 감지한 향과 맛을 종합해 서술합니다.</div></div>
+      <div class="qstep"><span class="no">6</span><div><b>자기 점검</b> — 어려웠던 향/맛과 개선점을 정리합니다.</div></div>
+    </div>
+
+    <!-- 과제 작성 가이드 (체크리스트 · 안내) -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">checklist</span> 과제 작성 가이드</div>
+      <div class="card-sub">아래 항목을 빠뜨리지 말고 답안에 담아주세요. (채점 기준과 연결됩니다)</div>
+      <div class="divider"></div>
+      <div class="gl"><span class="o"></span><span class="gx">내부 자료를 기반으로 향을 <b>2가지 이상</b> 표현</span></div>
+      <div class="gl"><span class="o"></span><span class="gx">단맛 · 신맛 · 쓴맛 · 바디감을 <b>모두</b> 표현</span></div>
+      <div class="gl"><span class="o"></span><span class="gx">블론드 · 미디엄 · 다크 <b>로스팅 단계</b> 판별</span></div>
+      <div class="gl"><span class="o"></span><span class="gx">산미 · 바디감을 로스팅 단계와 연결</span></div>
+      <div class="gl"><span class="o"></span><span class="gx">해당 원두와 일치하는 풍미 표현</span></div>
+      <div class="gl"><span class="o"></span><span class="gx">‘좋다/나쁘다’ 대신 <b>구체적인 향·맛</b>으로 표현</span></div>
+    </div>
+
+    <div class="card card-pad">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">description</span> 자료 · 내부 자료</div>
+      <div class="asset" style="margin-top:14px">
+        <img src="../re/img.png" alt="내부 자료" style="width:100%;max-width:360px;border-radius:12px;border:1px solid var(--grey-200)">
+        <div class="cap">문제 지문과 함께 제공되는 내부 자료</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 우: 답안 작성 -->
+  <div class="answer-card">
+    <div class="card card-pad">
+      <div class="row" style="justify-content:space-between">
+        <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">draw</span> 답안 작성</div>
+        <span class="tiny"><span id="cnt">0</span>자</span>
+      </div>
+      <div class="card-sub">제한시간 안에 자유롭게 서술하세요. 작성 내용은 자동 저장됩니다.</div>
+      <textarea class="ans" id="ans" placeholder="예) 오늘의 커피는 견과류와 카카오 계열의 고소한 향이 먼저 올라오고…" oninput="onType()"></textarea>
+
+      <div class="divider"></div>
+      <div class="card-title" style="font-size:14px;margin-bottom:2px"><span class="material-symbols-rounded" style="color:var(--green-700);font-size:18px">photo_camera</span> 사진 첨부 <span class="badge badge-grey">선택 · 수행 증빙</span></div>
+      <div class="card-sub">결과물·단계 인증샷을 올리면 채점자가 증빙으로 참고합니다. 점수는 서술 내용으로 매겨집니다.</div>
+      <div class="photo-grid">
+        <div class="photo-thumb"><span class="material-symbols-rounded">image</span><span class="x">×</span></div>
+        <button class="photo-add"><span class="material-symbols-rounded">add_a_photo</span>사진 추가</button>
+      </div>
+
+      <div class="row" style="justify-content:space-between;margin-top:12px">
+        <span class="autosave"><span class="material-symbols-rounded">computer</span> PC 권장 · 끊겨도 자동저장으로 복구됩니다</span>
+        <button class="btn btn-primary" onclick="submit()"><span class="material-symbols-rounded">send</span> 제출하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 데모 타이머 (30:00에서 카운트다운, 가속 표현 없이 1초 단위)
+  let left = 30*60;
+  const clock = document.getElementById('clock');
+  const timer = document.getElementById('timer');
+  function fmt(s){ const m=String(Math.floor(s/60)).padStart(2,'0'); const ss=String(s%60).padStart(2,'0'); return m+':'+ss; }
+  const tick = setInterval(()=>{
+    left--; clock.textContent = fmt(left);
+    if(left<=300) timer.classList.add('warn');
+    if(left<=0){ clearInterval(tick); alert('시간이 종료되어 자동 제출됩니다.'); submit(); }
+  }, 1000);
+
+  // 글자수 + 자동저장 표시
+  const cnt = document.getElementById('cnt'), saveTxt=document.getElementById('saveTxt'), saveIcon=document.getElementById('saveIcon');
+  let saveTimer;
+  function onType(){
+    const v = document.getElementById('ans').value;
+    cnt.textContent = v.length;
+    saveTxt.textContent='저장 중…'; saveIcon.textContent='cloud_upload';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{ saveTxt.textContent='방금 저장됨'; saveIcon.textContent='cloud_done'; }, 700);
+  }
+  function submit(){ location.href='grading.html'; }
+</script>
+</body>
+</html>

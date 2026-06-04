@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스타벅스 바리스타 평가 — 프로토타입(와이어프레임)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2b2f36; --line:#b8bec7; --line-strong:#8a929c; --fill:#f3f4f6;
+    --fill-2:#e7eaee; --muted:#7b828c;
+    --admin:#465069; --admin-soft:#edeff4;   /* 관리자 = 슬레이트 */
+    --user:#00704a;  --user-soft:#e6f2ed;     /* 사용자 = 그린 */
+    --warn:#b46a00;  --warn-soft:#fbf2e3;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:"Noto Sans KR",-apple-system,sans-serif; color:var(--ink);
+        background:#fafbfc; font-size:14px; line-height:1.55; }
+  .material-symbols-rounded{ font-variation-settings:'opsz' 20,'wght' 400; vertical-align:middle; }
+
+  /* 상단 와이어프레임 배너 */
+  .wm{ background:repeating-linear-gradient(45deg,#eceef1,#eceef1 10px,#e4e7eb 10px,#e4e7eb 20px);
+       border-bottom:1px solid var(--line); padding:9px 22px; font-size:12.5px; color:var(--muted);
+       display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:30; }
+  .wm b{ color:var(--ink); }
+  .wm .sp{ flex:1; }
+  .wm .material-symbols-rounded{ font-size:18px; color:var(--line-strong); }
+
+  .wrap{ max-width:1080px; margin:0 auto; padding:30px 22px 70px; }
+  .eyebrow{ color:var(--muted); font-weight:700; font-size:12.5px; letter-spacing:.06em; }
+  h1{ font-size:27px; line-height:1.32; margin:9px 0 10px; font-weight:700; }
+  .sub{ color:var(--muted); font-size:15px; max-width:640px; }
+
+  /* 예시 안내 배너 (빌더 위) */
+  .disclaimer{ display:flex; gap:12px; align-items:flex-start; margin:26px 0 18px;
+    border:1.5px dashed var(--warn); background:var(--warn-soft); border-radius:10px; padding:14px 16px; }
+  .disclaimer .material-symbols-rounded{ color:var(--warn); font-size:22px; margin-top:1px; }
+  .disclaimer b{ font-size:15px; color:var(--ink); }
+  .disclaimer p{ color:var(--muted); font-size:13px; margin-top:2px; }
+
+  /* 역할 범례 */
+  .legend{ display:flex; flex-wrap:wrap; gap:18px; align-items:center; font-size:13px; color:var(--muted);
+    margin-bottom:18px; padding-bottom:2px; }
+  .legend .item{ display:flex; align-items:center; gap:7px; }
+  .rbadge{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700;
+    color:#fff; border-radius:6px; padding:3px 9px; letter-spacing:.02em; }
+  .rbadge .material-symbols-rounded{ font-size:15px; }
+  .rbadge.admin{ background:var(--admin); }
+  .rbadge.user{ background:var(--user); }
+
+  /* 3화면 카드 */
+  .flow{ display:grid; gap:18px; }
+  @media(min-width:880px){ .flow{ grid-template-columns:repeat(3,1fr); } }
+  .scard{ display:flex; flex-direction:column; text-decoration:none; color:inherit;
+    border:1.5px solid var(--line-strong); border-radius:10px; background:#fff; overflow:hidden;
+    transition:.12s; }
+  .scard:hover{ box-shadow:0 4px 16px rgba(40,48,60,.10); transform:translateY(-2px); }
+  .scard.admin:hover{ border-color:var(--admin); }
+  .scard.user:hover{ border-color:var(--user); }
+  /* 역할 스트립 (잘 보이게 색으로 구분) */
+  .role-strip{ display:flex; align-items:center; gap:7px; padding:9px 14px; font-weight:700; font-size:13.5px; color:#fff; }
+  .role-strip .material-symbols-rounded{ font-size:18px; }
+  .role-strip .dev{ margin-left:auto; font-size:11.5px; font-weight:600; opacity:.85;
+    border:1px solid rgba(255,255,255,.5); border-radius:99px; padding:1px 8px; }
+  .scard.admin .role-strip{ background:var(--admin); }
+  .scard.user .role-strip{ background:var(--user); }
+  .scard-body{ padding:16px; display:flex; flex-direction:column; gap:12px; flex:1; }
+  .num-row{ display:flex; align-items:center; gap:10px; }
+  .num{ width:30px; height:30px; border-radius:8px; background:var(--fill-2); color:var(--ink);
+    font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center;
+    border:1.5px solid var(--line); }
+  .num-row h3{ font-size:17px; font-weight:700; }
+  .scard-body p{ color:var(--muted); font-size:13px; flex:1; }
+  .open{ font-size:13px; font-weight:700; display:flex; align-items:center; gap:5px; margin-top:2px; }
+  .scard.admin .open{ color:var(--admin); }
+  .scard.user .open{ color:var(--user); }
+
+  /* 미니 와이어 프리뷰 */
+  .preview{ border:1.5px dashed var(--line-strong); border-radius:8px; background:var(--fill); overflow:hidden; }
+  .preview.phone{ width:118px; margin:0 auto; border-radius:16px; }
+  .pbar{ background:var(--fill-2); border-bottom:1px solid var(--line); padding:6px 9px; display:flex; gap:4px; align-items:center; }
+  .pbar i{ width:6px; height:6px; border-radius:50%; background:var(--line-strong); display:inline-block; }
+  .pbar .notch{ width:34px; height:5px; border-radius:99px; background:var(--line-strong); margin:0 auto; }
+  .pbody{ padding:10px; display:flex; flex-direction:column; gap:6px; }
+  .bl{ height:8px; border-radius:3px; background:var(--fill-2); display:block; }
+  .bl.l{ width:100%; } .bl.m{ width:72%; } .bl.s{ width:48%; }
+  .brow{ display:flex; gap:6px; } .brow .bl{ flex:1; }
+
+  /* 하단 섹션 */
+  .sec-title{ font-size:12.5px; color:var(--muted); font-weight:700; letter-spacing:.05em;
+    text-transform:uppercase; margin:38px 0 12px; }
+  .panel{ border:1.5px solid var(--line); border-radius:10px; background:#fff; padding:18px 20px; }
+  .pgrid{ display:grid; gap:16px; }
+  @media(min-width:760px){ .pgrid{ grid-template-columns:repeat(3,1fr); } }
+  .pt{ display:flex; gap:10px; }
+  .pt .material-symbols-rounded{ color:var(--line-strong); font-size:20px; }
+  .pt b{ font-size:14px; } .pt span.d{ color:var(--muted); font-size:12.5px; }
+  .scope-grid{ display:flex; flex-wrap:wrap; gap:24px; }
+  .scope-col{ flex:1; min-width:200px; }
+  .scope-col h4{ font-size:12.5px; color:var(--muted); margin-bottom:8px; font-weight:700; }
+  .scope-col li{ list-style:none; font-size:13px; padding:3px 0; display:flex; gap:7px; align-items:flex-start; color:var(--ink); }
+  .scope-col .material-symbols-rounded{ font-size:17px; margin-top:1px; color:var(--line-strong); }
+  footer{ text-align:center; color:var(--muted); font-size:12px; padding:26px 20px;
+    margin-top:30px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<div class="wm">
+  <span class="material-symbols-rounded">draft</span>
+  <b>WIREFRAME · 프로토타입</b>
+  <span>예시 화면이며 개발 시 달라질 수 있습니다.</span>
+  <span class="sp"></span>
+  <span>스타벅스 바리스타 평가 · 2026-06-04</span>
+</div>
+
+<div class="wrap">
+  <div class="eyebrow">STARBUCKS · 바리스타 교육 평가 제안</div>
+  <h1>매장에서 직접 해보고, 30분 안에 제출하면,<br>AI가 1차 채점하고 사람이 확정한다.</h1>
+  <p class="sub">커피 테이스팅 같은 수행·서술형 평가를 온라인으로 운영하는 화면 예시입니다. 아래 3개 화면이 핵심 흐름입니다.</p>
+
+  <!-- 빌더 위 예시 안내 -->
+  <div class="disclaimer">
+    <span class="material-symbols-rounded">info</span>
+    <div>
+      <b>예시이며 개발 시 달라질 수 있습니다.</b>
+      <p>아래 화면은 흐름을 보여주기 위한 예시 시안입니다. 실제 화면 구성·항목·정책은 개발 과정에서 확정됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 역할 범례 -->
+  <div class="legend">
+    <span class="item"><span class="rbadge admin"><span class="material-symbols-rounded">manage_accounts</span>관리자</span> 점장·트레이너가 쓰는 화면</span>
+    <span class="item"><span class="rbadge user"><span class="material-symbols-rounded">local_cafe</span>사용자</span> 바리스타(학습자)가 쓰는 화면</span>
+  </div>
+
+  <!-- 3화면 -->
+  <div class="flow">
+
+    <!-- 1 · 관리자 -->
+    <a class="scard admin" href="proto/builder.html">
+      <div class="role-strip"><span class="material-symbols-rounded">manage_accounts</span> 관리자 화면 <span class="dev">PC</span></div>
+      <div class="scard-body">
+        <div class="preview pc">
+          <div class="pbar"><i></i><i></i><i></i></div>
+          <div class="pbody"><span class="bl l"></span><span class="bl m"></span><div class="brow"><span class="bl"></span><span class="bl"></span></div><span class="bl s"></span></div>
+        </div>
+        <div class="num-row"><span class="num">1</span><h3>문제 빌더</h3></div>
+        <p>서술형 문항에 내부 자료와 작성가이드(단계), 채점 루브릭을 더해 출제합니다.</p>
+        <span class="open">빌더 열기 <span class="material-symbols-rounded">arrow_forward</span></span>
+      </div>
+    </a>
+
+    <!-- 2 · 사용자 -->
+    <a class="scard user" href="proto/exam.html">
+      <div class="role-strip"><span class="material-symbols-rounded">local_cafe</span> 사용자 화면 (바리스타) <span class="dev">모바일·PC</span></div>
+      <div class="scard-body">
+        <div class="preview phone">
+          <div class="pbar"><span class="notch"></span></div>
+          <div class="pbody"><span class="bl m"></span><span class="bl l"></span><span class="bl l"></span><span class="bl s"></span></div>
+        </div>
+        <div class="num-row"><span class="num">2</span><h3>응시 · 제출</h3></div>
+        <p>자기 매장에서 30분 타이머 안에 직접 시음하고 서술 답안을 제출합니다. 자동저장으로 끊겨도 복구됩니다.</p>
+        <span class="open">응시 화면 열기 <span class="material-symbols-rounded">arrow_forward</span></span>
+      </div>
+    </a>
+
+    <!-- 3 · 관리자 -->
+    <a class="scard admin" href="proto/grading.html">
+      <div class="role-strip"><span class="material-symbols-rounded">manage_accounts</span> 관리자 화면 <span class="dev">PC</span></div>
+      <div class="scard-body">
+        <div class="preview pc">
+          <div class="pbar"><i></i><i></i><i></i></div>
+          <div class="pbody"><div class="brow"><span class="bl"></span><span class="bl"></span><span class="bl"></span></div><span class="bl l"></span><span class="bl m"></span><span class="bl s"></span></div>
+        </div>
+        <div class="num-row"><span class="num">3</span><h3>채점 · 결과</h3></div>
+        <p>AI가 배점 합산으로 1차 잠정 점수·루브릭 충족·코멘트를 내고, 채점자가 검수·확정합니다. 합격은 자격 이력으로 남습니다.</p>
+        <span class="open">채점 화면 열기 <span class="material-symbols-rounded">arrow_forward</span></span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 셀링 포인트 -->
+  <div class="sec-title">제안 셀링 포인트</div>
+  <div class="panel">
+    <div class="pgrid">
+      <div class="pt"><span class="material-symbols-rounded">description</span><div><b>내부 자료 활용</b><br><span class="d">스타벅스 내부 자료를 평가 지문·채점 어휘로 그대로 사용</span></div></div>
+      <div class="pt"><span class="material-symbols-rounded">auto_awesome</span><div><b>채점 부담 경감</b><br><span class="d">점장·트레이너가 AI 초안을 손보기만 함</span></div></div>
+      <div class="pt"><span class="material-symbols-rounded">workspace_premium</span><div><b>합격 = 자격 이력</b><br><span class="d">통과 결과가 수강 이력에 자격으로 기록</span></div></div>
+    </div>
+  </div>
+
+  <!-- 범위 -->
+  <div class="sec-title">개발 범위 (예시)</div>
+  <div class="panel">
+    <div class="scope-grid">
+      <div class="scope-col">
+        <h4>지금 만드는 것</h4>
+        <ul>
+          <li><span class="material-symbols-rounded">check_circle</span> 서술형 문항 + 내부 자료 첨부</li>
+          <li><span class="material-symbols-rounded">check_circle</span> 30분 응시 · 자동저장 · 제출</li>
+          <li><span class="material-symbols-rounded">check_circle</span> AI 1차 채점 → 사람 확정</li>
+        </ul>
+      </div>
+      <div class="scope-col">
+        <h4>제출 형식 단계</h4>
+        <ul>
+          <li><span class="material-symbols-rounded">looks_one</span> 1단계 — 텍스트 서술 + 사진</li>
+          <li><span class="material-symbols-rounded">looks_two</span> 2단계 — 음성 · 영상 · 수치</li>
+        </ul>
+      </div>
+      <div class="scope-col">
+        <h4>이번에 다루지 않는 것</h4>
+        <ul>
+          <li><span class="material-symbols-rounded">do_not_disturb_on</span> 오프라인 집합 · 출석</li>
+          <li><span class="material-symbols-rounded">do_not_disturb_on</span> 실시간 감독(프록터링)</li>
+          <li><span class="material-symbols-rounded">do_not_disturb_on</span> 시스템 자동 합·불 판정</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>WIREFRAME · 프로토타입 · 2026-06-04 · 예시 화면이며 개발 과정에서 달라질 수 있습니다.</footer>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>와이어프레임 — 스타벅스 바리스타 평가</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="wire.css">
+</head>
+<body>
+<div class="wm">
+  <b>WIREFRAME</b> · 저충실도 설명용 · 스타벅스 바리스타 평가 (제안 가설)
+  <span class="sp"></span>
+  <a href="../index.html">→ 컬러 프로토타입</a>
+</div>
+
+<div class="wrap">
+  <h1>어떤 시점으로 볼까요?</h1>
+  <p class="sub">설명이 복잡해지지 않게 <b>역할별로 화면을 나눠</b> 봅니다. 각 화면 옆에는 "어려운 부분"을 주석으로 달아뒀습니다.</p>
+
+  <div class="roles">
+    <a class="role-btn" href="learner.html">
+      <div class="tag">VIEW 1 · 학습자(바리스타)</div>
+      <h2>응시하는 사람의 화면</h2>
+      <p>과제 안내 → 30분 응시(직접 수행 + 텍스트·사진 제출) → 결과 확인. 모바일 기준.</p>
+      <div class="arrow">학습자 화면 보기 →</div>
+    </a>
+    <a class="role-btn" href="admin.html">
+      <div class="tag">VIEW 2 · 관리자(점장·트레이너)</div>
+      <h2>출제·채점하는 사람의 화면</h2>
+      <p>문제 빌더(배점 루브릭) → 제출 현황 → AI 1차 채점 검수·확정 → 합격 이력. PC 기준.</p>
+      <div class="arrow">관리자 화면 보기 →</div>
+    </a>
+  </div>
+
+  <div class="sec-title">이 와이어프레임이 설명하려는 "어려운 부분" 4가지</div>
+  <div class="cols" style="grid-template-columns:1fr 1fr;gap:12px">
+    <div class="box solid"><b style="color:var(--accent)">① AI 1차 채점</b><div class="gap"></div>배점화된 루브릭 → AI 잠정 점수 → 사람 확정 → 점수차 로깅. <span class="inpin">관</span> 화면에서 봅니다.</div>
+    <div class="box solid"><b style="color:var(--accent)">② 제출 형식 단계</b><div class="gap"></div>Phase 1=텍스트+사진 / Phase 2=음성·영상·수치폼. <span class="inpin">학</span> <span class="inpin">관</span> 양쪽.</div>
+    <div class="box solid"><b style="color:var(--accent)">③ 개인 원격 30분 모델</b><div class="gap"></div>매장에서 직접 수행, 행위는 시스템 밖. 타이머·자동저장. <span class="inpin">학</span> 화면.</div>
+    <div class="box solid"><b style="color:var(--accent)">④ 역할별 동선</b><div class="gap"></div>학습자=응시/결과, 관리자=출제/채점/이력. 두 버튼으로 분리.</div>
+  </div>
+</div>
+</body>
+</html>

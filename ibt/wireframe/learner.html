@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>학습자 시점 와이어프레임</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="wire.css">
+</head>
+<body>
+<div class="wm">
+  <b>WIREFRAME</b> · VIEW 1 · 학습자(바리스타) · 모바일 기준
+  <span class="sp"></span>
+  <a href="index.html">← 역할 선택</a> &nbsp; <a href="admin.html">관리자 시점 →</a>
+</div>
+
+<div class="wrap">
+  <h1>학습자 시점 — 응시하는 사람</h1>
+  <p class="sub">매장에서 폰으로 바로. 행위(시음·추출)는 자기가 직접 하고, 결과만 30분 안에 제출합니다.</p>
+
+  <div class="screens">
+
+    <!-- L1 -->
+    <div class="screen">
+      <div>
+        <div class="frame-head"><span class="n">1</span><span class="t">과제 안내 (응시 전)</span><span class="role">학습자</span></div>
+        <div class="device phone">
+          <div class="bar"><span class="dot"></span> 커피품질서비스 고급</div>
+          <div class="body">
+            <span class="pill acc">서술형 수행과제</span>
+            <div class="gap"></div>
+            <div class="lbl">과제명</div><div class="barline l"></div><div class="barline m"></div>
+            <div class="gap"></div>
+            <div class="box"><div class="between"><span>제한 시간</span><span class="timer">30:00</span></div></div>
+            <div class="gap"></div>
+            <div class="callout">PC 권장 — 입력이 많아요. 폰도 가능하며 끊겨도 자동저장으로 복구됩니다.</div>
+            <div class="gap-lg"></div>
+            <span class="btn pri">응시 시작</span>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="nt"><span class="pin">3</span><span class="nx"><b>개인 원격 30분 모델</b> — 응시 가능 시간창 안에 본인이 시작. 시작하면 30분 타이머가 돈다.</span></div>
+        <div class="nt"><span class="pin">3</span><span class="nx"><b>행위는 시스템 밖</b> — 실제 시음·추출은 자기 매장에서. 시스템은 안내·제출·채점만 한다.</span></div>
+        <div class="callout">기기: 폰·PC·태블릿 모두 지원, PC 권장 안내 한 줄.</div>
+      </div>
+    </div>
+
+    <!-- L2 -->
+    <div class="screen">
+      <div>
+        <div class="frame-head"><span class="n">2</span><span class="t">응시 · 제출</span><span class="role">학습자</span></div>
+        <div class="device phone">
+          <div class="bar"><span class="dot"></span> 문항 1/1 <span class="sp" style="flex:1"></span> <span class="timer">28:43</span></div>
+          <div class="body">
+            <div class="lbl">문제</div>
+            <div class="barline l"></div><div class="barline m"></div>
+            <div class="gap"></div>
+            <div class="imgph" style="height:80px">자료 · 풍미 휠 (이미지)</div>
+            <div class="gap-lg"></div>
+            <div class="lbl">답안 — 텍스트</div>
+            <div class="box" style="height:90px">서술 입력…</div>
+            <div class="gap"></div>
+            <div class="lbl">답안 — 사진 (Phase 1)</div>
+            <div class="cols-3">
+              <div class="imgph" style="height:48px">＋</div>
+              <div class="imgph" style="height:48px">라떼아트</div>
+              <div class="imgph" style="height:48px">단계컷</div>
+            </div>
+            <div class="gap"></div>
+            <div class="between"><span class="pill">자동저장됨</span><span class="btn pri">제출하기</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="nt"><span class="pin">2</span><span class="nx"><b>제출 형식 — Phase 1</b> = 텍스트 + 사진(라떼아트 결과·단계 인증).</span></div>
+        <div class="nt"><span class="pin">2</span><span class="nx">음성 구술·영상 시연·수치 데이터폼은 <b>Phase 2</b>. 이 자리에 입력 위젯만 추가되는 구조.</span></div>
+        <div class="nt"><span class="pin">3</span><span class="nx"><b>자동저장</b> — 30분 중 끊겨도 복구. 마로패스 자산 그대로.</span></div>
+        <div class="callout warn">타이머 5분 남으면 빨강, 0초에 자동 제출.</div>
+      </div>
+    </div>
+
+    <!-- L3 -->
+    <div class="screen">
+      <div>
+        <div class="frame-head"><span class="n">3</span><span class="t">결과 확인</span><span class="role">학습자</span></div>
+        <div class="device phone">
+          <div class="bar"><span class="dot"></span> 결과</div>
+          <div class="body">
+            <div class="box solid" style="text-align:center">
+              <div class="lbl">점수</div>
+              <div style="font-size:30px;font-weight:700;font-family:monospace">85<span style="font-size:14px;color:var(--muted)"> / 100</span></div>
+              <div class="gap"></div><span class="pill acc">합격 (기준 70점)</span>
+            </div>
+            <div class="gap"></div>
+            <div class="lbl">채점 코멘트</div>
+            <div class="box"><div class="barline l"></div><div class="barline l"></div><div class="barline s"></div></div>
+            <div class="gap"></div>
+            <div class="row"><span class="btn">내 답안 다시보기</span><span class="btn">재응시 요청</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="nt"><span class="pin">1</span><span class="nx">학습자에게는 <b>확정 점수만</b> 보인다. "AI 잠정"은 관리자 화면에만.</span></div>
+        <div class="nt"><span class="pin">4</span><span class="nx"><b>재응시 요청</b> — 기본 1회. 추가 응시는 관리자가 수동 부여.</span></div>
+        <div class="callout">합격은 수강 이력에 <b>자격 결과</b>로 남는다.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

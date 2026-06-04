@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>문제 빌더 · 스타벅스 바리스타 평가</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .builder-grid { display:grid; gap:20px; }
+  @media(min-width:1100px){ .builder-grid{ grid-template-columns: 1.35fr 1fr; align-items:start; } }
+  .preview-card { position: sticky; top: 80px; }
+  .seg { display:inline-flex; border:1px solid var(--grey-200); border-radius:8px; overflow:hidden; }
+  .seg button { border:none; background:#fff; padding:8px 14px; font:inherit; font-size:13px; font-weight:600; color:var(--grey-600); cursor:pointer; }
+  .seg button.on { background:var(--green-700); color:#fff; }
+  .seg button + button { border-left:1px solid var(--grey-200); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .addbtn { width:100%; border:1px dashed var(--grey-300); background:var(--surface); color:var(--grey-600); border-radius:8px; padding:10px; font:inherit; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .addbtn:hover{ border-color:var(--green-700); color:var(--green-700); }
+  .asset-drop { border:1px dashed var(--grey-300); border-radius:12px; padding:16px; display:flex; align-items:center; gap:12px; background:var(--surface); }
+  .asset-thumb { width:64px; height:64px; border-radius:8px; background:#fff; border:1px solid var(--grey-200); overflow:hidden; flex:none; }
+  .asset-thumb img { width:100%; height:100%; object-fit:cover; }
+  .lvl-tip { background:var(--blue-50,#eef4ff); border:1px solid #d9e4fb; color:#1b4fa6; border-radius:8px; padding:8px 12px; font-size:12.5px; margin-top:2px; }
+  .cp .sc { margin-left:auto; font-size:12px; color:var(--grey-500); font-family:monospace; }
+  .cp { align-items:center; }
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <button class="back" title="나가기" onclick="location.href='../index.html'"><span class="material-symbols-rounded">arrow_back</span></button>
+  <span class="title">문제 빌더</span>
+  <span class="crumb">· 커피품질서비스 고급</span>
+  <span class="spacer"></span>
+  <span class="autosave"><span class="material-symbols-rounded">cloud_done</span> 임시저장됨</span>
+  <button class="btn btn-secondary">미리보기</button>
+  <button class="btn btn-primary"><span class="material-symbols-rounded">check</span> 문제은행에 저장</button>
+</div>
+
+<div class="page builder-grid">
+
+  <!-- 좌: 작성 폼 -->
+  <div>
+
+    <!-- 시험(시험지) 설정 — 시험 단위 -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">tune</span> 시험 설정 <span class="badge badge-blue" style="margin-left:6px">시험(시험지) 단위</span></div>
+      <div class="card-sub">같은 시험에 속한 모든 문항에 공통 적용됩니다.</div>
+      <div class="divider"></div>
+      <div class="field">
+        <label>과정 / 자격</label>
+        <input class="input" value="커피품질서비스 고급">
+      </div>
+      <div class="grid2">
+        <div class="field" style="margin-bottom:0">
+          <label>합격 기준 <span class="hint">컷오프 단일</span></label>
+          <input class="input mono" value="70점 / 100점">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>채점 방식</label>
+          <div class="seg">
+            <button class="on">점장 1인</button>
+            <button>2인 교차</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 문항 설정 — 문항 단위 -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">edit_document</span> 문항 설정 <span class="badge badge-grey" style="margin-left:6px">문항 단위</span></div>
+      <div class="card-sub">문제마다 따로 설정합니다. 제한 시간도 문항별로 둡니다.</div>
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>문항 유형</label>
+        <div class="seg">
+          <button class="on">서술형 수행과제</button>
+          <button>단답</button>
+          <button>객관식</button>
+        </div>
+        <div class="hint" style="margin-top:6px">서술형 문항에 <b>자료 첨부 · 작성가이드 · 제한시간</b>을 더한 형태입니다.</div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>제한 시간 <span class="hint">이 문항</span></label>
+          <input class="input mono" value="30분">
+        </div>
+        <div class="field">
+          <label>배점</label>
+          <input class="input mono" value="100점">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>문항 제목</label>
+        <input class="input" value="오늘의 커피 테이스팅 — 향미 표현하기">
+      </div>
+
+      <div class="field" style="margin-bottom:0">
+        <label>수행 목표</label>
+        <textarea class="textarea" rows="2">오늘의 커피(브루드)를 테이스팅하고, 내부 자료를 활용해 향·맛·바디·로스팅 단계를 전문가적 센서리 언어로 표현한다.</textarea>
+      </div>
+    </div>
+
+    <!-- 작성가이드 -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">format_list_numbered</span> 작성가이드 (단계)</div>
+      <div class="card-sub">응시자에게 단계별로 안내됩니다.</div>
+      <div class="divider"></div>
+      <div id="steps">
+        <div class="step"><span class="no">1</span><div class="st-body"><b>준비</b> — 브루드 커피(오늘의 커피)와 내부 자료를 준비한다.</div></div>
+        <div class="step"><span class="no">2</span><div class="st-body"><b>Smell (아로마 맡기)</b> — 컵을 코 가까이 가져가 깊게 흡입하고, 감지되는 향을 내부 자료를 참고해 기록한다.</div></div>
+        <div class="step"><span class="no">3</span><div class="st-body"><b>Slurp (후루룩 마시기)</b> — 공기와 함께 강하게 흡입해 향기 분자를 입안 전체로 퍼뜨린다.</div></div>
+        <div class="step"><span class="no">4</span><div class="st-body"><b>Locate (머금고 즐기기)</b> — 입에 머금고 혀 전체로 굴려 맛 성분과 질감을 평가한다.</div></div>
+        <div class="step"><span class="no">5</span><div class="st-body"><b>Describe (표현하기)</b> — 앞서 감지한 향과 맛을 종합해 서술한다.</div></div>
+        <div class="step"><span class="no">6</span><div class="st-body"><b>자기 점검</b> — 어려웠던 향/맛, 확신·불확실했던 부분, 개선점을 정리한다.</div></div>
+      </div>
+      <button class="addbtn" style="margin-top:10px" onclick="addStep()"><span class="material-symbols-rounded">add</span> 단계 추가</button>
+    </div>
+
+    <!-- 자료 첨부 -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">attachment</span> 첨부 자료</div>
+      <div class="card-sub">응시 화면 좌측에 함께 노출됩니다.</div>
+      <div class="divider"></div>
+      <div class="asset-drop">
+        <div class="asset-thumb"><img src="../re/img.png" alt="내부 자료"></div>
+        <div style="flex:1">
+          <div style="font-weight:600">내부 자료.png</div>
+          <div class="tiny">문제 지문에 함께 노출 · 채점 사전과 연결됨</div>
+        </div>
+        <button class="btn btn-secondary"><span class="material-symbols-rounded">swap_horiz</span> 교체</button>
+      </div>
+    </div>
+
+    <!-- 루브릭 (= 과제 작성 가이드 6항목) -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">rule</span> 채점 루브릭 (체크포인트 · 배점)</div>
+      <div class="card-sub">응시자에겐 "과제 작성 가이드"로, 채점에선 배점 기준으로 쓰입니다. AI 1차가 충족 여부·코멘트 초안을 내고 <b>점수 확정은 채점자</b>가 합니다.</div>
+      <div class="divider"></div>
+      <div class="stack">
+        <div class="cp done"><span class="mark"><span class="material-symbols-rounded">check</span></span><div class="cp-text">내부 자료 기반으로 향을 <b>2가지 이상</b> 표현 <span class="sc">20점</span></div></div>
+        <div class="cp done"><span class="mark"><span class="material-symbols-rounded">check</span></span><div class="cp-text">단맛 · 신맛 · 쓴맛 · 바디감을 모두 표현 <span class="sc">20점</span></div></div>
+        <div class="cp done"><span class="mark"><span class="material-symbols-rounded">check</span></span><div class="cp-text">블론드 · 미디엄 · 다크 로스팅 단계 판별 <span class="sc">15점</span></div></div>
+        <div class="cp done"><span class="mark"><span class="material-symbols-rounded">check</span></span><div class="cp-text">산미 · 바디감을 로스팅 단계와 연결 <span class="sc">15점</span></div></div>
+        <div class="cp done"><span class="mark"><span class="material-symbols-rounded">check</span></span><div class="cp-text">해당 원두와 일치하는 풍미 표현 <span class="sc">15점</span></div></div>
+        <div class="cp done"><span class="mark"><span class="material-symbols-rounded">check</span></span><div class="cp-text">‘좋다/나쁘다’ 대신 구체적 향·맛으로 표현 <span class="sc">15점</span></div></div>
+      </div>
+      <button class="addbtn" style="margin-top:12px"><span class="material-symbols-rounded">add</span> 체크포인트 추가</button>
+    </div>
+
+    <!-- 모범답안 -->
+    <div class="card card-pad">
+      <div class="card-title"><span class="material-symbols-rounded" style="color:var(--green-700)">verified</span> 모범답안 (채점 참고)</div>
+      <div class="divider"></div>
+      <textarea class="textarea" rows="4">오늘의 커피는 견과류·카카오 계열의 고소한 향에 은은한 베리 산미가 어우러진다. 바디는 중간, 산미는 부드럽고 쓴맛은 절제돼 있어 산미–바디의 균형으로 보아 미디엄 로스팅으로 판단된다. 전반적으로 고소함과 산미가 조화로운 깔끔한 여운의 커피다.</textarea>
+    </div>
+  </div>
+
+  <!-- 우: 응시자 미리보기 -->
+  <div class="preview-card">
+    <div class="card">
+      <div class="card-pad" style="border-bottom:1px solid var(--grey-200);display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-rounded" style="color:var(--grey-500)">visibility</span>
+        <b style="font-size:14px">응시자 화면 미리보기</b>
+        <span class="spacer" style="flex:1"></span>
+        <span class="badge badge-grey mono">30:00</span>
+      </div>
+      <div class="card-pad">
+        <span class="badge badge-green">서술형 수행과제</span>
+        <h3 style="font-size:17px;margin:10px 0 4px">오늘의 커피 테이스팅 — 향미 표현하기</h3>
+        <p class="muted" style="font-size:13px">내부 자료를 활용해 오늘의 커피의 향·맛·바디·로스팅 단계를 센서리 언어로 표현하세요.</p>
+        <div class="asset" style="margin-top:14px">
+          <img src="../re/img.png" alt="내부 자료" style="width:100%;max-width:260px;border-radius:10px;border:1px solid var(--grey-200)">
+          <div class="cap">내부 자료</div>
+        </div>
+        <div class="divider"></div>
+        <div class="tiny">작성가이드 6단계 · 채점 루브릭 6개 · 제한시간 30분</div>
+      </div>
+    </div>
+    <p class="tiny" style="text-align:center;margin-top:12px">왼쪽 입력이 실시간 반영되는 형태(개념)</p>
+  </div>
+
+</div>
+
+<script>
+  let stepNo = 6;
+  function addStep(){
+    stepNo++;
+    const d = document.createElement('div');
+    d.className = 'step';
+    d.innerHTML = '<span class="no">'+stepNo+'</span><div class="st-body" contenteditable="true">새 단계 내용을 입력하세요.</div>';
+    document.getElementById('steps').appendChild(d);
+  }
+  document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  });
+</script>
+</body>
+</html>
